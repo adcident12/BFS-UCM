@@ -59,10 +59,18 @@ class UserController extends Controller
             ->unique('system_id')
             ->keyBy('system_id');
 
+        // โหลด permissions ทั้งหมดของ user ในคำสั่งเดียว แล้ว group ใน PHP (ไม่ N+1)
+        $ucmPermsBySystem = UserSystemPermission::where('user_id', $user->id)
+            ->whereIn('system_id', $systems->pluck('id'))
+            ->get()
+            ->groupBy('system_id')
+            ->map(fn ($rows) => $rows->pluck('permission_key')->toArray())
+            ->toArray();
+
         $permsPerSystem = [];
 
         foreach ($systems as $system) {
-            $ucmPerms      = $user->getPermissionsForSystem($system->id);
+            $ucmPerms = $ucmPermsBySystem[$system->id] ?? [];
             $remotePerms   = null;
             $accountStatus = null;
 
@@ -202,10 +210,13 @@ class UserController extends Controller
     public function importBulkFromLdap(Request $request)
     {
         $validated = $request->validate([
-            'usernames'   => 'required|array|min:1|max:200',
+            'usernames'   => 'required|array|min:1',
             'usernames.*' => 'string|max:100',
             'system_id'   => 'nullable|integer|exists:systems,id',
         ]);
+
+        // อนุญาต execution นานขึ้นสำหรับ import จำนวนมาก (ไม่ block user ปกติ)
+        set_time_limit(300);
 
         $imported = 0;
         $skipped  = 0;
@@ -318,6 +329,11 @@ class UserController extends Controller
         ]);
 
         $ids = $validated['user_ids'];
+
+        // ป้องกัน admin ลบบัญชีตัวเอง
+        if (in_array(Auth::id(), $ids, true)) {
+            return response()->json(['success' => false, 'message' => 'ไม่สามารถลบบัญชีของตัวเองได้'], 422);
+        }
 
         DB::transaction(function () use ($ids) {
             UserSystemPermission::whereIn('user_id', $ids)->delete();

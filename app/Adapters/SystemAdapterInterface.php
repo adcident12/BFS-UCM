@@ -83,4 +83,60 @@ interface SystemAdapterInterface
      * ใช้ใน UI แสดงสถานะ connection
      */
     public function testConnection(): array; // ['ok' => bool, 'message' => string]
+
+    /**
+     * สร้าง permission definition ในระบบภายนอก (UCM → External)
+     *
+     * เรียกอัตโนมัติเมื่อสร้าง permission ใน UCM และยังไม่มี remote_value
+     * รองรับทั้ง auto-increment (คืน int/string ของ id ที่ได้)
+     * และ string-based (คืน string ที่ใช้เป็น key ในระบบภายนอก)
+     *
+     * @return string|int|null  remote_value ที่จะเก็บใน UCM
+     *                          null = ระบบนี้ไม่มี permission definition table (ไม่ต้อง provision)
+     */
+    public function provisionPermission(string $key, string $label, string $group): string|int|null;
+
+    /**
+     * ลบ permission definition ออกจากระบบภายนอก (UCM → External)
+     *
+     * เรียกอัตโนมัติเมื่อลบ permission ใน UCM
+     * Adapter ที่ไม่มี definition table override คืน true เฉยๆ
+     *
+     * @param  string $remoteValue  ค่า remote_value ของ permission ที่จะลบ
+     * @return bool   true = ลบสำเร็จหรือไม่จำเป็นต้องลบ, false = เกิด error
+     */
+    public function deletePermission(string $remoteValue): bool;
+
+    // ── Managed Group CRUD ─────────────────────────────────────────────────
+    // Adapter ที่มีตาราง reference (เช่น departments, document_categories) สามารถ
+    // expose ตารางเหล่านั้นให้ UCM จัดการ CRUD ได้โดยตรง
+    // Adapter ที่ไม่รองรับให้ BaseAdapter default คืนค่าเปล่า
+
+    /**
+     * ชื่อ group ที่ adapter ต้องการให้ UCM จัดการ CRUD โดยตรง
+     * @return string[]  เช่น ['Department', 'Document Category'] หรือ []
+     */
+    public function getManagedGroups(): array;
+
+    /**
+     * ดึง records ทั้งหมดของ group ที่ระบุ
+     * @return array  [['id' => int, 'name' => string], ...]
+     */
+    public function getGroupRecords(string $group): array;
+
+    /**
+     * เพิ่ม record ใหม่ในกลุ่มที่ระบุ
+     * @return array|false  ['id' => int, 'name' => string] หรือ false ถ้าล้มเหลว
+     */
+    public function addGroupRecord(string $group, string $name): array|false;
+
+    /**
+     * อัปเดตชื่อ record (ใช้ id เป็น identifier)
+     */
+    public function updateGroupRecord(string $group, int $id, string $name): bool;
+
+    /**
+     * ลบ record ออกจากกลุ่มที่ระบุ
+     */
+    public function deleteGroupRecord(string $group, int $id): bool;
 }

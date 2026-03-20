@@ -147,15 +147,27 @@
                                         @endif
                                     </div>
                                     <div class="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        @if ($perm->remote_value && \App\Adapters\AdapterFactory::hasAdapter($system))
+                                            <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full ring-1 ring-amber-200/70" title="ลบที่ UCM แล้วจะลบใน {{ $system->name }} ด้วย">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                                2-way
+                                            </span>
+                                        @endif
                                         <button type="button" onclick="permEdit({{ $perm->id }})"
                                                 class="text-xs font-semibold text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors">แก้ไข</button>
                                         <form id="del-perm-{{ $perm->id }}" method="POST"
                                               action="{{ route('systems.permissions.destroy', [$system, $perm]) }}" class="hidden">
                                             @csrf @method('DELETE')
                                         </form>
-                                        <button type="button"
-                                                onclick="askConfirm('del-perm-{{ $perm->id }}', 'ลบ permission \'{{ addslashes($perm->label) }}\' ?')"
-                                                class="text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors">ลบ</button>
+                                        @if ($perm->remote_value && \App\Adapters\AdapterFactory::hasAdapter($system))
+                                            <button type="button"
+                                                    onclick="askConfirm('del-perm-{{ $perm->id }}', 'ลบ permission \'{{ addslashes($perm->label) }}\' ?', 'การลบนี้จะลบ &quot;{{ addslashes($perm->remote_value) }}&quot; ออกจาก {{ $system->name }} ด้วยทันที (2-way sync)')"
+                                                    class="text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors">ลบ</button>
+                                        @else
+                                            <button type="button"
+                                                    onclick="askConfirm('del-perm-{{ $perm->id }}', 'ลบ permission \'{{ addslashes($perm->label) }}\' ?')"
+                                                    class="text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors">ลบ</button>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -272,6 +284,16 @@
                             </label>
                         </div>
                     </div>
+                    @if (\App\Adapters\AdapterFactory::hasAdapter($system))
+                        <div class="flex items-start gap-2.5 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                            <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                            </svg>
+                            <p class="text-xs text-amber-700 font-medium leading-relaxed">
+                                ระบบนี้มี adapter — permission ที่เพิ่มจะถูก <strong>สร้างใน {{ $system->name }} ด้วยอัตโนมัติ</strong> และการลบจะส่งผลต่อระบบภายนอกด้วย
+                            </p>
+                        </div>
+                    @endif
                     <button type="submit"
                             class="mt-5 w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm shadow-indigo-200 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200 flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,6 +308,86 @@
 
 </div>
 
+@if (!empty($managedGroups))
+{{-- ── Managed Reference Data ── --}}
+<div class="mt-8">
+    <div class="flex items-center gap-3 mb-3">
+        <div class="w-7 h-7 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1 3 3 3h10c2 0 3-1 3-3V7M4 7c0-2 1-3 3-3h10c2 0 3 1 3 3M4 7h16"/>
+            </svg>
+        </div>
+        <div>
+            <h2 class="text-sm font-bold text-slate-800">ข้อมูล Reference ใน {{ $system->name }}</h2>
+            <p class="text-xs text-slate-400 font-medium">จัดการตาราง reference โดยตรง — หลังเพิ่มแล้วกด Discover Permissions เพื่อซิงค์</p>
+        </div>
+    </div>
+
+    {{-- 2-way sync warning banner --}}
+    <div class="flex items-start gap-3 mb-4 px-4 py-3 bg-red-50 rounded-xl border border-red-100">
+        <svg class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div class="text-xs text-red-700 leading-relaxed">
+            <strong class="font-bold">ข้อมูลในส่วนนี้เขียนตรงไปยังฐานข้อมูลของ {{ $system->name }} ทันที</strong><br>
+            การ<strong>เพิ่ม</strong>หรือ<strong>แก้ไข</strong>จะมีผลกับระบบภายนอกโดยตรง — การ<strong>ลบ</strong>จะลบข้อมูลออกจาก {{ $system->name }} อย่างถาวร ไม่สามารถกู้คืนได้
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        @foreach ($managedGroups as $group)
+            @php
+                $groupSlug = 'grp-' . preg_replace('/[^a-z0-9]/', '-', strtolower($group));
+            @endphp
+            <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden flex flex-col">
+                {{-- Card header --}}
+                <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: {{ $system->color }}80"></div>
+                        <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">{{ $group }}</span>
+                        <span id="{{ $groupSlug }}-count" class="text-xs text-slate-400 font-medium"></span>
+                    </div>
+                    <button type="button" onclick="groupReload('{{ $group }}', '{{ $groupSlug }}')"
+                            class="text-slate-300 hover:text-slate-500 transition-colors" title="รีโหลด">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Records list --}}
+                <div id="{{ $groupSlug }}-list" class="flex-1 divide-y divide-slate-50 min-h-[80px] relative">
+                    <div class="flex items-center justify-center py-8 text-slate-300">
+                        <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                {{-- Add form --}}
+                <div class="px-4 py-3.5 border-t border-slate-100 bg-slate-50/30">
+                    <form method="POST" action="{{ route('systems.group-records.store', $system) }}"
+                          class="flex items-center gap-2" onsubmit="return groupAddSubmit(this)">
+                        @csrf
+                        <input type="hidden" name="group" value="{{ $group }}">
+                        <input type="text" name="name" required placeholder="ชื่อ {{ $group }} ใหม่"
+                               class="flex-1 min-w-0 px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 transition-all">
+                        <button type="submit"
+                                class="flex-shrink-0 inline-flex items-center gap-1 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold rounded-xl transition-all hover:-translate-y-0.5 shadow-sm shadow-amber-100">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            เพิ่ม
+                        </button>
+                    </form>
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 @endsection
 
 @push('scripts')
@@ -298,5 +400,107 @@
         document.getElementById('perm-view-' + id).style.display = '';
         document.getElementById('perm-edit-' + id).style.display = 'none';
     }
+
+    // ── Managed Group CRUD ────────────────────────────────────────────────
+    var _groupData = {};
+
+    function groupSlugOf(group) {
+        return 'grp-' + group.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    }
+
+    function groupReload(group, slug) {
+        var list = document.getElementById(slug + '-list');
+        list.innerHTML = '<div class="flex items-center justify-center py-8 text-slate-300"><svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg></div>';
+
+        fetch('{{ route('systems.group-records.index', [$system, '__GROUP__']) }}'.replace('__GROUP__', encodeURIComponent(group)))
+            .then(function(r) { return r.json(); })
+            .then(function(rows) {
+                _groupData[group] = rows;
+                groupRender(group, slug, rows);
+            })
+            .catch(function() {
+                list.innerHTML = '<p class="text-xs text-red-400 px-5 py-4">โหลดข้อมูลล้มเหลว</p>';
+            });
+    }
+
+    function groupRender(group, slug, rows) {
+        var list = document.getElementById(slug + '-list');
+        var count = document.getElementById(slug + '-count');
+        count.textContent = '(' + rows.length + ' รายการ)';
+
+        if (rows.length === 0) {
+            list.innerHTML = '<p class="text-xs text-slate-300 font-medium px-5 py-6 text-center">ยังไม่มีข้อมูล</p>';
+            return;
+        }
+
+        var html = '';
+        rows.forEach(function(row) {
+            var editId = slug + '-edit-' + row.id;
+            var viewId = slug + '-view-' + row.id;
+            html += '<div id="' + viewId + '" class="group flex items-center justify-between gap-2 px-4 py-2.5 hover:bg-slate-50 transition-colors">'
+                + '<span class="text-sm text-slate-700 font-medium truncate">' + escHtml(row.name) + '</span>'
+                + '<div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">'
+                + '<button type="button" onclick="groupEditShow(\'' + slug + '\',' + row.id + ')" class="text-xs font-semibold text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors">แก้ไข</button>'
+                + '<button type="button" onclick="groupDeleteConfirm(\'' + group + '\',' + row.id + ',\'' + escHtml(row.name) + '\')" class="text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors">ลบ</button>'
+                + '</div>'
+                + '</div>'
+                + '<div id="' + editId + '" style="display:none" class="px-4 py-2.5 bg-indigo-50/60 border-y border-indigo-100">'
+                + '<form method="POST" action="{{ route('systems.group-records.update', [$system, '__GROUP__', '__ID__']) }}'.replace('__GROUP__', encodeURIComponent(group)).replace('__ID__', row.id) + '" class="flex items-center gap-2">'
+                + '<input type="hidden" name="_token" value="{{ csrf_token() }}">'
+                + '<input type="hidden" name="_method" value="PUT">'
+                + '<input type="text" name="name" value="' + escAttr(row.name) + '" required class="flex-1 min-w-0 px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-all">'
+                + '<button type="submit" class="flex-shrink-0 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition-colors">บันทึก</button>'
+                + '<button type="button" onclick="groupEditHide(\'' + slug + '\',' + row.id + ')" class="flex-shrink-0 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors">ยกเลิก</button>'
+                + '</form>'
+                + '</div>';
+        });
+        list.innerHTML = html;
+    }
+
+    function groupEditShow(slug, id) {
+        document.getElementById(slug + '-view-' + id).style.display = 'none';
+        document.getElementById(slug + '-edit-' + id).style.display = '';
+    }
+    function groupEditHide(slug, id) {
+        document.getElementById(slug + '-view-' + id).style.display = '';
+        document.getElementById(slug + '-edit-' + id).style.display = 'none';
+    }
+
+    function groupDeleteConfirm(group, id, name) {
+        var formId = 'del-grp-dyn-' + id;
+        var existing = document.getElementById(formId);
+        if (existing) existing.remove();
+
+        var form = document.createElement('form');
+        form.id = formId;
+        form.method = 'POST';
+        form.action = '{{ route('systems.group-records.destroy', [$system, '__GROUP__', '__ID__']) }}'.replace('__GROUP__', encodeURIComponent(group)).replace('__ID__', id);
+        form.className = 'hidden';
+        form.innerHTML = '<input type="hidden" name="_token" value="{{ csrf_token() }}"><input type="hidden" name="_method" value="DELETE">';
+        document.body.appendChild(form);
+
+        askConfirm(
+            formId,
+            'ลบ "' + name + '" ออกจาก ' + group + ' ?',
+            'ข้อมูลนี้จะถูกลบออกจากฐานข้อมูลของ {{ $system->name }} โดยตรงและไม่สามารถกู้คืนได้'
+        );
+    }
+
+    function groupAddSubmit(form) {
+        // let default submit happen — will redirect back
+        return true;
+    }
+
+    function escHtml(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function escAttr(str) {
+        return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // Auto-load all managed groups on page ready
+    @foreach ($managedGroups as $group)
+    groupReload('{{ $group }}', '{{ 'grp-' . preg_replace('/[^a-z0-9]/', '-', strtolower($group)) }}');
+    @endforeach
 </script>
 @endpush

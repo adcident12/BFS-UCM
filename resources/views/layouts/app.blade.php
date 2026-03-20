@@ -126,16 +126,52 @@
             <div class="pt-4 pb-2">
                 <div class="h-px bg-white/5 mx-3"></div>
             </div>
+            <p class="px-3 mb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">คู่มือ</p>
+
+            @php $manualActive = request()->routeIs('docs.manual') @endphp
+            <a href="{{ route('docs.manual') }}" onclick="closeSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                      {{ $manualActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                            {{ $manualActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                    </svg>
+                </div>
+                <span class="truncate">คู่มือผู้ใช้งาน</span>
+                @if ($manualActive)
+                    <div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>
+                @endif
+            </a>
+
+            {{-- Section divider --}}
+            <div class="pt-4 pb-2">
+                <div class="h-px bg-white/5 mx-3"></div>
+            </div>
             <p class="px-3 mb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">นักพัฒนา</p>
 
-            @php $apiDocsActive    = request()->routeIs('api-docs') @endphp
-            @php $swaggerDocsActive = request()->is('api-docs/swagger') @endphp
+            @php $installActive  = request()->routeIs('docs.install') @endphp
+            @php $apiDocsActive  = request()->routeIs('api-docs') @endphp
+            @php $swaggerActive  = request()->is('api-docs/swagger') @endphp
+
+            <a href="{{ route('docs.install') }}" onclick="closeSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                      {{ $installActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                            {{ $installActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                    </svg>
+                </div>
+                <span class="truncate">Install Guide</span>
+                @if ($installActive)
+                    <div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>
+                @endif
+            </a>
 
             <a href="{{ route('api-docs') }}" onclick="closeSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
-                      {{ $apiDocsActive
-                          ? 'nav-active text-white border border-indigo-500/30'
-                          : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                      {{ $apiDocsActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                             {{ $apiDocsActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,17 +186,15 @@
 
             <a href="{{ url('api-docs/swagger') }}" onclick="closeSidebar()"
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
-                      {{ $swaggerDocsActive
-                          ? 'nav-active text-white border border-indigo-500/30'
-                          : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                      {{ $swaggerActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
-                            {{ $swaggerDocsActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                            {{ $swaggerActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
                     </svg>
                 </div>
                 <span class="truncate">Swagger UI</span>
-                @if ($swaggerDocsActive)
+                @if ($swaggerActive)
                     <div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>
                 @endif
             </a>
@@ -170,6 +204,22 @@
                 <div class="h-px bg-white/5 mx-3"></div>
             </div>
             <p class="px-3 mb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">บัญชี</p>
+
+            @php $profileActive = request()->routeIs('users.show') && request()->route('user')?->id === auth()->id() @endphp
+            <a href="{{ route('users.show', auth()->user()) }}" onclick="closeSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                      {{ $profileActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                            {{ $profileActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <span class="truncate">โปรไฟล์ของฉัน</span>
+                @if ($profileActive)
+                    <div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>
+                @endif
+            </a>
 
         </nav>
 
@@ -237,14 +287,14 @@
 
         {{-- Flash messages --}}
         @if (session('success'))
-            <div id="flash-success" class="flash-msg mx-4 md:mx-6 mt-5 flex items-start gap-3 p-4 bg-emerald-50 border border-emerald-200/80 text-emerald-800 rounded-2xl text-sm shadow-sm shadow-emerald-100">
+            <div id="flash-success" class="flash-msg mx-4 md:mx-6 lg:mx-8 mt-4 flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200/80 text-emerald-800 rounded-2xl text-sm shadow-sm shadow-emerald-100">
                 <div class="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
                 </div>
                 <div class="flex-1 font-medium">{{ session('success') }}</div>
-                <button onclick="this.closest('#flash-success').remove()" class="text-emerald-400 hover:text-emerald-600 transition-colors flex-shrink-0 mt-0.5">
+                <button onclick="this.closest('#flash-success').remove()" class="text-emerald-400 hover:text-emerald-600 transition-colors flex-shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -254,14 +304,14 @@
         @endif
 
         @if (session('error'))
-            <div id="flash-error" class="flash-msg mx-4 md:mx-6 mt-5 flex items-start gap-3 p-4 bg-red-50 border border-red-200/80 text-red-800 rounded-2xl text-sm shadow-sm shadow-red-100">
+            <div id="flash-error" class="flash-msg mx-4 md:mx-6 lg:mx-8 mt-4 flex items-center gap-3 p-4 bg-red-50 border border-red-200/80 text-red-800 rounded-2xl text-sm shadow-sm shadow-red-100">
                 <div class="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                     </svg>
                 </div>
                 <div class="flex-1 font-medium">{{ session('error') }}</div>
-                <button onclick="this.closest('#flash-error').remove()" class="text-red-400 hover:text-red-600 transition-colors flex-shrink-0 mt-0.5">
+                <button onclick="this.closest('#flash-error').remove()" class="text-red-400 hover:text-red-600 transition-colors flex-shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -271,14 +321,14 @@
         @endif
 
         @if (session('warning'))
-            <div id="flash-warning" class="flash-msg mx-4 md:mx-6 mt-5 flex items-start gap-3 p-4 bg-amber-50 border border-amber-200/80 text-amber-800 rounded-2xl text-sm shadow-sm shadow-amber-100">
+            <div id="flash-warning" class="flash-msg mx-4 md:mx-6 lg:mx-8 mt-4 flex items-center gap-3 p-4 bg-amber-50 border border-amber-200/80 text-amber-800 rounded-2xl text-sm shadow-sm shadow-amber-100">
                 <div class="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
                     <svg class="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                     </svg>
                 </div>
                 <div class="flex-1 font-medium">{{ session('warning') }}</div>
-                <button onclick="this.closest('#flash-warning').remove()" class="text-amber-400 hover:text-amber-600 transition-colors flex-shrink-0 mt-0.5">
+                <button onclick="this.closest('#flash-warning').remove()" class="text-amber-400 hover:text-amber-600 transition-colors flex-shrink-0">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>

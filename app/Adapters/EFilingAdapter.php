@@ -275,8 +275,65 @@ class EFilingAdapter extends BaseAdapter
     }
 
     /**
-     * Scan efiling DB → ค้นหา dep/cat values ที่ยังไม่มีใน UCM → สร้างอัตโนมัติ
-     * คืนค่า array ของ permission key ที่สร้างใหม่
+     * สร้าง record ใน departments หรือ document_categories ของ EFiling
+     * เมื่อ Admin เพิ่ม permission ใหม่จาก UCM (UCM → External)
+     *
+     * คืน label เป็น remote_value เพราะ user_info เก็บ name ไม่ใช่ id
+     */
+    public function provisionPermission(string $key, string $label, string $group): string|int|null
+    {
+        try {
+            $pdo = $this->getConnection();
+
+            if ($group === 'Department') {
+                $check = $pdo->prepare("SELECT id FROM departments WHERE name = ?");
+                $check->execute([$label]);
+                if (! $check->fetchColumn()) {
+                    $pdo->prepare("INSERT INTO departments (name) VALUES (?)")->execute([$label]);
+                    Log::info("[efiling] provisionPermission: เพิ่ม department '{$label}'");
+                }
+                return $label; // remote_value = name ที่ใช้ใน permission_dep CSV
+            }
+
+            if ($group === 'Document Category') {
+                $check = $pdo->prepare("SELECT id FROM document_categories WHERE name = ?");
+                $check->execute([$label]);
+                if (! $check->fetchColumn()) {
+                    $pdo->prepare("INSERT INTO document_categories (name) VALUES (?)")->execute([$label]);
+                    Log::info("[efiling] provisionPermission: เพิ่ม document_category '{$label}'");
+                }
+                return $label; // remote_value = name ที่ใช้ใน permission_cat CSV
+            }
+
+        } catch (PDOException $e) {
+            Log::error("[efiling] provisionPermission failed for '{$label}': " . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * ลบ record ออกจาก departments และ document_categories
+     * เมื่อ Admin ลบ permission จาก UCM (UCM → External)
+     */
+    public function deletePermission(string $remoteValue): bool
+    {
+        try {
+            $pdo = $this->getConnection();
+            $pdo->prepare("DELETE FROM departments WHERE name = ?")->execute([$remoteValue]);
+            $pdo->prepare("DELETE FROM document_categories WHERE name = ?")->execute([$remoteValue]);
+            Log::info("[efiling] deletePermission: ลบ '{$remoteValue}' จาก departments/document_categories");
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[efiling] deletePermission failed for '{$remoteValue}': " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Scan efiling DB → ค้นหา dep/cat ที่ยังไม่มีใน UCM → สร้างอัตโนมัติ
+     * scan จาก definition tables (departments, document_categories) เป็นหลัก
+     * fallback scan user_info สำหรับค่า legacy ที่ไม่มีใน definition table
      */
     public function discoverPermissions(): array
     {
@@ -285,52 +342,58 @@ class EFilingAdapter extends BaseAdapter
         try {
             $pdo = $this->getConnection();
 
-            // โหลด remote_values ที่มีอยู่แล้วใน UCM (แยกตาม group)
             $this->system->loadMissing('permissions');
             $existingDeps = $this->system->permissions
                 ->where('group', 'Department')
-                ->map(fn($p) => $p->remote_value ?: $p->label)
-                ->map('strtoupper')
+                ->map(fn($p) => strtoupper($p->remote_value ?: $p->label))
                 ->all();
             $existingCats = $this->system->permissions
                 ->where('group', 'Document Category')
-                ->map(fn($p) => $p->remote_value ?: $p->label)
+                ->map(fn($p) => strtolower($p->remote_value ?: $p->label))
                 ->all();
 
-            // ---- Department ----
-            $rows = $pdo->query("SELECT DISTINCT permission_dep FROM user_info WHERE permission_dep IS NOT NULL AND permission_dep != ''")->fetchAll();
-            $allDepValues = collect($rows)
+            // ---- Department (scan จาก departments table) ----
+            $depRows = $pdo->query("SELECT name FROM departments ORDER BY name")->fetchAll();
+            $depNames = collect($depRows)->pluck('name')->filter()->unique()->values();
+
+            // fallback: ดึงค่า legacy จาก user_info ที่อาจไม่มีใน departments table
+            $legacyDepRows = $pdo->query("SELECT DISTINCT permission_dep FROM user_info WHERE permission_dep IS NOT NULL AND permission_dep != ''")->fetchAll();
+            $legacyDeps = collect($legacyDepRows)
                 ->flatMap(fn($r) => array_filter(array_map('trim', explode(',', $r['permission_dep']))))
-                ->unique()->values();
+                ->unique();
 
-            foreach ($allDepValues as $val) {
-                if (in_array(strtoupper($val), array_map('strtoupper', $existingDeps), true)) continue;
+            foreach ($depNames->merge($legacyDeps)->unique() as $name) {
+                if (in_array(strtoupper($name), $existingDeps, true)) continue;
 
-                $key = 'dep_' . preg_replace('/[^a-z0-9]/', '_', strtolower($val));
+                $key = 'dep_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
                 SystemPermission::firstOrCreate(
                     ['system_id' => $this->system->id, 'key' => $key],
-                    ['label' => $val, 'remote_value' => $val, 'group' => 'Department', 'is_exclusive' => false, 'sort_order' => 50]
+                    ['label' => $name, 'remote_value' => $name, 'group' => 'Department', 'is_exclusive' => false, 'sort_order' => 50]
                 );
                 $created[] = $key;
-                Log::info("[efiling] Discovered dept permission: {$key} = '{$val}'");
+                Log::info("[efiling] Discovered dept: {$key} = '{$name}'");
             }
 
-            // ---- Document Category ----
-            $rows = $pdo->query("SELECT DISTINCT permission_cat FROM user_info WHERE permission_cat IS NOT NULL AND permission_cat != ''")->fetchAll();
-            $allCatValues = collect($rows)
+            // ---- Document Category (scan จาก document_categories table) ----
+            $catRows = $pdo->query("SELECT name FROM document_categories ORDER BY name")->fetchAll();
+            $catNames = collect($catRows)->pluck('name')->filter()->unique()->values();
+
+            // fallback: ดึงค่า legacy จาก user_info
+            $legacyCatRows = $pdo->query("SELECT DISTINCT permission_cat FROM user_info WHERE permission_cat IS NOT NULL AND permission_cat != ''")->fetchAll();
+            $legacyCats = collect($legacyCatRows)
                 ->flatMap(fn($r) => array_filter(array_map('trim', explode(',', $r['permission_cat']))))
-                ->unique()->values();
+                ->unique();
 
-            foreach ($allCatValues as $val) {
-                if (in_array($val, $existingCats, true)) continue;
+            foreach ($catNames->merge($legacyCats)->unique() as $name) {
+                if (in_array(strtolower($name), $existingCats, true)) continue;
 
-                $key = 'cat_' . preg_replace('/[^a-z0-9]/', '_', strtolower($val));
+                $key = 'cat_' . preg_replace('/[^a-z0-9]/', '_', strtolower($name));
                 SystemPermission::firstOrCreate(
                     ['system_id' => $this->system->id, 'key' => $key],
-                    ['label' => $val, 'remote_value' => $val, 'group' => 'Document Category', 'is_exclusive' => false, 'sort_order' => 100]
+                    ['label' => $name, 'remote_value' => $name, 'group' => 'Document Category', 'is_exclusive' => false, 'sort_order' => 100]
                 );
                 $created[] = $key;
-                Log::info("[efiling] Discovered cat permission: {$key} = '{$val}'");
+                Log::info("[efiling] Discovered cat: {$key} = '{$name}'");
             }
 
         } catch (PDOException $e) {
@@ -338,6 +401,96 @@ class EFilingAdapter extends BaseAdapter
         }
 
         return $created;
+    }
+
+    // ----------------------------------------------------------------
+    // Managed Group CRUD (departments & document_categories)
+    // ----------------------------------------------------------------
+
+    public function getManagedGroups(): array
+    {
+        return ['Department', 'Document Category'];
+    }
+
+    public function getGroupRecords(string $group): array
+    {
+        $table = $this->groupTable($group);
+        if (! $table) return [];
+
+        try {
+            return $this->getConnection()
+                ->query("SELECT id, name FROM {$table} ORDER BY name")
+                ->fetchAll();
+        } catch (PDOException $e) {
+            Log::error("[efiling] getGroupRecords({$group}) failed: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function addGroupRecord(string $group, string $name): array|false
+    {
+        $table = $this->groupTable($group);
+        if (! $table) return false;
+
+        try {
+            $pdo = $this->getConnection();
+
+            $check = $pdo->prepare("SELECT id, name FROM {$table} WHERE name = ?");
+            $check->execute([$name]);
+            if ($row = $check->fetch()) {
+                return $row; // already exists — return existing
+            }
+
+            $pdo->prepare("INSERT INTO {$table} (name) VALUES (?)")->execute([$name]);
+            $id = (int) $pdo->lastInsertId();
+            Log::info("[efiling] addGroupRecord({$group}): เพิ่ม '{$name}' id={$id}");
+            return ['id' => $id, 'name' => $name];
+
+        } catch (PDOException $e) {
+            Log::error("[efiling] addGroupRecord({$group}, '{$name}') failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateGroupRecord(string $group, int $id, string $name): bool
+    {
+        $table = $this->groupTable($group);
+        if (! $table) return false;
+
+        try {
+            $pdo = $this->getConnection();
+            $pdo->prepare("UPDATE {$table} SET name = ? WHERE id = ?")->execute([$name, $id]);
+            Log::info("[efiling] updateGroupRecord({$group}): id={$id} → '{$name}'");
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[efiling] updateGroupRecord({$group}, {$id}) failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteGroupRecord(string $group, int $id): bool
+    {
+        $table = $this->groupTable($group);
+        if (! $table) return false;
+
+        try {
+            $pdo = $this->getConnection();
+            $pdo->prepare("DELETE FROM {$table} WHERE id = ?")->execute([$id]);
+            Log::info("[efiling] deleteGroupRecord({$group}): id={$id}");
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[efiling] deleteGroupRecord({$group}, {$id}) failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    private function groupTable(string $group): ?string
+    {
+        return match ($group) {
+            'Department'        => 'departments',
+            'Document Category' => 'document_categories',
+            default             => null,
+        };
     }
 
     // ----------------------------------------------------------------

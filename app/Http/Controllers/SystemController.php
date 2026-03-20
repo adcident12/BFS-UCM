@@ -52,7 +52,12 @@ class SystemController extends Controller
     {
         $system->load(['permissions' => fn ($q) => $q->orderBy('group')->orderBy('sort_order')]);
 
-        return view('systems.show', compact('system'));
+        $managedGroups = [];
+        if (AdapterFactory::hasAdapter($system)) {
+            $managedGroups = AdapterFactory::make($system)->getManagedGroups();
+        }
+
+        return view('systems.show', compact('system', 'managedGroups'));
     }
 
     public function edit(System $system)
@@ -106,7 +111,7 @@ class SystemController extends Controller
         $data = $request->validate([
             'key'          => "required|string|max:100|unique:system_permissions,key,NULL,id,system_id,{$system->id}",
             'label'        => 'required|string|max:100',
-            'remote_value' => 'nullable|string|max:100',
+            'remote_value' => 'nullable|string|max:255',
             'group'        => 'nullable|string|max:50',
             'description'  => 'nullable|string|max:500',
             'sort_order'   => 'nullable|integer|min:0',
@@ -114,6 +119,18 @@ class SystemController extends Controller
         ]);
 
         $data['is_exclusive'] = $request->boolean('is_exclusive');
+
+        // แจ้ง adapter ให้ provision permission definition ในระบบภายนอกเสมอ
+        // (side-effect เช่น สร้าง PageGroup ใน Earth) — ทำก่อน insert UCM เสมอ
+        // ถ้า adapter คืนค่า remote_value กลับมา ให้ใช้เมื่อยังไม่ได้กรอกเท่านั้น
+        if (AdapterFactory::hasAdapter($system)) {
+            $provisioned = AdapterFactory::make($system)
+                ->provisionPermission($data['key'], $data['label'], $data['group'] ?? '');
+
+            if ($provisioned !== null && blank($data['remote_value'] ?? null)) {
+                $data['remote_value'] = (string) $provisioned;
+            }
+        }
 
         $system->permissions()->create($data);
 
@@ -126,7 +143,7 @@ class SystemController extends Controller
 
         $data = $request->validate([
             'label'        => 'required|string|max:100',
-            'remote_value' => 'nullable|string|max:100',
+            'remote_value' => 'nullable|string|max:255',
             'group'        => 'nullable|string|max:50',
             'description'  => 'nullable|string|max:500',
             'sort_order'   => 'nullable|integer|min:0',
@@ -171,8 +188,82 @@ class SystemController extends Controller
     {
         abort_if($permission->system_id !== $system->id, 404);
 
+        // แจ้งระบบภายนอกให้ลบ permission definition ด้วย (ถ้า adapter รองรับ)
+        if (filled($permission->remote_value) && AdapterFactory::hasAdapter($system)) {
+            AdapterFactory::make($system)->deletePermission($permission->remote_value);
+        }
+
         $permission->delete();
 
         return back()->with('success', 'ลบ permission เรียบร้อย');
+    }
+
+    // ── Managed Group CRUD ────────────────────────────────────────────────
+
+    public function groupRecords(System $system, string $group)
+    {
+        if (! AdapterFactory::hasAdapter($system)) {
+            return response()->json(['error' => 'ระบบนี้ไม่มี adapter'], 400);
+        }
+
+        $adapter = AdapterFactory::make($system);
+
+        abort_unless(in_array($group, $adapter->getManagedGroups(), true), 404);
+
+        return response()->json($adapter->getGroupRecords($group));
+    }
+
+    public function storeGroupRecord(Request $request, System $system)
+    {
+        abort_unless(AdapterFactory::hasAdapter($system), 400);
+
+        $data = $request->validate([
+            'group' => 'required|string|max:100',
+            'name'  => 'required|string|max:255',
+        ]);
+
+        $result = AdapterFactory::make($system)->addGroupRecord($data['group'], $data['name']);
+
+        if ($result === false) {
+            return back()->withErrors(['เพิ่ม ' . $data['group'] . ' ล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ']);
+        }
+
+        return back()->with('success', "เพิ่ม {$data['group']} '{$data['name']}' เรียบร้อย");
+    }
+
+    public function updateGroupRecord(Request $request, System $system, string $group, int $recordId)
+    {
+        abort_unless(AdapterFactory::hasAdapter($system), 400);
+
+        $adapter = AdapterFactory::make($system);
+        abort_unless(in_array($group, $adapter->getManagedGroups(), true), 404);
+
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $ok = $adapter->updateGroupRecord($group, $recordId, $data['name']);
+
+        if (! $ok) {
+            return back()->withErrors(['อัปเดต ' . $group . ' ล้มเหลว']);
+        }
+
+        return back()->with('success', "อัปเดต {$group} เรียบร้อย");
+    }
+
+    public function destroyGroupRecord(System $system, string $group, int $recordId)
+    {
+        abort_unless(AdapterFactory::hasAdapter($system), 400);
+
+        $adapter = AdapterFactory::make($system);
+        abort_unless(in_array($group, $adapter->getManagedGroups(), true), 404);
+
+        $ok = $adapter->deleteGroupRecord($group, $recordId);
+
+        if (! $ok) {
+            return back()->withErrors(['ลบ ' . $group . ' ล้มเหลว']);
+        }
+
+        return back()->with('success', "ลบ {$group} เรียบร้อย");
     }
 }

@@ -215,7 +215,6 @@ class RepairSystemAdapter extends BaseAdapter
                     (objectguid, employee_number, fullname, department, email, username, password, role,
                      status, created_at, updated_at, user_agent, platform, ip_address, device_name)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 'UCM', 'UCM', '0.0.0.0', 'UCM')
-                SELECT SCOPE_IDENTITY()
             ");
 
             $stmt->execute([

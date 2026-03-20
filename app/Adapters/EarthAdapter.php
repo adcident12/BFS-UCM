@@ -117,7 +117,7 @@ class EarthAdapter extends BaseAdapter
             $sId       = $keyToGroup[$key]['s_id'];
 
             if (! isset($result[$groupName]) || $sId < $result[$groupName]) {
-                $result[$groupName] = $sId; // s_id ต่ำ = access สูง (1=read, 2=edit)
+                $result[$groupName] = $sId; // เลือก s_id ต่ำสุดต่อ group (edge case: ปกติ exclusive อยู่แล้ว)
             }
         }
 
@@ -210,7 +210,6 @@ class EarthAdapter extends BaseAdapter
 
             Log::info("[earth] syncPermissions {$username} — " . count($grantMap) . " groups updated");
             return true;
-
         } catch (PDOException $e) {
             Log::error("[earth] syncPermissions failed for {$user->username}: " . $e->getMessage() . " | file:" . $e->getFile() . ":" . $e->getLine());
             return false;
@@ -253,7 +252,6 @@ class EarthAdapter extends BaseAdapter
                 }
             }
             return $result;
-
         } catch (PDOException $e) {
             Log::error("[earth] getCurrentPermissions failed for {$user->username}: " . $e->getMessage());
             return [];
@@ -316,7 +314,6 @@ class EarthAdapter extends BaseAdapter
 
             Log::info("[earth] Created user {$username} with " . count($grantMap) . " grants");
             return true;
-
         } catch (PDOException $e) {
             Log::error("[earth] createUser failed for {$user->username}: " . $e->getMessage());
             return false;
@@ -341,7 +338,6 @@ class EarthAdapter extends BaseAdapter
 
             Log::info("[earth] revokeAll {$username} — all grants set to Denied");
             return true;
-
         } catch (PDOException $e) {
             Log::error("[earth] revokeAll failed for {$user->username}: " . $e->getMessage());
             return false;
@@ -383,7 +379,6 @@ class EarthAdapter extends BaseAdapter
                 ];
             }
             return $result;
-
         } catch (PDOException $e) {
             Log::error("[earth] getSystemUsers failed: " . $e->getMessage());
             return [];
@@ -418,6 +413,52 @@ class EarthAdapter extends BaseAdapter
             Log::error("[earth] setAccountStatus failed: " . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * สร้าง PageGroup ใหม่ใน Earth DB เมื่อ Admin เพิ่ม permission group ใหม่จาก UCM
+     *
+     * remote_value format ของ earth คือ "{group_name}:{s_id}"
+     * method นี้รับ group (= group_name) แล้ว INSERT UserMgnt_PageGroup ถ้ายังไม่มี
+     * คืน null เพราะ remote_value ของ earth ไม่ใช่ pg_id แต่เป็น "GroupName:s_id"
+     * (pg_id ถูก lookup at sync-time ผ่าน getPgIdMap แล้ว)
+     *
+     * หมายเหตุ: ควรเรียกครั้งเดียวต่อ group (3 permissions: edit/read/deny ใช้ group เดิม)
+     */
+    public function provisionPermission(string $key, string $label, string $group): string|int|null
+    {
+        if (blank($group)) {
+            return null;
+        }
+
+        try {
+            $pdo = $this->getConnection();
+
+            // ตรวจว่า group นี้มีอยู่แล้วหรือไม่
+            $check = $pdo->prepare("SELECT pg_id FROM UserMgnt_PageGroup WHERE group_name = ?");
+            $check->execute([$group]);
+            if ($check->fetchColumn()) {
+                // มีแล้ว — ไม่ต้องสร้างใหม่ remote_value ยังเป็น "GroupName:s_id" ตามเดิม
+                return null;
+            }
+
+            // หา priority ถัดไป (ต่อท้ายรายการ)
+            $maxPriority = (int) $pdo->query("SELECT ISNULL(MAX(priority), 0) FROM UserMgnt_PageGroup")->fetchColumn();
+
+            $pdo->prepare(
+                "INSERT INTO UserMgnt_PageGroup (group_name, priority) VALUES (?, ?)"
+            )->execute([$group, $maxPriority + 10]);
+
+            // clear pg_id cache เพื่อให้ getPgIdMap() โหลดค่าใหม่
+            $this->pgIdMap = null;
+
+            Log::info("[earth] provisionPermission: สร้าง PageGroup '{$group}' สำเร็จ");
+        } catch (PDOException $e) {
+            Log::error("[earth] provisionPermission failed for group '{$group}': " . $e->getMessage());
+        }
+
+        // remote_value ของ earth ไม่ใช่ pg_id — Controller ยังคงใช้ค่าที่ admin กรอก ("GroupName:s_id")
+        return null;
     }
 
     /**
@@ -472,7 +513,6 @@ class EarthAdapter extends BaseAdapter
                 $created[] = $denyKey;
                 Log::info("[earth] Discovered group: {$groupName} → {$editKey}, {$readKey}, {$denyKey}");
             }
-
         } catch (PDOException $e) {
             Log::error("[earth] discoverPermissions failed: " . $e->getMessage());
         }

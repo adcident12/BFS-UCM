@@ -16,6 +16,26 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware('auth')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Documentation
+    Route::view('/manual', 'docs.manual')->name('docs.manual');
+    Route::view('/install-guide', 'docs.install')->name('docs.install');
+
+    // Downloads
+    Route::get('/downloads/ucm-client', function () {
+        return response()->download(
+            storage_path('app/stubs/ucm_client.php'),
+            'ucm_client.php',
+            ['Content-Type' => 'text/plain; charset=utf-8']
+        );
+    })->name('downloads.ucm-client');
+
+    Route::get('/downloads/ucm-token-cache', function () {
+        return response('', 200)
+            ->header('Content-Type', 'application/octet-stream')
+            ->header('Content-Disposition', 'attachment; filename="ucm_token.cache"')
+            ->header('Content-Length', '0');
+    })->name('downloads.ucm-token-cache');
+
     // API Documentation
     Route::get('/api-docs', [ApiDocsController::class, 'index'])->name('api-docs');
     // Swagger UI ถูก register โดย l5-swagger package อัตโนมัติที่ /api-docs/swagger (config/l5-swagger.php)
@@ -39,4 +59,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/systems/{system}/users-for-import', [SystemController::class, 'usersForImport'])->name('systems.users-for-import');
     Route::put('/systems/{system}/permissions/{permission}', [SystemController::class, 'updatePermission'])->name('systems.permissions.update');
     Route::delete('/systems/{system}/permissions/{permission}', [SystemController::class, 'destroyPermission'])->name('systems.permissions.destroy');
+
+    // Managed Group CRUD (adapter-specific reference tables e.g. departments, document_categories)
+    Route::get('/systems/{system}/group-records/{group}', [SystemController::class, 'groupRecords'])->name('systems.group-records.index');
+    Route::post('/systems/{system}/group-records', [SystemController::class, 'storeGroupRecord'])->name('systems.group-records.store');
+    Route::put('/systems/{system}/group-records/{group}/{recordId}', [SystemController::class, 'updateGroupRecord'])->name('systems.group-records.update');
+    Route::delete('/systems/{system}/group-records/{group}/{recordId}', [SystemController::class, 'destroyGroupRecord'])->name('systems.group-records.destroy');
 });

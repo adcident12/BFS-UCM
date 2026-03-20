@@ -36,8 +36,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Public: issue admin token (LDAP admin credentials required)
-Route::post('/auth/token', [AuthController::class, 'issueToken']);
+// Public: issue admin token (LDAP admin credentials required, rate limited: 10 attempts/minute)
+Route::post('/auth/token', [AuthController::class, 'issueToken'])->middleware('throttle:10,1');
 
 // Public: user login — returns token + user info + permissions (rate limited: 10 attempts/minute)
 Route::post('/auth/user-login', [AuthController::class, 'userLogin'])->middleware('throttle:10,1');

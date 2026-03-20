@@ -14,6 +14,7 @@ class LdapService
     protected string $userFilter;
     protected string $usernameAttribute;
     protected $connection = null;
+    protected bool $bound = false;
 
     public function __construct()
     {
@@ -28,6 +29,11 @@ class LdapService
 
     public function connect(): bool
     {
+        // reuse connection ถ้ายังอยู่ (ป้องกัน reconnect ซ้ำใน bulk import)
+        if ($this->connection) {
+            return true;
+        }
+
         $this->connection = ldap_connect("ldap://{$this->host}", $this->port);
 
         if (! $this->connection) {
@@ -44,11 +50,25 @@ class LdapService
     public function bind(string $dn, string $password): bool
     {
         try {
-            return @ldap_bind($this->connection, $dn, $password);
+            $ok = @ldap_bind($this->connection, $dn, $password);
+            // reset bound flag เมื่อ bind ด้วย credentials อื่น (เช่น user auth)
+            $this->bound = false;
+            return $ok;
         } catch (\Exception $e) {
             Log::warning('LDAP bind failed: ' . $e->getMessage());
             return false;
         }
+    }
+
+    /** Bind ด้วย service account — reuse ถ้า bind ไว้แล้ว */
+    protected function bindServiceAccount(): bool
+    {
+        if ($this->bound) {
+            return true;
+        }
+        $ok = $this->bind($this->bindDn, $this->bindPassword);
+        $this->bound = $ok;
+        return $ok;
     }
 
     public function authenticate(string $username, string $password): array|false
@@ -98,7 +118,7 @@ class LdapService
             return false;
         }
 
-        if (! $this->bind($this->bindDn, $this->bindPassword)) {
+        if (! $this->bindServiceAccount()) {
             return false;
         }
 
@@ -123,7 +143,7 @@ class LdapService
             return [];
         }
 
-        if (! $this->bind($this->bindDn, $this->bindPassword)) {
+        if (! $this->bindServiceAccount()) {
             return [];
         }
 
@@ -217,7 +237,7 @@ class LdapService
      */
     public function findUsersExistence(array $usernames): array
     {
-        if (empty($usernames) || ! $this->connect() || ! $this->bind($this->bindDn, $this->bindPassword)) {
+        if (empty($usernames) || ! $this->connect() || ! $this->bindServiceAccount()) {
             return [];
         }
 

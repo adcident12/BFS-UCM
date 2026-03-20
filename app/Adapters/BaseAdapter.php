@@ -105,6 +105,49 @@ abstract class BaseAdapter implements SystemAdapterInterface
         }
     }
 
+    /**
+     * Default: ระบบนี้ไม่มี permission definition table
+     * Override ใน subclass ที่มีตารางของตัวเอง
+     */
+    public function provisionPermission(string $key, string $label, string $group): string|int|null
+    {
+        return null;
+    }
+
+    /**
+     * Default: ไม่ต้องลบอะไรในระบบภายนอก
+     * Override ใน subclass ที่มี permission definition table
+     */
+    public function deletePermission(string $remoteValue): bool
+    {
+        return true;
+    }
+
+    public function getManagedGroups(): array
+    {
+        return [];
+    }
+
+    public function getGroupRecords(string $group): array
+    {
+        return [];
+    }
+
+    public function addGroupRecord(string $group, string $name): array|false
+    {
+        return false;
+    }
+
+    public function updateGroupRecord(string $group, int $id, string $name): bool
+    {
+        return false;
+    }
+
+    public function deleteGroupRecord(string $group, int $id): bool
+    {
+        return false;
+    }
+
     public function __destruct()
     {
         $this->pdo = null;

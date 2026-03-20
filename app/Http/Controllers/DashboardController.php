@@ -22,7 +22,7 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        $systems = System::where('is_active', true)->withCount('userPermissions')->get();
+        $systems = System::where('is_active', true)->withCount('userPermissions')->orderBy('name')->get();
 
         return view('dashboard', compact('stats', 'recentLogs', 'systems'));
     }
