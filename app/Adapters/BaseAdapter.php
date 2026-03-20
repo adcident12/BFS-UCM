@@ -123,7 +123,18 @@ abstract class BaseAdapter implements SystemAdapterInterface
         return true;
     }
 
+    /** Default: ไม่รองรับ 2-way permission sync — override ใน adapter ที่ provision + delete permission จริง */
+    public function supports2WayPermissions(): bool
+    {
+        return false;
+    }
+
     public function getManagedGroups(): array
+    {
+        return [];
+    }
+
+    public function getGroupSchema(string $group): array
     {
         return [];
     }
@@ -133,12 +144,12 @@ abstract class BaseAdapter implements SystemAdapterInterface
         return [];
     }
 
-    public function addGroupRecord(string $group, string $name): array|false
+    public function addGroupRecord(string $group, string $name, array $extra = []): array|false
     {
         return false;
     }
 
-    public function updateGroupRecord(string $group, int $id, string $name): bool
+    public function updateGroupRecord(string $group, int $id, string $name, array $extra = []): bool
     {
         return false;
     }

@@ -18,6 +18,7 @@ $sections = [
     ['id' => 'non-docker',    'label' => 'Non-Docker Setup'],
     ['id' => 'env',           'label' => 'Environment Config'],
     ['id' => 'migrate',       'label' => 'Migration & Seeder'],
+    ['id' => 'first-admin',   'label' => 'ตั้งค่า Super Admin'],
     ['id' => 'ldap',          'label' => 'LDAP / AD Config'],
     ['id' => 'queue',         'label' => 'Queue Worker'],
     ['id' => 'client',        'label' => 'UCM Client (Legacy)'],
@@ -380,19 +381,85 @@ $sections = [
                 </div>
                 <h2 class="font-bold text-slate-800">Migration & Seeder</h2>
             </div>
-            <div class="px-6 py-5 space-y-2 text-sm">
-                @foreach ([
-                    '# รัน migrations ทั้งหมด',
-                    'php artisan migrate',
-                    '# Seed ระบบ EARTH (permissions)',
-                    'php artisan db:seed --class=EarthSeeder',
-                    '# Seed admin user',
-                    'php artisan db:seed --class=AdminUserSeeder',
-                    '# Development: fresh + seed ทั้งหมด',
-                    'php artisan migrate:fresh --seed',
-                ] as $cmd)
-                    <div class="bg-slate-900 rounded-xl px-4 py-2 font-mono text-xs {{ str_starts_with($cmd, '#') ? 'text-slate-500' : 'text-slate-300' }} overflow-x-auto">{{ $cmd }}</div>
-                @endforeach
+            <div class="px-6 py-5 space-y-4 text-sm">
+                <div class="space-y-2">
+                    @foreach ([
+                        '# รัน migrations ทั้งหมด (รวม is_admin tinyInteger migration)',
+                        'php artisan migrate',
+                        '# Seed ระบบ EARTH (permissions)',
+                        'php artisan db:seed --class=EarthSeeder',
+                        '# Development: fresh + seed ทั้งหมด',
+                        'php artisan migrate:fresh --seed',
+                    ] as $cmd)
+                        <div class="bg-slate-900 rounded-xl px-4 py-2 font-mono text-xs {{ str_starts_with($cmd, '#') ? 'text-slate-500' : 'text-slate-300' }} overflow-x-auto">{{ $cmd }}</div>
+                    @endforeach
+                </div>
+                <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
+                    <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                    <span>คอลัมน์ <code class="font-mono bg-blue-100 px-1 rounded">is_admin</code> เป็น <code class="font-mono bg-blue-100 px-1 rounded">tinyInteger</code> ที่รองรับค่า 0 (ทั่วไป), 1 (Admin L1), 2 (Admin L2) — หลัง migrate ต้องตั้งค่า Super Admin คนแรกด้วยตนเอง (ดูหัวข้อถัดไป)</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── First Super Admin ── --}}
+        <div id="first-admin" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">ตั้งค่า Super Admin คนแรก</h2>
+            </div>
+            <div class="px-6 py-5 space-y-4 text-sm text-slate-700">
+                <p>หลัง migrate ผู้ใช้ทุกคนจะมี <code class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-xs">is_admin = 0</code> (ทั่วไป) ต้องยกระดับผู้ดูแลคนแรกเป็น Admin ระดับ 2 ด้วย tinker</p>
+
+                <div>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Docker</p>
+                    @foreach ([
+                        '# 1. Import ผู้ใช้จาก AD ผ่านหน้าเว็บก่อน แล้วรัน tinker',
+                        'docker exec -it php83 php artisan tinker',
+                        '# 2. ใน tinker shell — แทน \'username\' ด้วย AD username ของ admin',
+                        'App\Models\UcmUser::where(\'username\', \'firstname.lastname\')->update([\'is_admin\' => 2]);',
+                        'exit',
+                    ] as $cmd)
+                        <div class="bg-slate-900 rounded-xl px-4 py-2 font-mono text-xs {{ str_starts_with($cmd, '#') ? 'text-slate-500' : 'text-slate-300' }} overflow-x-auto mb-1">{{ $cmd }}</div>
+                    @endforeach
+                </div>
+
+                <div>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Non-Docker</p>
+                    @foreach ([
+                        'cd /var/www/user-centralized-managment',
+                        'php artisan tinker',
+                        'App\Models\UcmUser::where(\'username\', \'firstname.lastname\')->update([\'is_admin\' => 2]);',
+                        'exit',
+                    ] as $cmd)
+                        <div class="bg-slate-900 rounded-xl px-4 py-2 font-mono text-xs {{ str_starts_with($cmd, '#') ? 'text-slate-500' : 'text-slate-300' }} overflow-x-auto mb-1">{{ $cmd }}</div>
+                    @endforeach
+                </div>
+
+                <div class="overflow-hidden rounded-xl border border-slate-200 text-xs">
+                    <div class="grid grid-cols-3 bg-slate-50 font-bold text-slate-500 px-3 py-2 border-b border-slate-200">
+                        <div>ค่า is_admin</div><div>ระดับ</div><div>สิทธิ์หลัก</div>
+                    </div>
+                    @foreach ([
+                        ['0', 'ทั่วไป', 'จัดการสิทธิ์ผู้ใช้', 'text-slate-600'],
+                        ['1', 'Admin ระดับ 1', 'เพิ่ม Reference Data ได้', 'text-indigo-700'],
+                        ['2', 'Admin ระดับ 2', 'ทุกอย่าง + จัดการ Admin', 'text-amber-700'],
+                    ] as [$val, $level, $perm, $cls])
+                    <div class="grid grid-cols-3 px-3 py-2 border-b border-slate-100 last:border-0">
+                        <div class="font-mono font-bold text-slate-700">{{ $val }}</div>
+                        <div class="font-semibold {{ $cls }}">{{ $level }}</div>
+                        <div class="text-slate-500">{{ $perm }}</div>
+                    </div>
+                    @endforeach
+                </div>
+
+                <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                    <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    <span>หลังตั้งค่าแล้ว Admin ระดับ 2 สามารถยกระดับผู้ใช้คนอื่นได้ผ่านหน้า <strong>ผู้ดูแลระบบ → จัดการสิทธิ์ Admin</strong> ในเว็บ UCM โดยไม่ต้องใช้ tinker อีก</span>
+                </div>
             </div>
         </div>
 

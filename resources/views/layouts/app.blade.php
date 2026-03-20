@@ -122,6 +122,44 @@
                 </a>
             @endforeach
 
+            {{-- Admin section: เฉพาะ Admin ระดับ 2 --}}
+            @if (auth()->user()->isSuperAdmin())
+            <div class="pt-4 pb-2">
+                <div class="h-px bg-white/5 mx-3"></div>
+            </div>
+            <p class="px-3 mb-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">ผู้ดูแลระบบ</p>
+            @php $adminActive = request()->routeIs('admin.levels') @endphp
+            <a href="{{ route('admin.levels') }}" onclick="closeSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                      {{ $adminActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                            {{ $adminActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <span class="truncate">จัดการสิทธิ์ Admin</span>
+                @if ($adminActive)
+                    <div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>
+                @endif
+            </a>
+            @php $queueActive = request()->routeIs('queue.monitor') @endphp
+            <a href="{{ route('queue.monitor') }}" onclick="closeSidebar()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                      {{ $queueActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                            {{ $queueActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                    </svg>
+                </div>
+                <span class="truncate">Queue Monitor</span>
+                @if ($queueActive)
+                    <div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>
+                @endif
+            </a>
+            @endif
+
             {{-- Section divider --}}
             <div class="pt-4 pb-2">
                 <div class="h-px bg-white/5 mx-3"></div>

@@ -313,21 +313,45 @@ class EFilingAdapter extends BaseAdapter
     }
 
     /**
-     * ลบ record ออกจาก departments และ document_categories
+     * ลบ record ออกจาก departments หรือ document_categories
      * เมื่อ Admin ลบ permission จาก UCM (UCM → External)
+     *
+     * ตรวจ group ของ permission ก่อนลบ เพื่อไม่ให้ลบข้ามตาราง
+     * (กรณีชื่อ Department กับ Document Category ซ้ำกัน)
      */
     public function deletePermission(string $remoteValue): bool
     {
+        // ดึง group ของ permission นี้จาก UCM (record ยังไม่ถูกลบ ณ จุดนี้)
+        $permission = $this->system->permissions()
+            ->where('remote_value', $remoteValue)
+            ->select('group')
+            ->first();
+
+        $group = $permission?->group;
+
         try {
             $pdo = $this->getConnection();
-            $pdo->prepare("DELETE FROM departments WHERE name = ?")->execute([$remoteValue]);
-            $pdo->prepare("DELETE FROM document_categories WHERE name = ?")->execute([$remoteValue]);
-            Log::info("[efiling] deletePermission: ลบ '{$remoteValue}' จาก departments/document_categories");
+
+            if ($group === 'Department') {
+                $pdo->prepare("DELETE FROM departments WHERE name = ?")->execute([$remoteValue]);
+                Log::info("[efiling] deletePermission: ลบ department '{$remoteValue}'");
+            } elseif ($group === 'Document Category') {
+                $pdo->prepare("DELETE FROM document_categories WHERE name = ?")->execute([$remoteValue]);
+                Log::info("[efiling] deletePermission: ลบ document_category '{$remoteValue}'");
+            }
+            // Role และ group อื่นๆ ไม่มีตาราง definition — ไม่ต้องลบอะไร
+
             return true;
         } catch (PDOException $e) {
             Log::error("[efiling] deletePermission failed for '{$remoteValue}': " . $e->getMessage());
             return false;
         }
+    }
+
+    /** EFiling ทั้ง provision (เพิ่ม) และ delete (ลบ) permission definitions จริง — 2-way sync */
+    public function supports2WayPermissions(): bool
+    {
+        return true;
     }
 
     /**
@@ -427,7 +451,7 @@ class EFilingAdapter extends BaseAdapter
         }
     }
 
-    public function addGroupRecord(string $group, string $name): array|false
+    public function addGroupRecord(string $group, string $name, array $extra = []): array|false
     {
         $table = $this->groupTable($group);
         if (! $table) return false;
@@ -452,7 +476,7 @@ class EFilingAdapter extends BaseAdapter
         }
     }
 
-    public function updateGroupRecord(string $group, int $id, string $name): bool
+    public function updateGroupRecord(string $group, int $id, string $name, array $extra = []): bool
     {
         $table = $this->groupTable($group);
         if (! $table) return false;

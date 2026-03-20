@@ -39,4 +39,39 @@ class AdapterFactory
         $class = $system->adapter_class ?: (static::$map[$system->slug] ?? null);
         return $class && class_exists($class);
     }
+
+    /**
+     * คืน true เมื่อระบบ "เปิดใช้" 2-way permission sync
+     *
+     * ต้องผ่านทั้ง 2 เงื่อนไข:
+     * 1. system->two_way_permissions = true (admin เปิด toggle)
+     * 2. adapter รองรับ (supports2WayPermissions() = true)
+     */
+    public static function supports2WayPermissions(System $system): bool
+    {
+        if (! $system->two_way_permissions || ! static::hasAdapter($system)) {
+            return false;
+        }
+        try {
+            return static::make($system)->supports2WayPermissions();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * คืน true เมื่อ adapter รองรับ 2-way permission sync (capability check เท่านั้น)
+     * ใช้ใน UI เพื่อแสดง toggle เฉพาะระบบที่ adapter รองรับ
+     */
+    public static function adapterSupports2Way(System $system): bool
+    {
+        if (! static::hasAdapter($system)) {
+            return false;
+        }
+        try {
+            return static::make($system)->supports2WayPermissions();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
 }

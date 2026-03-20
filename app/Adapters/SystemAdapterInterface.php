@@ -107,6 +107,16 @@ interface SystemAdapterInterface
      */
     public function deletePermission(string $remoteValue): bool;
 
+    /**
+     * บอกว่า adapter นี้รองรับ 2-way permission sync จริงหรือไม่
+     *
+     * true = การเพิ่ม/ลบ permission ใน UCM จะมีผลต่อระบบภายนอกด้วย (provision + delete)
+     * false = UCM เก็บข้อมูลเพื่อ sync user permissions เท่านั้น ไม่ได้จัดการ permission definitions
+     *
+     * ใช้ใน UI เพื่อแสดง badge "2-way" และ warning dialog ที่ถูกต้อง
+     */
+    public function supports2WayPermissions(): bool;
+
     // ── Managed Group CRUD ─────────────────────────────────────────────────
     // Adapter ที่มีตาราง reference (เช่น departments, document_categories) สามารถ
     // expose ตารางเหล่านั้นให้ UCM จัดการ CRUD ได้โดยตรง
@@ -125,15 +135,24 @@ interface SystemAdapterInterface
     public function getGroupRecords(string $group): array;
 
     /**
-     * เพิ่ม record ใหม่ในกลุ่มที่ระบุ
-     * @return array|false  ['id' => int, 'name' => string] หรือ false ถ้าล้มเหลว
+     * Schema ของ fields เพิ่มเติมสำหรับ add/edit records ในกลุ่มนี้
+     * (นอกจาก 'name' ที่มีอยู่เสมอ)
+     * @return array  ['field' => ['label'=>string, 'type'=>'text|number', 'required'=>bool, ...], ...]
      */
-    public function addGroupRecord(string $group, string $name): array|false;
+    public function getGroupSchema(string $group): array;
 
     /**
-     * อัปเดตชื่อ record (ใช้ id เป็น identifier)
+     * เพิ่ม record ใหม่ในกลุ่มที่ระบุ
+     * @param  array $extra  extra fields จาก getGroupSchema (เช่น priority, filename)
+     * @return array|false  ['id' => int, 'name' => string, ...] หรือ false ถ้าล้มเหลว
      */
-    public function updateGroupRecord(string $group, int $id, string $name): bool;
+    public function addGroupRecord(string $group, string $name, array $extra = []): array|false;
+
+    /**
+     * อัปเดต record (ใช้ id เป็น identifier)
+     * @param  array $extra  extra fields จาก getGroupSchema
+     */
+    public function updateGroupRecord(string $group, int $id, string $name, array $extra = []): bool;
 
     /**
      * ลบ record ออกจากกลุ่มที่ระบุ

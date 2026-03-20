@@ -5,10 +5,18 @@ namespace App\Http\Controllers;
 use App\Adapters\AdapterFactory;
 use App\Models\System;
 use App\Models\SystemPermission;
+use App\Models\UcmUser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SystemController extends Controller
 {
+    private function authUser(): ?UcmUser
+    {
+        /** @var UcmUser|null */
+        return Auth::user();
+    }
+
     public function index()
     {
         $systems = System::withCount(['permissions', 'userPermissions'])
@@ -52,12 +60,22 @@ class SystemController extends Controller
     {
         $system->load(['permissions' => fn ($q) => $q->orderBy('group')->orderBy('sort_order')]);
 
-        $managedGroups = [];
+        $managedGroups  = [];
+        $groupSchemas   = [];
+
         if (AdapterFactory::hasAdapter($system)) {
-            $managedGroups = AdapterFactory::make($system)->getManagedGroups();
+            $adapter       = AdapterFactory::make($system);
+            $managedGroups = $adapter->getManagedGroups();
+
+            foreach ($managedGroups as $g) {
+                $schema = $adapter->getGroupSchema($g);
+                if (! empty($schema)) {
+                    $groupSchemas[$g] = $schema;
+                }
+            }
         }
 
-        return view('systems.show', compact('system', 'managedGroups'));
+        return view('systems.show', compact('system', 'managedGroups', 'groupSchemas'));
     }
 
     public function edit(System $system)
@@ -106,6 +124,18 @@ class SystemController extends Controller
             ->with('success', "ลบระบบ {$system->name} เรียบร้อย");
     }
 
+    public function toggle2WayPermissions(System $system)
+    {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเปิด/ปิด 2-way permission sync ได้');
+        abort_unless(AdapterFactory::adapterSupports2Way($system), 422, 'ระบบนี้ไม่รองรับ 2-way permission sync');
+
+        $system->update(['two_way_permissions' => ! $system->two_way_permissions]);
+
+        $state = $system->two_way_permissions ? 'เปิด' : 'ปิด';
+
+        return back()->with('success', "{$state} 2-way permission sync สำหรับ {$system->name} เรียบร้อย");
+    }
+
     public function storePermission(Request $request, System $system)
     {
         $data = $request->validate([
@@ -120,10 +150,8 @@ class SystemController extends Controller
 
         $data['is_exclusive'] = $request->boolean('is_exclusive');
 
-        // แจ้ง adapter ให้ provision permission definition ในระบบภายนอกเสมอ
-        // (side-effect เช่น สร้าง PageGroup ใน Earth) — ทำก่อน insert UCM เสมอ
-        // ถ้า adapter คืนค่า remote_value กลับมา ให้ใช้เมื่อยังไม่ได้กรอกเท่านั้น
-        if (AdapterFactory::hasAdapter($system)) {
+        // Provision permission definition ในระบบภายนอก เฉพาะเมื่อ 2-way เปิดอยู่
+        if (AdapterFactory::supports2WayPermissions($system)) {
             $provisioned = AdapterFactory::make($system)
                 ->provisionPermission($data['key'], $data['label'], $data['group'] ?? '');
 
@@ -188,8 +216,8 @@ class SystemController extends Controller
     {
         abort_if($permission->system_id !== $system->id, 404);
 
-        // แจ้งระบบภายนอกให้ลบ permission definition ด้วย (ถ้า adapter รองรับ)
-        if (filled($permission->remote_value) && AdapterFactory::hasAdapter($system)) {
+        // ลบ permission definition จากระบบภายนอก เฉพาะเมื่อ 2-way เปิดอยู่
+        if (filled($permission->remote_value) && AdapterFactory::supports2WayPermissions($system)) {
             AdapterFactory::make($system)->deletePermission($permission->remote_value);
         }
 
@@ -215,14 +243,22 @@ class SystemController extends Controller
 
     public function storeGroupRecord(Request $request, System $system)
     {
+        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin เท่านั้นที่สามารถเพิ่มข้อมูล Reference ได้');
         abort_unless(AdapterFactory::hasAdapter($system), 400);
 
         $data = $request->validate([
-            'group' => 'required|string|max:100',
-            'name'  => 'required|string|max:255',
+            'group'    => 'required|string|max:100',
+            'name'     => 'required|string|max:255',
+            'priority' => 'nullable|integer|min:1',
+            'filename' => 'nullable|string|max:255',
         ]);
 
-        $result = AdapterFactory::make($system)->addGroupRecord($data['group'], $data['name']);
+        $extra = array_filter([
+            'priority' => $data['priority'] ?? null,
+            'filename' => $data['filename'] ?? null,
+        ], fn ($v) => $v !== null);
+
+        $result = AdapterFactory::make($system)->addGroupRecord($data['group'], $data['name'], $extra);
 
         if ($result === false) {
             return back()->withErrors(['เพิ่ม ' . $data['group'] . ' ล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ']);
@@ -233,16 +269,24 @@ class SystemController extends Controller
 
     public function updateGroupRecord(Request $request, System $system, string $group, int $recordId)
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขข้อมูล Reference ได้');
         abort_unless(AdapterFactory::hasAdapter($system), 400);
 
         $adapter = AdapterFactory::make($system);
         abort_unless(in_array($group, $adapter->getManagedGroups(), true), 404);
 
         $data = $request->validate([
-            'name' => 'required|string|max:255',
+            'name'     => 'required|string|max:255',
+            'priority' => 'nullable|integer|min:1',
+            'filename' => 'nullable|string|max:255',
         ]);
 
-        $ok = $adapter->updateGroupRecord($group, $recordId, $data['name']);
+        $extra = [
+            'priority' => $data['priority'] ?? null,
+            'filename' => $data['filename'] ?? null,
+        ];
+
+        $ok = $adapter->updateGroupRecord($group, $recordId, $data['name'], $extra);
 
         if (! $ok) {
             return back()->withErrors(['อัปเดต ' . $group . ' ล้มเหลว']);
@@ -253,6 +297,7 @@ class SystemController extends Controller
 
     public function destroyGroupRecord(System $system, string $group, int $recordId)
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบข้อมูล Reference ได้');
         abort_unless(AdapterFactory::hasAdapter($system), 400);
 
         $adapter = AdapterFactory::make($system);

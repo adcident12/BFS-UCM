@@ -462,6 +462,165 @@ class EarthAdapter extends BaseAdapter
     }
 
     /**
+     * ลบ PageGroup ออกจาก Earth DB เมื่อลบ permission ใน UCM (2-way sync)
+     *
+     * remote_value format: "GroupName:s_id" — ต้อง parse group_name ก่อน
+     * ลบ PageGroup เฉพาะเมื่อไม่มี permission อื่นในกลุ่มนี้เหลืออยู่ใน UCM
+     * (เพราะ 1 PageGroup รองรับ 3 permissions: Editable/Read Only/Denied)
+     */
+    public function deletePermission(string $remoteValue): bool
+    {
+        // "Daily Flight:2" → "Daily Flight"
+        $groupName = strstr($remoteValue, ':', true) ?: $remoteValue;
+
+        try {
+            // นับ permission ที่ยังใช้ group นี้อยู่ (รวม permission ที่กำลังจะถูกลบ)
+            $remaining = $this->system->permissions()
+                ->where('remote_value', 'like', $groupName . ':%')
+                ->count();
+
+            if ($remaining > 1) {
+                // ยังมี permission อื่นในกลุ่มนี้ — ไม่ลบ PageGroup
+                return true;
+            }
+
+            // เป็น permission สุดท้ายของกลุ่มนี้ — ลบ PageGroup จาก Earth DB
+            $pdo = $this->getConnection();
+            $pdo->prepare("DELETE FROM UserMgnt_PageGroup WHERE group_name = ?")
+                ->execute([$groupName]);
+
+            $this->pgIdMap = null; // clear cache
+
+            Log::info("[earth] deletePermission: ลบ PageGroup '{$groupName}' สำเร็จ");
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[earth] deletePermission failed for '{$groupName}': " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /** Earth รองรับ 2-way permission sync (provision PageGroup เมื่อเพิ่ม + ลบเมื่อถอด) */
+    public function supports2WayPermissions(): bool
+    {
+        return true;
+    }
+
+    // ── Managed Group CRUD (UserMgnt_PageGroup) ───────────────────────
+
+    public function getManagedGroups(): array
+    {
+        return ['PageGroup'];
+    }
+
+    public function getGroupSchema(string $group): array
+    {
+        if ($group !== 'PageGroup') return [];
+
+        return [
+            'priority' => ['label' => 'Priority', 'type' => 'number', 'required' => true,  'min' => 1, 'placeholder' => 'เช่น 10, 20, 30'],
+            'filename' => ['label' => 'Filename', 'type' => 'text',   'required' => false, 'placeholder' => 'เช่น daily.php (ไม่บังคับ)'],
+        ];
+    }
+
+    public function getGroupRecords(string $group): array
+    {
+        if ($group !== 'PageGroup') return [];
+
+        try {
+            return $this->getConnection()
+                ->query("SELECT pg_id AS id, group_name AS name, priority, filename FROM UserMgnt_PageGroup ORDER BY priority, pg_id")
+                ->fetchAll();
+        } catch (PDOException $e) {
+            Log::error("[earth] getGroupRecords failed: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function addGroupRecord(string $group, string $name, array $extra = []): array|false
+    {
+        if ($group !== 'PageGroup') return false;
+
+        try {
+            $pdo = $this->getConnection();
+
+            // ตรวจว่ามีอยู่แล้ว
+            $check = $pdo->prepare("SELECT pg_id, group_name, priority, filename FROM UserMgnt_PageGroup WHERE group_name = ?");
+            $check->execute([$name]);
+            if ($row = $check->fetch()) {
+                return ['id' => (int) $row['pg_id'], 'name' => $row['group_name'], 'priority' => $row['priority'], 'filename' => $row['filename']];
+            }
+
+            $maxPriority = (int) $pdo->query("SELECT ISNULL(MAX(priority), 0) FROM UserMgnt_PageGroup")->fetchColumn();
+            $priority    = isset($extra['priority']) ? (int) $extra['priority'] : $maxPriority + 10;
+            $filename    = $extra['filename'] ?? null;
+
+            $pdo->prepare("INSERT INTO UserMgnt_PageGroup (group_name, priority, filename) VALUES (?, ?, ?)")
+                ->execute([$name, $priority, $filename]);
+
+            $id = (int) $pdo->lastInsertId();
+            $this->pgIdMap = null;
+
+            Log::info("[earth] addGroupRecord: เพิ่ม PageGroup '{$name}' priority={$priority} pg_id={$id}");
+            return ['id' => $id, 'name' => $name, 'priority' => $priority, 'filename' => $filename];
+
+        } catch (PDOException $e) {
+            Log::error("[earth] addGroupRecord('{$name}') failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateGroupRecord(string $group, int $id, string $name, array $extra = []): bool
+    {
+        if ($group !== 'PageGroup') return false;
+
+        try {
+            $sets  = ['group_name = ?'];
+            $binds = [$name];
+
+            if (array_key_exists('priority', $extra) && $extra['priority'] !== null) {
+                $sets[]  = 'priority = ?';
+                $binds[] = (int) $extra['priority'];
+            }
+            if (array_key_exists('filename', $extra)) {
+                $sets[]  = 'filename = ?';
+                $binds[] = $extra['filename'] ?: null;
+            }
+
+            $binds[] = $id;
+            $this->getConnection()
+                ->prepare("UPDATE UserMgnt_PageGroup SET " . implode(', ', $sets) . " WHERE pg_id = ?")
+                ->execute($binds);
+
+            $this->pgIdMap = null;
+
+            Log::info("[earth] updateGroupRecord: pg_id={$id} → '{$name}'");
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[earth] updateGroupRecord(pg_id={$id}) failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteGroupRecord(string $group, int $id): bool
+    {
+        if ($group !== 'PageGroup') return false;
+
+        try {
+            $this->getConnection()
+                ->prepare("DELETE FROM UserMgnt_PageGroup WHERE pg_id = ?")
+                ->execute([$id]);
+
+            $this->pgIdMap = null; // clear cache
+
+            Log::info("[earth] deleteGroupRecord: pg_id={$id} ลบแล้ว");
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[earth] deleteGroupRecord(pg_id={$id}) failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Scan earth DB → ค้นหา group_name ใน UserMgnt_PageGroup ที่ยังไม่มีใน UCM
      * → สร้าง system_permissions ใน UCM อัตโนมัติ (read + edit)
      */

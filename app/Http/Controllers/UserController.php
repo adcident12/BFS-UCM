@@ -347,6 +347,42 @@ class UserController extends Controller
         ]);
     }
 
+    public function adminLevels()
+    {
+        abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่จัดการสิทธิ์ admin ได้');
+
+        $users = UcmUser::whereNull('deleted_at')
+            ->select('id', 'username', 'name', 'department', 'is_admin')
+            ->orderByDesc('is_admin')
+            ->orderBy('name')
+            ->get();
+
+        return view('users.admin-levels', compact('users'));
+    }
+
+    public function updateAdminLevel(Request $request, UcmUser $user)
+    {
+        abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่จัดการสิทธิ์ admin ได้');
+
+        $validated = $request->validate(['level' => 'required|integer|in:0,1,2']);
+        $level = (int) $validated['level'];
+
+        // ป้องกัน super admin ลดระดับตัวเอง
+        if ($user->id === Auth::id() && $level < 2) {
+            return back()->withErrors(['ไม่สามารถลดระดับสิทธิ์ของตัวเองได้']);
+        }
+
+        $user->update(['is_admin' => $level]);
+
+        $levelName = match($level) {
+            2 => 'Admin ระดับ 2',
+            1 => 'Admin ระดับ 1',
+            default => 'ผู้ใช้ทั่วไป',
+        };
+
+        return back()->with('success', "อัปเดตสิทธิ์ {$user->name} เป็น {$levelName} เรียบร้อย");
+    }
+
     public function searchLdap(Request $request)
     {
         $request->validate(['q' => 'required|string|min:2|max:100']);

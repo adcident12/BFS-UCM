@@ -21,6 +21,7 @@ $sections = [
     ['id' => 'systems',      'label' => 'ระบบที่เชื่อมต่อ'],
     ['id' => 'ref-data',     'label' => 'ข้อมูล Reference'],
     ['id' => 'twoway-sync',  'label' => '2-Way Sync'],
+    ['id' => 'admin-levels', 'label' => 'สิทธิ์ Admin'],
     ['id' => 'ad-check',     'label' => 'ตรวจสอบ AD'],
     ['id' => 'sync',         'label' => 'การ Sync สิทธิ์'],
 ];
@@ -280,10 +281,12 @@ $sections = [
 
                 <div class="border-t border-slate-100 pt-4">
                     <h3 class="font-bold text-slate-900 mb-2">สัญลักษณ์ 2-Way Sync ในหน้าสิทธิ์</h3>
-                    <p class="text-slate-600 mb-2">Permission ที่มี Badge สีส้ม <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700">2-way</span> หมายความว่าการเพิ่มหรือลบ Permission นั้นจะ<strong>ส่งผลต่อระบบปลายทางทันที</strong> ไม่ใช่แค่บันทึกในฐานข้อมูล UCM เท่านั้น</p>
+                    <p class="text-slate-600 mb-2">Permission ที่มี Badge สีส้ม <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700">2-way</span> หมายความว่าระบบนี้เปิด 2-way ON และการเพิ่มหรือลบ Permission จะ<strong>ส่งผลต่อระบบปลายทางทันที</strong> ด้วย</p>
                     <ul class="space-y-1 text-slate-600 text-xs list-disc list-inside">
+                        <li>Badge จะแสดงเฉพาะเมื่อระบบนั้นเปิด <strong>2-way ON</strong> เท่านั้น (ดูหัวข้อ "2-Way Sync")</li>
                         <li>เมื่อ <strong>เพิ่ม Permission</strong> ระบบจะ Provision (สร้าง) ใน External System อัตโนมัติ</li>
                         <li>เมื่อ <strong>ลบ Permission</strong> จะมีกล่องยืนยันพร้อมคำเตือนว่าจะลบออกจากระบบปลายทางด้วย</li>
+                        <li>เมื่อ <strong>แก้ไข</strong> label/key — บันทึกใน UCM เท่านั้น ไม่ rename ในระบบปลายทาง</li>
                     </ul>
                 </div>
 
@@ -325,18 +328,27 @@ $sections = [
                     </ul>
                 </div>
                 <div class="border-t border-slate-100 pt-3">
-                    <h3 class="font-bold text-slate-900 mb-2">การเพิ่ม Permission (2-Way)</h3>
-                    <div class="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-                        <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                        <span>สำหรับระบบที่มี Adapter (เช่น Earth, EFiling) การเพิ่ม Permission ใน UCM จะ<strong>สร้าง PageGroup ในระบบปลายทางด้วยทันที (2-way sync)</strong> — ไม่ใช่แค่บันทึกข้อมูลใน UCM</span>
+                    <h3 class="font-bold text-slate-900 mb-2">Toggle 2-way ON/OFF ต่อระบบ</h3>
+                    <p class="text-slate-600 text-xs mb-2">แต่ละระบบที่ Adapter รองรับ 2-way จะมีปุ่ม <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-amber-500 text-white">⇄ 2-way ON</span> / <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-600 bg-white">⇄ 2-way OFF</span> ที่ด้านบนของหน้ารายละเอียดระบบ — <strong class="text-amber-700">เฉพาะ Admin ระดับ 2</strong> เท่านั้นที่กดสลับได้</p>
+                    <div class="overflow-hidden rounded-xl border border-slate-200 text-xs">
+                        <div class="grid grid-cols-4 bg-slate-50 font-bold text-slate-500 px-3 py-2 border-b border-slate-200">
+                            <div>Action</div><div>2-way ON</div><div>2-way OFF</div><div class="text-slate-400">หมายเหตุ</div>
+                        </div>
+                        @foreach ([
+                            ['เพิ่ม Permission', 'UCM + ระบบภายนอก', 'UCM เท่านั้น', ''],
+                            ['ลบ Permission', 'UCM + ระบบภายนอก', 'UCM เท่านั้น', 'มีกล่องยืนยันเมื่อ ON'],
+                            ['แก้ไข label/key', 'UCM เท่านั้น', 'UCM เท่านั้น', 'ไม่ rename ในระบบภายนอก'],
+                            ['Sync สิทธิ์ผู้ใช้', 'ส่งไประบบภายนอกเสมอ', 'ส่งไประบบภายนอกเสมอ', 'ไม่เกี่ยวกับ toggle นี้'],
+                        ] as $row)
+                        <div class="grid grid-cols-4 px-3 py-2 border-b border-slate-100 last:border-0">
+                            <div class="font-medium text-slate-700">{{ $row[0] }}</div>
+                            <div class="text-amber-700 font-medium">{{ $row[1] }}</div>
+                            <div class="text-slate-500">{{ $row[2] }}</div>
+                            <div class="text-slate-400">{{ $row[3] }}</div>
+                        </div>
+                        @endforeach
                     </div>
-                </div>
-                <div class="border-t border-slate-100 pt-3">
-                    <h3 class="font-bold text-slate-900 mb-2">การลบ Permission (2-Way)</h3>
-                    <div class="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800">
-                        <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                        <span>การลบ Permission ที่มี remote_value จะ<strong>ลบ PageGroup ออกจากระบบปลายทางด้วยทันที</strong> — จะมีกล่องยืนยันพร้อมคำเตือนก่อนดำเนินการ</span>
-                    </div>
+                    <p class="text-xs text-slate-400 mt-2 font-medium">* "Sync สิทธิ์ผู้ใช้" หมายถึงการกด "บันทึกสิทธิ์" ในหน้าจัดการผู้ใช้ — ทำงานผ่าน Queue Worker แยกต่างหากเสมอ</p>
                 </div>
             </div>
         </div>
@@ -352,13 +364,49 @@ $sections = [
                 <h2 class="font-bold text-slate-800">ข้อมูล Reference (Managed Groups)</h2>
             </div>
             <div class="px-6 py-5 space-y-4 text-sm text-slate-700 leading-relaxed">
-                <p>บางระบบ (เช่น <strong>EFiling</strong>) มีข้อมูล Master Data ที่ UCM สามารถจัดการได้โดยตรง เช่น รายชื่อแผนก (Department) และประเภทเอกสาร (Document Category) ซึ่งเป็นข้อมูลที่ Permission ของระบบอ้างอิงถึง</p>
+                <p>บางระบบมีข้อมูล Master Data ที่ UCM สามารถจัดการได้โดยตรง ซึ่งเป็นข้อมูลที่ Permission ของระบบนั้นอ้างอิงถึง ปัจจุบันรองรับ 2 ระบบ:</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div class="p-3.5 bg-indigo-50 rounded-xl border border-indigo-100 text-xs">
+                        <div class="font-bold text-indigo-900 mb-1.5">Earth (FLIGHT OPS)</div>
+                        <ul class="space-y-1 text-indigo-700">
+                            <li><span class="font-semibold">PageGroup</span> — ตาราง <code class="font-mono bg-indigo-100 px-1 rounded">UserMgnt_PageGroup</code></li>
+                            <li>แต่ละ PageGroup รองรับสิทธิ์ Editable / Read Only / Denied</li>
+                            <li>Renaming PageGroup กระทบ remote_value ของ permission ที่อ้างอิง</li>
+                        </ul>
+                    </div>
+                    <div class="p-3.5 bg-purple-50 rounded-xl border border-purple-100 text-xs">
+                        <div class="font-bold text-purple-900 mb-1.5">EFiling</div>
+                        <ul class="space-y-1 text-purple-700">
+                            <li><span class="font-semibold">Department</span> — ตาราง <code class="font-mono bg-purple-100 px-1 rounded">departments</code></li>
+                            <li><span class="font-semibold">Document Category</span> — ตาราง <code class="font-mono bg-purple-100 px-1 rounded">document_categories</code></li>
+                        </ul>
+                    </div>
+                </div>
 
                 <div class="flex items-start gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800">
                     <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                     <div>
                         <strong>ข้อมูลเหล่านี้เขียนตรงไปยังฐานข้อมูลของระบบปลายทาง (Direct Write)</strong> — การเพิ่ม/แก้ไข/ลบมีผลทันที ไม่มีขั้นตอน Sync Queue ควรใช้ความระมัดระวัง
+                        <br class="mt-1"><strong>⚠️ Earth — Rename PageGroup:</strong> การเปลี่ยนชื่อ PageGroup จะอัปเดตเฉพาะในฐานข้อมูล Earth เท่านั้น Permission ใน UCM ที่อ้างอิงชื่อเดิมจะ Out of Sync — ควร Discover Permissions ใหม่หลัง Rename
                     </div>
+                </div>
+
+                {{-- Admin level requirements --}}
+                <div class="overflow-hidden rounded-xl border border-slate-200 text-xs">
+                    <div class="grid grid-cols-3 bg-slate-50 font-bold text-slate-500 px-3 py-2 border-b border-slate-200">
+                        <div>การกระทำ</div><div>ระดับที่ต้องการ</div><div class="text-slate-400">หมายเหตุ</div>
+                    </div>
+                    @foreach ([
+                        ['เพิ่มรายการ', 'Admin ระดับ 1 ขึ้นไป', 'bg-indigo-50 text-indigo-700', 'กรอกชื่อแล้วกด +'],
+                        ['แก้ไขรายการ', 'Admin ระดับ 2 เท่านั้น', 'bg-amber-50 text-amber-700', 'กดปุ่มดินสอ ✏️'],
+                        ['ลบรายการ', 'Admin ระดับ 2 เท่านั้น', 'bg-amber-50 text-amber-700', 'มีกล่องยืนยันก่อนลบ'],
+                    ] as [$action, $level, $cls, $note])
+                    <div class="grid grid-cols-3 px-3 py-2 border-b border-slate-100 last:border-0">
+                        <div class="font-medium text-slate-700">{{ $action }}</div>
+                        <div class="{{ $cls }} font-semibold px-2 py-0.5 rounded-md w-fit">{{ $level }}</div>
+                        <div class="text-slate-400">{{ $note }}</div>
+                    </div>
+                    @endforeach
                 </div>
 
                 <div>
@@ -395,7 +443,7 @@ $sections = [
                                 <svg class="w-3.5 h-3.5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             </div>
                             <div>
-                                <div class="font-semibold text-sky-900 text-xs mb-0.5">แก้ไขรายการ</div>
+                                <div class="font-semibold text-sky-900 text-xs mb-0.5">แก้ไขรายการ <span class="ml-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded ring-1 ring-amber-200/70">Admin L2</span></div>
                                 <p class="text-sky-700 text-xs">กดปุ่มดินสอ ✏️ ที่รายการ แก้ไขชื่อ แล้วกด บันทึก</p>
                             </div>
                         </div>
@@ -404,7 +452,7 @@ $sections = [
                                 <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </div>
                             <div>
-                                <div class="font-semibold text-red-900 text-xs mb-0.5">ลบรายการ</div>
+                                <div class="font-semibold text-red-900 text-xs mb-0.5">ลบรายการ <span class="ml-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded ring-1 ring-amber-200/70">Admin L2</span></div>
                                 <p class="text-red-700 text-xs">กดปุ่มถังขยะ 🗑️ จะมีกล่องยืนยันก่อนลบ</p>
                             </div>
                         </div>
@@ -421,51 +469,181 @@ $sections = [
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                     </svg>
                 </div>
-                <h2 class="font-bold text-slate-800">2-Way Sync คืออะไร</h2>
+                <h2 class="font-bold text-slate-800">2-Way Sync</h2>
             </div>
-            <div class="px-6 py-5 space-y-4 text-sm text-slate-700 leading-relaxed">
-                <p>UCM รองรับ 2 รูปแบบของการจัดการ Permission:</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                        <div class="font-bold text-slate-900 mb-1 text-xs">UCM Only (1-Way)</div>
-                        <p class="text-slate-600 text-xs">บันทึก Permission ใน UCM เท่านั้น ไม่มีการ sync ไปยังระบบปลายทางโดยอัตโนมัติ เหมาะสำหรับระบบที่ไม่มี Adapter</p>
+            <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+
+                {{-- ภาพรวม --}}
+                <p>UCM แยก Sync ออกเป็น 2 ระดับ ที่ทำงาน<strong>อิสระจากกัน</strong>:</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                    <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-200">
+                        <div class="font-bold text-indigo-900 mb-1.5">📋 Permission Definition Sync</div>
+                        <p class="text-indigo-800">การเพิ่ม/ลบ <em>นิยาม</em>ของ Permission (เช่น PageGroup ใน Earth, Department ใน EFiling)<br>ควบคุมได้ด้วย <strong>Toggle 2-way ON/OFF</strong></p>
                     </div>
-                    <div class="p-4 bg-orange-50 rounded-xl border border-orange-200">
-                        <div class="font-bold text-orange-900 mb-1 text-xs flex items-center gap-1.5">
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700">2-way</span>
-                            Bi-directional
-                        </div>
-                        <p class="text-orange-800 text-xs">การเปลี่ยนแปลงใน UCM ส่งผลต่อระบบปลายทางทันที และในทางกลับกัน ระบบจะอ่านสิทธิ์จากระบบปลายทางเสมอ</p>
+                    <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                        <div class="font-bold text-emerald-900 mb-1.5">👤 User Permission Sync</div>
+                        <p class="text-emerald-800">การส่งสิทธิ์ของผู้ใช้ไปยังระบบปลายทาง (กดบันทึกสิทธิ์ในหน้าผู้ใช้)<br><strong>ทำงานเสมอ</strong> ผ่าน Queue Worker ไม่เกี่ยวกับ Toggle</p>
                     </div>
                 </div>
 
-                <div class="border-t border-slate-100 pt-3">
+                {{-- Toggle --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">Toggle 2-way ON / OFF</h3>
+                    <p class="text-slate-600 text-xs mb-3">ระบบที่ Adapter รองรับ (Earth, EFiling) จะมีปุ่มสลับที่หน้ารายละเอียดระบบ — <strong class="text-amber-700">เฉพาะ Admin ระดับ 2</strong> เท่านั้นที่กดสลับได้</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-200">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500 text-white">⇄ 2-way ON</span>
+                            </div>
+                            <ul class="space-y-1 text-amber-800">
+                                <li>✅ เพิ่ม Permission → สร้างในระบบภายนอกด้วย</li>
+                                <li>✅ ลบ Permission → ลบออกจากระบบภายนอกด้วย</li>
+                                <li>➡️ แก้ไข label/key → UCM เท่านั้น</li>
+                            </ul>
+                        </div>
+                        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-300 text-slate-600 bg-white">⇄ 2-way OFF</span>
+                            </div>
+                            <ul class="space-y-1 text-slate-600">
+                                <li>➡️ เพิ่ม Permission → UCM เท่านั้น</li>
+                                <li>➡️ ลบ Permission → UCM เท่านั้น</li>
+                                <li>➡️ แก้ไข label/key → UCM เท่านั้น</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3 mt-3 p-3 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
+                        <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                        <span><strong>Sync สิทธิ์ผู้ใช้</strong> (กดบันทึกสิทธิ์ในหน้าผู้ใช้) ทำงาน<strong>ทุกครั้ง</strong>ผ่าน Queue Worker โดยไม่เกี่ยวกับ Toggle นี้</span>
+                    </div>
+                </div>
+
+                {{-- ระบบที่รองรับ --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">ระบบที่รองรับ 2-way</h3>
+                    <div class="space-y-2 text-xs">
+                        @foreach ([
+                            ['Earth', 'ใช่', 'สร้าง PageGroup เมื่อเพิ่ม / ลบ PageGroup เมื่อลบ Permission สุดท้ายของ group (จัดการ PageGroup ได้ผ่าน Managed Groups ด้วย)', 'bg-emerald-50 border-emerald-200 text-emerald-800'],
+                            ['EFiling', 'ใช่', 'สร้าง Department/Document Category เมื่อเพิ่ม / ลบเมื่อลบ (จัดการผ่าน Managed Groups ด้วย)', 'bg-emerald-50 border-emerald-200 text-emerald-800'],
+                            ['Repair System', 'ไม่', 'ไม่มี permission definition table — Toggle จะไม่ปรากฏ', 'bg-slate-50 border-slate-200 text-slate-600'],
+                            ['ระบบไม่มี Adapter', 'ไม่', 'บันทึกใน UCM เท่านั้น', 'bg-slate-50 border-slate-200 text-slate-600'],
+                        ] as [$sys, $supported, $desc, $cls])
+                        <div class="flex items-start gap-3 p-3 rounded-xl border {{ $cls }}">
+                            <div class="w-24 font-bold flex-shrink-0">{{ $sys }}</div>
+                            <div class="w-8 flex-shrink-0">{{ $supported === 'ใช่' ? '✅' : '—' }}</div>
+                            <div>{{ $desc }}</div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- สัญลักษณ์ --}}
+                <div class="border-t border-slate-100 pt-4">
                     <h3 class="font-bold text-slate-900 mb-3">สัญลักษณ์ที่ควรรู้</h3>
                     <div class="space-y-2 text-xs">
                         <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-orange-100 text-orange-700 flex-shrink-0">2-way</span>
-                            <p class="text-slate-700">Badge สีส้มบน Permission — การเพิ่ม/ลบมีผลต่อระบบปลายทางทันที</p>
+                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-orange-100 text-orange-700 flex-shrink-0 whitespace-nowrap">2-way</span>
+                            <p class="text-slate-700">Badge สีส้มบน Permission — ระบบนี้เปิด 2-way ON และการเพิ่ม/ลบมีผลต่อระบบปลายทาง</p>
                         </div>
                         <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-700 flex-shrink-0">remote</span>
-                            <p class="text-slate-700">แหล่งข้อมูลสิทธิ์มาจากระบบปลายทางโดยตรง (Real-time)</p>
+                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-emerald-100 text-emerald-700 flex-shrink-0 whitespace-nowrap">remote</span>
+                            <p class="text-slate-700">แหล่งข้อมูลสิทธิ์ผู้ใช้มาจากระบบปลายทางโดยตรง (Real-time)</p>
                         </div>
                         <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-slate-200 text-slate-600 flex-shrink-0">ucm</span>
+                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-slate-200 text-slate-600 flex-shrink-0 whitespace-nowrap">ucm</span>
                             <p class="text-slate-700">แหล่งข้อมูลสิทธิ์มาจาก UCM (ระบบปลายทางออฟไลน์หรือไม่มี Adapter)</p>
                         </div>
                         <div class="flex items-center gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
-                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-700 flex-shrink-0">Out of Sync</span>
-                            <p class="text-slate-700">สิทธิ์ใน UCM ไม่ตรงกับระบบปลายทาง — ให้ Sync ใหม่เพื่อแก้ไข</p>
+                            <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-700 flex-shrink-0 whitespace-nowrap">Out of Sync</span>
+                            <p class="text-slate-700">สิทธิ์ผู้ใช้ใน UCM ไม่ตรงกับระบบปลายทาง — กด "บันทึกสิทธิ์" เพื่อ Sync ใหม่</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="border-t border-slate-100 pt-3">
-                    <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800">
-                        <svg class="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-                        <span>กล่องยืนยันทุกครั้งที่ดำเนินการที่มีผลต่อระบบปลายทาง จะแสดงรายละเอียดว่าจะเกิดอะไรขึ้น — อ่านให้ครบก่อนกด <strong>ยืนยัน</strong></span>
+                <div class="flex items-start gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800">
+                    <svg class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    <span>เมื่อ 2-way ON การ<strong>ลบ Permission</strong>จะแสดงกล่องยืนยันพร้อมรายละเอียดว่าจะเกิดอะไรขึ้นกับระบบภายนอก — อ่านให้ครบก่อนยืนยัน</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── สิทธิ์ Admin ── --}}
+        <div id="admin-levels" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">สิทธิ์ Admin (Admin Levels)</h2>
+            </div>
+            <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+                <p>UCM แบ่งระดับสิทธิ์ผู้ดูแลระบบออกเป็น <strong>3 ระดับ</strong> เพื่อควบคุมการเข้าถึงฟีเจอร์ที่มีความเสี่ยงสูง</p>
+
+                {{-- Level cards --}}
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                            <span class="font-bold text-slate-700 text-sm">ทั่วไป (0)</span>
+                        </div>
+                        <ul class="space-y-1 text-xs text-slate-600">
+                            <li>✅ เข้าดูข้อมูลได้</li>
+                            <li>✅ จัดการสิทธิ์ผู้ใช้ได้</li>
+                            <li>❌ เพิ่ม/แก้ไข/ลบ Reference Data ไม่ได้</li>
+                            <li>❌ Toggle 2-way ไม่ได้</li>
+                            <li>❌ จัดการสิทธิ์ Admin ไม่ได้</li>
+                        </ul>
                     </div>
+                    <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-200">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                            <span class="font-bold text-indigo-800 text-sm">Admin ระดับ 1</span>
+                        </div>
+                        <ul class="space-y-1 text-xs text-indigo-700">
+                            <li>✅ ทุกอย่างของผู้ใช้ทั่วไป</li>
+                            <li>✅ <strong>เพิ่ม</strong> Reference Data ได้ (Department / Document Category)</li>
+                            <li>❌ แก้ไข/ลบ Reference Data ไม่ได้</li>
+                            <li>❌ Toggle 2-way ไม่ได้</li>
+                            <li>❌ จัดการสิทธิ์ Admin ไม่ได้</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-amber-50 rounded-xl border border-amber-200">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                            <span class="font-bold text-amber-800 text-sm">Admin ระดับ 2</span>
+                        </div>
+                        <ul class="space-y-1 text-xs text-amber-700">
+                            <li>✅ ทุกอย่างของ Admin ระดับ 1</li>
+                            <li>✅ <strong>แก้ไข/ลบ</strong> Reference Data ได้</li>
+                            <li>✅ Toggle 2-way ON/OFF ได้</li>
+                            <li>✅ <strong>จัดการสิทธิ์ Admin</strong> ของผู้ใช้อื่นได้</li>
+                            <li>⚠️ ไม่สามารถลดระดับตัวเองได้</li>
+                        </ul>
+                    </div>
+                </div>
+
+                {{-- How to manage --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-2">วิธีจัดการสิทธิ์ Admin</h3>
+                    <div class="space-y-2">
+                        @foreach ([
+                            'เข้าเมนู <strong>ผู้ดูแลระบบ → จัดการสิทธิ์ Admin</strong> ในแถบนำทางด้านซ้าย (มองเห็นเฉพาะ Admin ระดับ 2)',
+                            'หน้าจะแสดงรายชื่อผู้ใช้ทั้งหมด พร้อมระดับปัจจุบัน (ทั่วไป / L1 / L2)',
+                            'กดปุ่ม <strong>ทั่วไป</strong>, <strong>L1</strong> หรือ <strong>L2</strong> ที่แถวผู้ใช้เพื่อเปลี่ยนระดับทันที',
+                            'ผู้ใช้ที่เป็น Admin ระดับ 2 <strong>ไม่สามารถลดระดับตัวเองได้</strong> เพื่อป้องกันระบบไม่มีผู้ดูแล',
+                        ] as $i => $text)
+                            <div class="flex items-start gap-3">
+                                <span class="w-5 h-5 bg-amber-100 text-amber-700 text-xs font-bold rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">{{ $i+1 }}</span>
+                                <p>{!! $text !!}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
+                    <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                    <span>หน้า "จัดการสิทธิ์ Admin" จะ<strong>ไม่ปรากฏ</strong>ในเมนูหากผู้ใช้ไม่ใช่ Admin ระดับ 2 และจะ return 403 หากเข้า URL โดยตรง</span>
                 </div>
             </div>
         </div>

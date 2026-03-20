@@ -39,7 +39,7 @@ class AuthController extends Controller
         /** @var UcmUser $user */
         $user = auth()->user();
 
-        if (! $user->is_admin) {
+        if (! $user->isAdmin()) {
             auth()->logout();
             return response()->json(['message' => 'Forbidden: admin account required'], 403);
         }

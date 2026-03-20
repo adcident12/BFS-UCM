@@ -20,8 +20,20 @@ class UcmUser extends Authenticatable
 
     protected $casts = [
         'is_active' => 'boolean',
-        'is_admin'  => 'boolean',
+        'is_admin'  => 'integer',   // 0=ทั่วไป | 1=Admin ระดับ 1 | 2=Admin ระดับ 2
     ];
+
+    /** Level 1+ (เพิ่ม Reference Data ได้ / ใช้ API ได้) */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin >= 1;
+    }
+
+    /** Level 2 (ทำได้ทุกอย่าง: toggle 2-way, แก้ไข/ลบ Reference, จัดการ admin) */
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_admin >= 2;
+    }
 
     public function systemPermissions(): HasMany
     {

@@ -12,11 +12,12 @@ class System extends Model
     protected $fillable = [
         'name', 'slug', 'description', 'adapter_class',
         'db_host', 'db_port', 'db_name', 'db_user', 'db_password',
-        'api_url', 'api_token', 'color', 'icon', 'is_active',
+        'api_url', 'api_token', 'color', 'icon', 'is_active', 'two_way_permissions',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'is_active'          => 'boolean',
+        'two_way_permissions' => 'boolean',
     ];
 
     protected $hidden = ['db_password', 'api_token'];

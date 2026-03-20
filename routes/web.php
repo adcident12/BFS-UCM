@@ -3,6 +3,7 @@
 use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\QueueMonitorController;
 use App\Http\Controllers\SystemController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +43,8 @@ Route::middleware('auth')->group(function () {
 
     // Users
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/admin/levels', [UserController::class, 'adminLevels'])->name('admin.levels');
+    Route::post('/users/{user}/admin-level', [UserController::class, 'updateAdminLevel'])->name('users.admin-level.update');
     Route::get('/users/search-ldap', [UserController::class, 'searchLdap'])->name('users.search-ldap');
     Route::get('/users/check-ad-status', [UserController::class, 'checkAdStatus'])->name('users.check-ad-status');
     Route::post('/users/import', [UserController::class, 'importFromLdap'])->name('users.import');
@@ -56,9 +59,17 @@ Route::middleware('auth')->group(function () {
     Route::resource('systems', SystemController::class);
     Route::post('/systems/{system}/permissions', [SystemController::class, 'storePermission'])->name('systems.permissions.store');
     Route::post('/systems/{system}/discover', [SystemController::class, 'discoverPermissions'])->name('systems.discover');
+    Route::post('/systems/{system}/toggle-2way', [SystemController::class, 'toggle2WayPermissions'])->name('systems.toggle-2way');
     Route::get('/systems/{system}/users-for-import', [SystemController::class, 'usersForImport'])->name('systems.users-for-import');
     Route::put('/systems/{system}/permissions/{permission}', [SystemController::class, 'updatePermission'])->name('systems.permissions.update');
     Route::delete('/systems/{system}/permissions/{permission}', [SystemController::class, 'destroyPermission'])->name('systems.permissions.destroy');
+
+    // Queue Monitor
+    Route::get('/queue/monitor', [QueueMonitorController::class, 'index'])->name('queue.monitor');
+    Route::post('/queue/failed/retry-all', [QueueMonitorController::class, 'retryAll'])->name('queue.failed.retry-all');
+    Route::delete('/queue/failed/flush', [QueueMonitorController::class, 'flushFailed'])->name('queue.failed.flush');
+    Route::post('/queue/failed/{uuid}/retry', [QueueMonitorController::class, 'retryFailed'])->name('queue.failed.retry');
+    Route::delete('/queue/failed/{uuid}', [QueueMonitorController::class, 'destroyFailed'])->name('queue.failed.destroy');
 
     // Managed Group CRUD (adapter-specific reference tables e.g. departments, document_categories)
     Route::get('/systems/{system}/group-records/{group}', [SystemController::class, 'groupRecords'])->name('systems.group-records.index');
