@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Adapters;
+
+use App\Models\System;
+use App\Models\UcmUser;
+use Illuminate\Support\Facades\Log;
+use PDO;
+use PDOException;
+
+/**
+ * Base class ที่มี helper methods สำหรับ Adapter ที่ใช้ DB connection โดยตรง
+ */
+abstract class BaseAdapter implements SystemAdapterInterface
+{
+    protected System $system;
+    protected ?PDO $pdo = null;
+
+    public function __construct(System $system)
+    {
+        $this->system = $system;
+    }
+
+    /**
+     * สร้าง PDO connection ไปยังฐานข้อมูลของระบบเดิม
+     * Support: mysql, sqlsrv (SQL Server)
+     */
+    protected function getConnection(): PDO
+    {
+        if ($this->pdo) {
+            return $this->pdo;
+        }
+
+        $driver   = $this->getDriver();
+        $host     = $this->system->db_host;
+        $port     = $this->system->db_port ?: 1433;
+        $dbname   = $this->system->db_name;
+        $username = $this->system->db_user;
+        $password = $this->system->db_password;
+
+        if ($driver === 'sqlsrv') {
+            $dsn = "sqlsrv:Server={$host},{$port};Database={$dbname};TrustServerCertificate=1;Encrypt=0";
+        } else {
+            $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
+        }
+
+        $options = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ];
+
+        // PDO::ATTR_TIMEOUT ไม่รองรับใน sqlsrv driver
+        if ($driver !== 'sqlsrv') {
+            $options[PDO::ATTR_TIMEOUT] = 10;
+        }
+
+        $this->pdo = new PDO($dsn, $username, $password, $options);
+
+        return $this->pdo;
+    }
+
+    protected function getDriver(): string
+    {
+        return 'mysql'; // override ใน subclass ถ้าใช้ sqlsrv
+    }
+
+    /**
+     * Default: ไม่รองรับ auto-create
+     * Override ใน subclass เพื่อเปิดใช้งาน
+     */
+    public function createUser(UcmUser $user, array $permissions): bool
+    {
+        return false;
+    }
+
+    public function getSystemUsers(): array
+    {
+        return [];
+    }
+
+    public function discoverPermissions(): array
+    {
+        return []; // override ใน subclass ที่รองรับ
+    }
+
+    public function getAccountStatus(UcmUser $user): ?bool
+    {
+        return null; // override ใน subclass
+    }
+
+    public function setAccountStatus(UcmUser $user, bool $active): bool
+    {
+        return false; // override ใน subclass
+    }
+
+    public function testConnection(): array
+    {
+        try {
+            $pdo = $this->getConnection();
+            $pdo->query('SELECT 1');
+            return ['ok' => true, 'message' => 'เชื่อมต่อสำเร็จ'];
+        } catch (PDOException $e) {
+            Log::warning("[{$this->system->slug}] Connection test failed: " . $e->getMessage());
+            return ['ok' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    public function __destruct()
+    {
+        $this->pdo = null;
+    }
+}

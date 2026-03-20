@@ -1,0 +1,595 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "UCM — User Centralized Management API",
+        "description": "API สำหรับระบบภายนอกที่ต้องการใช้ UCM เป็น Authentication & Permission Hub\n\n## การทำงาน\n1. เรียก POST /api/auth/user-login เพื่อ authenticate ผู้ใช้ผ่าน LDAP\n2. UCM คืน Bearer Token + ข้อมูล user + permissions กลับมา\n3. ใช้ token สำหรับเรียก permission endpoints เพิ่มเติม\n\n## ระบบ Legacy (server-to-server)\nใช้ POST /api/auth/token ด้วย admin credentials เพื่อรับ long-lived token",
+        "contact": {
+            "name": "UCM Admin"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/user-centralized-managment/api",
+            "description": "UCM API Server"
+        }
+    ],
+    "paths": {
+        "/auth/user-login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "User Login",
+                "description": "Authenticate ผู้ใช้ทั่วไปด้วย LDAP credentials แล้วรับ Sanctum token + permissions\n\n**Rate Limit:** 10 requests / minute per IP",
+                "operationId": "userLogin",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "description": "AD username",
+                                        "type": "string",
+                                        "example": "john.doe",
+                                        "maxLength": 100
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret",
+                                        "maxLength": 200
+                                    },
+                                    "system": {
+                                        "description": "Slug ของระบบ (optional)",
+                                        "type": "string",
+                                        "example": "repair-system",
+                                        "nullable": true,
+                                        "maxLength": 100
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login สำเร็จ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string",
+                                            "example": "1|AbCdEfGhIjKl..."
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        },
+                                        "user": {
+                                            "$ref": "#/components/schemas/UserProfile"
+                                        },
+                                        "permissions": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "view_report",
+                                                "edit_order"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Credentials ผิด",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "ไม่มีบัญชีใน UCM หรือ account ถูก deactivate",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation ผิดพลาด",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationError"
+                                }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Rate limit เกิน",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/token": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Admin Token (server-to-server)",
+                "description": "ออก long-lived token ด้วย admin LDAP credentials สำหรับระบบ legacy\n\nToken ไม่หมดอายุ — ยกเลิกด้วย DELETE /auth/token",
+                "operationId": "issueAdminToken",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "password",
+                                    "token_name"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "example": "admin"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "secret"
+                                    },
+                                    "token_name": {
+                                        "description": "ชื่อ token (unique — ออกซ้ำแทนที่ของเดิม)",
+                                        "type": "string",
+                                        "example": "repair-system",
+                                        "maxLength": 100
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Token ออกสำเร็จ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string",
+                                            "example": "2|XyZaBcDeFgHi..."
+                                        },
+                                        "type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Credentials ผิด",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Account ไม่ใช่ admin",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout / Revoke Token",
+                "description": "ลบ token ที่ใช้ส่งมาทิ้ง ใช้ได้ทั้ง admin token และ user token",
+                "operationId": "revokeToken",
+                "responses": {
+                    "200": {
+                        "description": "Token ถูกยกเลิกแล้ว",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token revoked"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "ไม่มี token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/permissions/check": {
+            "post": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "ตรวจสอบ Permission (real-time)",
+                "description": "เช็คว่า user มี permission key ใดๆ ในระบบที่ระบุ เหมาะสำหรับใช้ใน middleware",
+                "operationId": "checkPermission",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "username",
+                                    "system",
+                                    "permission"
+                                ],
+                                "properties": {
+                                    "username": {
+                                        "type": "string",
+                                        "example": "john.doe",
+                                        "maxLength": 100
+                                    },
+                                    "system": {
+                                        "description": "Slug ของระบบ",
+                                        "type": "string",
+                                        "example": "repair-system",
+                                        "maxLength": 100
+                                    },
+                                    "permission": {
+                                        "description": "Permission key",
+                                        "type": "string",
+                                        "example": "approve",
+                                        "maxLength": 100
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "ผลการตรวจสอบ (200 เสมอ — ดู allowed field)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "allowed": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "reason": {
+                                            "type": "string",
+                                            "example": "user_not_found",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "ไม่มี token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/users/{username}/permissions": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "ดึง permissions ของ user ในระบบที่ระบุ",
+                "description": "คืน array ของ permission keys ทั้งหมดที่ user มีในระบบนั้น",
+                "operationId": "getUserPermissions",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "path",
+                        "description": "UCM username",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "john.doe"
+                        }
+                    },
+                    {
+                        "name": "system",
+                        "in": "query",
+                        "description": "Slug ของระบบ",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "repair-system"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permissions ของ user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "username": {
+                                            "type": "string",
+                                            "example": "john.doe"
+                                        },
+                                        "system": {
+                                            "type": "string",
+                                            "example": "repair-system"
+                                        },
+                                        "permissions": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "view_report",
+                                                "edit_order"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "ไม่มี token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ไม่พบ user หรือ system",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/users/{username}/permissions/all": {
+            "get": {
+                "tags": [
+                    "Permissions"
+                ],
+                "summary": "ดึง permissions ของ user ในทุกระบบ",
+                "description": "คืน permissions แบบ group by system slug ในคำสั่งเดียว (single JOIN query — ไม่มี N+1)",
+                "operationId": "getAllSystemsPermissions",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "path",
+                        "description": "UCM username",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "john.doe"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Permissions ของ user ในทุกระบบที่ active",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "username": {
+                                            "type": "string",
+                                            "example": "john.doe"
+                                        },
+                                        "systems": {
+                                            "type": "object",
+                                            "example": {
+                                                "repair-system": [
+                                                    "view_report",
+                                                    "edit_order"
+                                                ],
+                                                "hr-system": [
+                                                    "view_employee"
+                                                ]
+                                            },
+                                            "additionalProperties": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "ไม่มี token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "ไม่พบ user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "UserProfile": {
+                "properties": {
+                    "username": {
+                        "type": "string",
+                        "example": "john.doe"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "john@company.com"
+                    },
+                    "department": {
+                        "type": "string",
+                        "example": "IT",
+                        "nullable": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Developer",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "Invalid credentials"
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationError": {
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "example": "The username field is required."
+                    },
+                    "errors": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "Sanctum Bearer Token — รับได้จาก POST /api/auth/token หรือ POST /api/auth/user-login",
+                "bearerFormat": "Sanctum Token",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Login, logout และออก token"
+        },
+        {
+            "name": "Permissions",
+            "description": "ตรวจสอบและดึง permissions ของผู้ใช้"
+        }
+    ]
+}

@@ -1,0 +1,153 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\System;
+use App\Models\UcmUser;
+use App\Services\LdapService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class AuthController extends Controller
+{
+    /**
+     * POST /api/auth/token
+     *
+     * Legacy systems call this endpoint to obtain a Sanctum API token.
+     * They authenticate with a UCM admin account (username + password via LDAP).
+     *
+     * Request body:
+     *   { "username": "admin", "password": "secret", "token_name": "repair-system" }
+     *
+     * Response:
+     *   { "token": "...", "type": "Bearer" }
+     */
+    public function issueToken(Request $request): JsonResponse
+    {
+        $request->validate([
+            'username'   => 'required|string',
+            'password'   => 'required|string',
+            'token_name' => 'required|string|max:100',
+        ]);
+
+        // Verify credentials via Laravel's auth guard (uses LdapUserProvider)
+        if (! auth()->attempt(['username' => $request->username, 'password' => $request->password])) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        /** @var UcmUser $user */
+        $user = auth()->user();
+
+        if (! $user->is_admin) {
+            auth()->logout();
+            return response()->json(['message' => 'Forbidden: admin account required'], 403);
+        }
+
+        // Revoke existing token with same name to avoid duplicates
+        $user->tokens()->where('name', $request->token_name)->delete();
+
+        $token = $user->createToken($request->token_name);
+
+        auth()->logout();
+
+        return response()->json([
+            'token' => $token->plainTextToken,
+            'type'  => 'Bearer',
+        ]);
+    }
+
+    /**
+     * DELETE /api/auth/token
+     *
+     * Revoke the currently authenticated token.
+     */
+    public function revokeToken(Request $request): JsonResponse
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json(['message' => 'Token revoked']);
+    }
+
+    /**
+     * POST /api/auth/user-login
+     *
+     * Authenticate a regular UCM user (via LDAP) and return a Sanctum token
+     * along with their profile and permissions for the given system.
+     *
+     * This allows new systems to delegate auth entirely to UCM
+     * without maintaining their own user table or permission system.
+     *
+     * Request body:
+     *   {
+     *     "username": "john.doe",
+     *     "password": "secret",
+     *     "system":   "repair-system"   // optional — slug ของระบบที่ต้องการ permissions
+     *   }
+     *
+     * Response:
+     *   {
+     *     "token": "...",
+     *     "type": "Bearer",
+     *     "user": { "username", "name", "email", "department", "title" },
+     *     "permissions": ["view_report", "edit_order"]
+     *   }
+     */
+    public function userLogin(Request $request, LdapService $ldap): JsonResponse
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|max:100',
+            'password' => 'required|string|max:200',
+            'system'   => 'nullable|string|max:100|exists:systems,slug',
+        ]);
+
+        // ตรวจสอบ credentials ผ่าน LDAP
+        $ldapUser = $ldap->authenticate($validated['username'], $validated['password']);
+
+        if (! $ldapUser) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        // ต้องมีบัญชีใน UCM และ active
+        $user = UcmUser::where('username', $ldapUser['username'])
+            ->where('is_active', true)
+            ->first();
+
+        if (! $user) {
+            return response()->json(['message' => 'User not found or inactive in UCM'], 403);
+        }
+
+        // ชื่อ token = slug ของระบบ หรือ 'user-session' ถ้าไม่ระบุ
+        $tokenName = $validated['system'] ?? 'user-session';
+
+        // ลบ token เก่าของระบบนี้ก่อน (ป้องกัน token สะสม)
+        $user->tokens()->where('name', $tokenName)->delete();
+
+        $token = $user->createToken($tokenName);
+
+        // ดึง permissions ของระบบที่ระบุมา (ถ้ามี)
+        $permissions = [];
+        if (! empty($validated['system'])) {
+            $system = System::where('slug', $validated['system'])
+                ->where('is_active', true)
+                ->first();
+
+            if ($system) {
+                $permissions = $user->getPermissionsForSystem($system->id);
+            }
+        }
+
+        return response()->json([
+            'token' => $token->plainTextToken,
+            'type'  => 'Bearer',
+            'user'  => [
+                'username'   => $user->username,
+                'name'       => $user->name,
+                'email'      => $user->email,
+                'department' => $user->department,
+                'title'      => $user->title,
+            ],
+            'permissions' => $permissions,
+        ]);
+    }
+}
