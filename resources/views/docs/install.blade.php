@@ -21,6 +21,7 @@ $sections = [
     ['id' => 'first-admin',   'label' => 'ตั้งค่า Super Admin'],
     ['id' => 'ldap',          'label' => 'LDAP / AD Config'],
     ['id' => 'queue',         'label' => 'Queue Worker'],
+    ['id' => 'connector',     'label' => 'Connector Wizard'],
     ['id' => 'client',        'label' => 'UCM Client (Legacy)'],
     ['id' => 'api',           'label' => 'API Authentication'],
 ];
@@ -61,7 +62,7 @@ $sections = [
                 </div>
                 <div>
                     <h1 class="text-2xl font-bold text-white">UCM Install Guide</h1>
-                    <p class="text-slate-400 text-sm mt-1">Developer documentation — v1.0 — Laravel 11 / PHP 8.3</p>
+                    <p class="text-slate-400 text-sm mt-1">Developer documentation — v1.0 — Laravel 13 / PHP 8.3</p>
                 </div>
             </div>
         </div>
@@ -79,12 +80,12 @@ $sections = [
             <div class="px-6 py-5 text-sm text-slate-700">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     @foreach ([
-                        ['label' => 'PHP 8.3', 'note' => 'pdo_sqlsrv, ldap, curl extensions', 'color' => 'violet'],
-                        ['label' => 'SQL Server (MSSQL)', 'note' => 'ฐานข้อมูลหลัก UCM + ระบบปลายทาง', 'color' => 'sky'],
-                        ['label' => 'Composer ≥ 2', 'note' => 'PHP package manager', 'color' => 'emerald'],
+                        ['label' => 'PHP 8.3', 'note' => 'pdo_mysql, ldap, curl, mbstring, zip, bcmath, intl extensions', 'color' => 'violet'],
+                        ['label' => 'MySQL 8.0', 'note' => 'ฐานข้อมูลหลัก UCM (รันใน Docker container ucm-db)', 'color' => 'sky'],
+                        ['label' => 'Composer ≥ 2', 'note' => 'PHP package manager (built-in ใน Docker image)', 'color' => 'emerald'],
                         ['label' => 'Active Directory / LDAP', 'note' => 'Authentication + import users', 'color' => 'amber'],
-                        ['label' => 'Docker & Compose (optional)', 'note' => 'สำหรับ Docker deployment', 'color' => 'indigo'],
-                        ['label' => 'Web Server', 'note' => 'Nginx หรือ Apache (non-Docker)', 'color' => 'slate'],
+                        ['label' => 'Docker & Compose', 'note' => 'สำหรับ Docker deployment (แนะนำ)', 'color' => 'indigo'],
+                        ['label' => 'pdo_sqlsrv (optional)', 'note' => 'เฉพาะระบบที่ต้องเชื่อมต่อ SQL Server ปลายทาง (built-in ใน Docker image)', 'color' => 'slate'],
                     ] as $req)
                         <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
                             <div class="w-2 h-2 rounded-full bg-{{ $req['color'] }}-500 flex-shrink-0"></div>
@@ -110,38 +111,54 @@ $sections = [
                 <span class="ml-auto text-xs font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">แนะนำ</span>
             </div>
             <div class="px-6 py-5 space-y-4 text-sm">
-                <p class="text-slate-600">โปรเจคใช้ Docker Compose มี 2 containers หลัก:</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-1">
-                    <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
-                        <code class="text-xs font-mono font-bold text-indigo-800">php83</code>
-                        <p class="text-xs text-indigo-700 mt-1">PHP 8.3-FPM + Nginx — web server หลัก</p>
-                    </div>
-                    <div class="p-3 bg-violet-50 rounded-xl border border-violet-100">
-                        <code class="text-xs font-mono font-bold text-violet-800">ucm-queue</code>
-                        <p class="text-xs text-violet-700 mt-1">Queue Worker — <code class="font-mono">php artisan queue:work</code></p>
+                <p class="text-slate-600">โปรเจคใช้ Docker Compose ซึ่งอยู่ที่ root directory ของ nginx-proxy (<code class="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-xs">docker-compose.yml</code>) มี containers ที่เกี่ยวข้อง:</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    @foreach ([
+                        ['name' => 'ucm-db', 'color' => 'sky', 'desc' => 'MySQL 8.0 — ฐานข้อมูลหลัก UCM (database: ucm_db)'],
+                        ['name' => 'php83', 'color' => 'indigo', 'desc' => 'PHP 8.3-FPM — รัน Laravel application'],
+                        ['name' => 'ucm-queue', 'color' => 'violet', 'desc' => 'Queue Worker — ใช้ image php83 เดียวกัน รัน queue:work'],
+                        ['name' => 'web-router', 'color' => 'emerald', 'desc' => 'Nginx alpine — reverse proxy, route /user-centralized-managment → php83'],
+                        ['name' => 'phpmyadmin', 'color' => 'amber', 'desc' => 'phpMyAdmin — จัดการ DB ผ่าน port 8181'],
+                        ['name' => 'nginx-proxy-manager', 'color' => 'slate', 'desc' => 'Nginx Proxy Manager — SSL termination + domain routing'],
+                    ] as $c)
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <code class="text-xs font-mono font-bold text-{{ $c['color'] }}-700">{{ $c['name'] }}</code>
+                            <p class="text-xs text-slate-600 mt-1">{{ $c['desc'] }}</p>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="bg-slate-50 rounded-xl border border-slate-200 p-4 text-xs space-y-1 text-slate-600">
+                    <p class="font-bold text-slate-700 mb-2">โครงสร้าง Directory</p>
+                    <div class="font-mono space-y-0.5">
+                        <div><span class="text-slate-400">nginx-proxy/</span></div>
+                        <div class="pl-4"><span class="text-slate-400">├── docker-compose.yml</span></div>
+                        <div class="pl-4"><span class="text-slate-400">├── php83/</span> <span class="text-slate-500 font-sans">← Dockerfile + custom.ini</span></div>
+                        <div class="pl-4"><span class="text-slate-400">├── web-router/default.conf</span> <span class="text-slate-500 font-sans">← Nginx config</span></div>
+                        <div class="pl-4"><span class="text-indigo-600 font-semibold">└── www/user-centralized-managment/</span> <span class="text-slate-500 font-sans">← Laravel app root</span></div>
                     </div>
                 </div>
 
                 @foreach ([
-                    '# 1. Clone โปรเจค',
-                    'git clone <repo-url> user-centralized-managment && cd user-centralized-managment',
-                    '# 2. Copy environment file และแก้ไขค่าให้ครบ',
-                    'cp .env.example .env',
-                    '# 3. Start containers',
+                    '# 1. Clone โปรเจคเข้า www/',
+                    'git clone <repo-url> www/user-centralized-managment',
+                    '# 2. Copy .env และแก้ไขค่าให้ครบ (ดูหัวข้อ Environment Config)',
+                    'cp www/user-centralized-managment/.env.example www/user-centralized-managment/.env',
+                    '# 3. Start containers ทั้งหมด',
                     'docker compose up -d',
-                    '# 4. Install dependencies',
-                    'docker exec php83 composer install --no-dev --optimize-autoloader',
+                    '# 4. Install PHP dependencies',
+                    'docker exec -w /var/www/html/user-centralized-managment php83 composer install --no-dev --optimize-autoloader',
                     '# 5. Generate app key',
-                    'docker exec php83 php artisan key:generate',
+                    'docker exec -w /var/www/html/user-centralized-managment php83 php artisan key:generate',
                     '# 6. Run migrations + seed',
-                    'docker exec php83 php artisan migrate --seed',
+                    'docker exec -w /var/www/html/user-centralized-managment php83 php artisan migrate --seed',
                 ] as $cmd)
                     <div class="bg-slate-900 rounded-xl px-4 py-2.5 font-mono text-xs {{ str_starts_with($cmd, '#') ? 'text-slate-500' : 'text-slate-300' }} overflow-x-auto">{{ $cmd }}</div>
                 @endforeach
 
                 <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
                     <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
-                    <span>เมื่อแก้ไขไฟล์ Adapter หรือ Job ต้อง <code class="font-mono bg-amber-100 px-1 rounded">docker restart ucm-queue</code> ทุกครั้ง</span>
+                    <span>เมื่อแก้ไขไฟล์ Adapter หรือ Job ต้อง <code class="font-mono bg-amber-100 px-1 rounded">docker restart ucm-queue</code> ทุกครั้ง เพราะ PHP process โหลด code ไว้ใน memory แล้ว</span>
                 </div>
             </div>
         </div>
@@ -271,7 +288,7 @@ $sections = [
                         <div class="text-slate-500"># /etc/supervisor/conf.d/ucm-queue.conf</div>
                         <div>[program:<span class="text-amber-300">ucm-queue</span>]</div>
                         <div>process_name=%(program_name)s_%(process_num)02d</div>
-                        <div>command=<span class="text-green-300">php /var/www/user-centralized-managment/artisan queue:work --sleep=3 --tries=3 --timeout=90</span></div>
+                        <div>command=<span class="text-green-300">php /var/www/user-centralized-managment/artisan queue:work --sleep=3 --tries=3 --max-time=3600</span></div>
                         <div>autostart=true</div>
                         <div>autorestart=true</div>
                         <div>stopasgroup=true</div>
@@ -300,9 +317,13 @@ $sections = [
                         Migration & Seed
                     </h3>
                     @foreach ([
-                        'php artisan migrate --seed',
-                        '# หรือ seed เฉพาะระบบ EARTH',
+                        'php artisan migrate',
+                        '# Seed ตามระบบที่ใช้งาน',
                         'php artisan db:seed --class=EarthSeeder',
+                        'php artisan db:seed --class=EFilingSeeder',
+                        'php artisan db:seed --class=RepairSystemSeeder',
+                        '# หรือ seed ทั้งหมด',
+                        'php artisan migrate --seed',
                     ] as $cmd)
                         <div class="bg-slate-900 rounded-xl px-4 py-2 font-mono text-xs {{ str_starts_with($cmd, '#') ? 'text-slate-500' : 'text-slate-300' }} overflow-x-auto mb-1">{{ $cmd }}</div>
                     @endforeach
@@ -324,30 +345,40 @@ $sections = [
             <div class="px-6 py-5 space-y-4 text-sm">
                 @foreach ([
                     ['section' => 'App', 'color' => 'indigo', 'vars' => [
-                        ['key' => 'APP_NAME', 'val' => 'UCM'],
-                        ['key' => 'APP_ENV', 'val' => 'production', 'note' => 'local | production'],
-                        ['key' => 'APP_KEY', 'val' => 'base64:...', 'note' => 'php artisan key:generate'],
+                        ['key' => 'APP_NAME', 'val' => '"User Centralized Management"'],
+                        ['key' => 'APP_ENV', 'val' => 'local', 'note' => 'local | production'],
+                        ['key' => 'APP_KEY', 'val' => 'base64:...', 'note' => 'สร้างด้วย php artisan key:generate'],
+                        ['key' => 'APP_DEBUG', 'val' => 'true', 'note' => 'ปิดใน production'],
                         ['key' => 'APP_URL', 'val' => 'https://your-domain.com/user-centralized-managment'],
                     ]],
-                    ['section' => 'Database (UCM — MSSQL)', 'color' => 'sky', 'vars' => [
-                        ['key' => 'DB_CONNECTION', 'val' => 'sqlsrv'],
-                        ['key' => 'DB_HOST', 'val' => 'MSSQL_SERVER_HOST'],
-                        ['key' => 'DB_PORT', 'val' => '1433'],
-                        ['key' => 'DB_DATABASE', 'val' => 'UCM_DB'],
+                    ['section' => 'Database (UCM — MySQL 8.0)', 'color' => 'sky', 'vars' => [
+                        ['key' => 'DB_CONNECTION', 'val' => 'mysql'],
+                        ['key' => 'DB_HOST', 'val' => 'ucm-db', 'note' => 'Docker container name'],
+                        ['key' => 'DB_PORT', 'val' => '3306'],
+                        ['key' => 'DB_DATABASE', 'val' => 'ucm_db'],
                         ['key' => 'DB_USERNAME', 'val' => 'ucm_user'],
-                        ['key' => 'DB_PASSWORD', 'val' => 'secret'],
+                        ['key' => 'DB_PASSWORD', 'val' => 'ucm_password'],
                     ]],
-                    ['section' => 'Queue', 'color' => 'violet', 'vars' => [
+                    ['section' => 'Queue & Session & Cache', 'color' => 'violet', 'vars' => [
                         ['key' => 'QUEUE_CONNECTION', 'val' => 'database', 'note' => 'ใช้ jobs table ใน DB'],
+                        ['key' => 'SESSION_DRIVER', 'val' => 'database'],
+                        ['key' => 'CACHE_STORE', 'val' => 'database'],
                     ]],
                     ['section' => 'LDAP / Active Directory', 'color' => 'emerald', 'vars' => [
-                        ['key' => 'LDAP_HOST', 'val' => 'dc01.domain.com'],
-                        ['key' => 'LDAP_USERNAME', 'val' => 'CN=svc_ldap,DC=domain,DC=com'],
-                        ['key' => 'LDAP_PASSWORD', 'val' => 'secret'],
+                        ['key' => 'LDAP_HOST', 'val' => 'DOMAIN.COM', 'note' => 'AD domain หรือ DC IP'],
                         ['key' => 'LDAP_PORT', 'val' => '389', 'note' => '636 = LDAPS'],
-                        ['key' => 'LDAP_BASE_DN', 'val' => 'DC=domain,DC=com'],
-                        ['key' => 'LDAP_USE_SSL', 'val' => 'false'],
-                        ['key' => 'LDAP_USE_TLS', 'val' => 'false'],
+                        ['key' => 'LDAP_BASE_DN', 'val' => '"OU=User,DC=DOMAIN,DC=COM"'],
+                        ['key' => 'LDAP_BIND_DN', 'val' => '"DOMAIN\\service_account"', 'note' => 'service account'],
+                        ['key' => 'LDAP_BIND_PASSWORD', 'val' => '"password"'],
+                        ['key' => 'LDAP_USER_FILTER', 'val' => '(sAMAccountName={username})'],
+                        ['key' => 'LDAP_USERNAME_ATTRIBUTE', 'val' => 'sAMAccountName'],
+                    ]],
+                    ['section' => 'UCM Settings', 'color' => 'amber', 'vars' => [
+                        ['key' => 'UCM_ALLOWED_DEPARTMENT', 'val' => '"Systems Development and IT"', 'note' => 'แผนกที่อนุญาต Login (เว้นว่างเพื่ออนุญาตทุกแผนก)'],
+                    ]],
+                    ['section' => 'Swagger / API Docs', 'color' => 'rose', 'vars' => [
+                        ['key' => 'SWAGGER_GENERATE_ALWAYS', 'val' => 'false', 'note' => 'false = ใช้ cached JSON (แนะนำ)'],
+                        ['key' => 'L5_SWAGGER_UI_DOC_EXPANSION', 'val' => 'full'],
                     ]],
                 ] as $group)
                     <div>
@@ -384,12 +415,16 @@ $sections = [
             <div class="px-6 py-5 space-y-4 text-sm">
                 <div class="space-y-2">
                     @foreach ([
-                        '# รัน migrations ทั้งหมด (รวม is_admin tinyInteger migration)',
-                        'php artisan migrate',
-                        '# Seed ระบบ EARTH (permissions)',
-                        'php artisan db:seed --class=EarthSeeder',
-                        '# Development: fresh + seed ทั้งหมด',
-                        'php artisan migrate:fresh --seed',
+                        '# Docker: รัน migrations ทั้งหมด',
+                        'docker exec -w /var/www/html/user-centralized-managment php83 php artisan migrate',
+                        '# Seed permissions ของแต่ละระบบ (เลือก seed ตามระบบที่ใช้)',
+                        'docker exec -w /var/www/html/user-centralized-managment php83 php artisan db:seed --class=EarthSeeder',
+                        'docker exec -w /var/www/html/user-centralized-managment php83 php artisan db:seed --class=EFilingSeeder',
+                        'docker exec -w /var/www/html/user-centralized-managment php83 php artisan db:seed --class=RepairSystemSeeder',
+                        '# หรือ seed ทั้งหมดในคราวเดียว (DatabaseSeeder)',
+                        'docker exec -w /var/www/html/user-centralized-managment php83 php artisan migrate --seed',
+                        '# Development: reset ทั้งหมดและ seed ใหม่',
+                        'docker exec -w /var/www/html/user-centralized-managment php83 php artisan migrate:fresh --seed',
                     ] as $cmd)
                         <div class="bg-slate-900 rounded-xl px-4 py-2 font-mono text-xs {{ str_starts_with($cmd, '#') ? 'text-slate-500' : 'text-slate-300' }} overflow-x-auto">{{ $cmd }}</div>
                     @endforeach
@@ -418,7 +453,7 @@ $sections = [
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Docker</p>
                     @foreach ([
                         '# 1. Import ผู้ใช้จาก AD ผ่านหน้าเว็บก่อน แล้วรัน tinker',
-                        'docker exec -it php83 php artisan tinker',
+                        'docker exec -it -w /var/www/html/user-centralized-managment php83 php artisan tinker',
                         '# 2. ใน tinker shell — แทน \'username\' ด้วย AD username ของ admin',
                         'App\Models\UcmUser::where(\'username\', \'firstname.lastname\')->update([\'is_admin\' => 2]);',
                         'exit',
@@ -495,14 +530,19 @@ $sections = [
                 <h2 class="font-bold text-slate-800">Queue Worker — คำสั่งที่ใช้บ่อย</h2>
             </div>
             <div class="px-6 py-5 space-y-2 text-sm">
+                <div class="mb-3 bg-slate-50 rounded-xl border border-slate-200 p-3 text-xs text-slate-600">
+                    <span class="font-bold text-slate-700">Docker queue command:</span>
+                    <code class="font-mono ml-2 text-violet-700">php artisan queue:work --sleep=3 --tries=3 --max-time=3600</code>
+                    <p class="mt-1 text-slate-500">Container <code class="font-mono">ucm-queue</code> รัน command นี้อัตโนมัติ และ restart ตัวเองทุก 3600 วินาที (1 ชั่วโมง) เพื่อป้องกัน memory leak</p>
+                </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     @foreach ([
                         ['label' => 'Docker — ดู logs', 'cmd' => 'docker logs ucm-queue --tail 50 -f'],
                         ['label' => 'Docker — restart', 'cmd' => 'docker restart ucm-queue'],
                         ['label' => 'Supervisor — restart', 'cmd' => 'sudo supervisorctl restart ucm-queue:*'],
                         ['label' => 'Supervisor — status', 'cmd' => 'sudo supervisorctl status'],
-                        ['label' => 'Failed jobs', 'cmd' => 'php artisan queue:failed'],
-                        ['label' => 'Retry failed', 'cmd' => 'php artisan queue:retry all'],
+                        ['label' => 'Failed jobs (Docker)', 'cmd' => 'docker exec -w /var/www/html/user-centralized-managment php83 php artisan queue:failed'],
+                        ['label' => 'Retry all failed', 'cmd' => 'docker exec -w /var/www/html/user-centralized-managment php83 php artisan queue:retry all'],
                     ] as $item)
                         <div class="bg-slate-900 rounded-xl px-4 py-3 overflow-x-auto">
                             <div class="text-slate-500 text-[10px] mb-1">{{ $item['label'] }}</div>
@@ -513,6 +553,62 @@ $sections = [
                 <div class="flex items-start gap-3 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 mt-2">
                     <svg class="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
                     <span>ทุกครั้งที่แก้ไข Adapter หรือ Job — <strong>ต้อง restart queue worker</strong> เพราะ PHP process โหลด code ไว้ใน memory แล้ว</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Connector Wizard ── --}}
+        <div id="connector" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">Connector Wizard — เชื่อมต่อฐานข้อมูลภายนอก</h2>
+            </div>
+            <div class="px-6 py-5 space-y-4 text-sm text-slate-700">
+                <p class="text-slate-600">Connector Wizard ช่วยสร้าง Dynamic Adapter สำหรับเชื่อมต่อฐานข้อมูลภายนอก (MySQL, PostgreSQL, SQL Server) โดยไม่ต้องเขียน PHP Adapter เอง เข้าใช้งานได้ที่ <strong>เมนู Connector Wizard</strong> (Admin L1+ เท่านั้น)</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    @foreach ([
+                        ['driver' => 'MySQL', 'color' => 'sky', 'ext' => 'pdo_mysql', 'note' => 'built-in ใน Docker image'],
+                        ['driver' => 'PostgreSQL', 'color' => 'indigo', 'ext' => 'pdo_pgsql', 'note' => 'ต้องติดตั้งเพิ่มใน Dockerfile'],
+                        ['driver' => 'SQL Server', 'color' => 'violet', 'ext' => 'pdo_sqlsrv', 'note' => 'built-in ใน Docker image'],
+                    ] as $d)
+                        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="w-2 h-2 rounded-full bg-{{ $d['color'] }}-500"></div>
+                                <span class="font-bold text-slate-800 text-xs">{{ $d['driver'] }}</span>
+                            </div>
+                            <code class="text-xs font-mono text-{{ $d['color'] }}-700">{{ $d['ext'] }}</code>
+                            <p class="text-xs text-slate-500 mt-1">{{ $d['note'] }}</p>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="border-t border-slate-100 pt-3">
+                    <h3 class="font-bold text-slate-900 mb-2">ข้อมูลที่ต้องเตรียม</h3>
+                    <ul class="space-y-1 text-slate-600 text-xs list-disc list-inside">
+                        <li><strong>DB Host / Port / Database / Username / Password</strong> ของฐานข้อมูลปลายทาง</li>
+                        <li><strong>ตาราง Users</strong> — ระบุชื่อตารางและคอลัมน์ที่ map กับ username ของ UCM</li>
+                        <li><strong>ตาราง Permissions</strong> — ระบุตารางและคอลัมน์ที่เก็บสิทธิ์ รวมถึง UCM Permission key mapping</li>
+                        <li><strong>Permission Mode</strong> — เลือกว่า permission เก็บแบบ column-based หรือ manual-defined</li>
+                    </ul>
+                </div>
+
+                <div class="border-t border-slate-100 pt-3">
+                    <h3 class="font-bold text-slate-900 mb-2">ข้อจำกัด</h3>
+                    <ul class="space-y-1 text-slate-600 text-xs list-disc list-inside">
+                        <li>รองรับ <strong>1-Way Sync เท่านั้น</strong> — UCM อ่านสิทธิ์จากระบบปลายทาง แต่ไม่สามารถ Push กลับได้</li>
+                        <li>ไม่รองรับ 2-Way Sync — ต้องพัฒนา Custom Adapter (PHP) เพื่อรองรับ</li>
+                        <li>ระบบปลายทางต้องเปิด network port ให้ container <code class="font-mono bg-slate-100 px-1 rounded">php83</code> เข้าถึงได้</li>
+                    </ul>
+                </div>
+
+                <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800">
+                    <svg class="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                    <span>Connector config ถูกเก็บใน table <code class="font-mono bg-blue-100 px-1 rounded">connector_configs</code> และสร้าง DynamicAdapter instance ที่ runtime — ไม่ต้อง deploy code ใหม่เมื่อเพิ่ม connector</span>
                 </div>
             </div>
         </div>
@@ -659,20 +755,24 @@ $sections = [
     var links = document.querySelectorAll('.toc-link');
     var ids   = Array.from(links).map(function (l) { return l.getAttribute('href').slice(1); });
 
-    function onScroll() {
-        var scrollY = window.scrollY + 120;
-        var active  = ids[0];
-        ids.forEach(function (id) {
-            var el = document.getElementById(id);
-            if (el && el.offsetTop <= scrollY) active = id;
-        });
+    function setActive(id) {
         links.forEach(function (l) {
-            var isCur = l.getAttribute('href') === '#' + active;
+            var isCur = l.getAttribute('href') === '#' + id;
             l.className = 'toc-link flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors ' +
                 (isCur ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50');
             l.querySelector('span').className = 'w-1.5 h-1.5 rounded-full flex-shrink-0 ' +
                 (isCur ? 'bg-indigo-500' : 'bg-slate-300');
         });
+    }
+
+    function onScroll() {
+        var threshold = 140;
+        var active    = ids[0];
+        ids.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el && el.getBoundingClientRect().top <= threshold) active = id;
+        });
+        setActive(active);
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });
