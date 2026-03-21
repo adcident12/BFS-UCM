@@ -33,6 +33,7 @@ use OpenApi\Attributes as OA;
 )]
 #[OA\Tag(name: 'Authentication', description: 'Login, logout และออก token')]
 #[OA\Tag(name: 'Permissions', description: 'ตรวจสอบและดึง permissions ของผู้ใช้')]
+#[OA\Tag(name: 'Export', description: 'ส่งออกข้อมูลผู้ใช้ + permissions ทุกระบบ')]
 class ApiAnnotations
 {
     // ── Reusable Schemas (บน class ได้) ────────────────────────────────────
@@ -246,4 +247,67 @@ class ApiAnnotations
         ],
     )]
     public function getAllPermissions(): void {}
+
+    // ── GET /users/export ───────────────────────────────────────────────────
+
+    #[OA\Get(
+        path: '/users/export',
+        operationId: 'exportUsers',
+        summary: 'ส่งออกข้อมูลผู้ใช้ + permissions ทุกระบบ',
+        description: "ดึงข้อมูลผู้ใช้ (username, employee_number, name, email, department, title) พร้อม permissions ทุกระบบที่ active\n\n- ถ้าไม่ส่ง filter จะดึงผู้ใช้ทั้งหมด\n- กรองด้วย `user_ids[]` หรือ `usernames[]` ได้ (เลือกอย่างใดอย่างหนึ่ง)\n- permissions จัด group ตาม system slug",
+        security: [['bearerAuth' => []]],
+        tags: ['Export'],
+        parameters: [
+            new OA\Parameter(
+                name: 'user_ids[]',
+                in: 'query',
+                required: false,
+                description: 'กรอง user ด้วย UCM user ID (ส่งได้หลายค่า)',
+                schema: new OA\Schema(type: 'array', items: new OA\Items(type: 'integer')),
+                example: [1, 2, 3],
+            ),
+            new OA\Parameter(
+                name: 'usernames[]',
+                in: 'query',
+                required: false,
+                description: 'กรอง user ด้วย username (ใช้แทน user_ids ได้)',
+                schema: new OA\Schema(type: 'array', items: new OA\Items(type: 'string')),
+                example: ['john.doe', 'jane.smith'],
+            ),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'ข้อมูลผู้ใช้ + permissions',
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(property: 'count',    type: 'integer', example: 2),
+                    new OA\Property(property: 'exported', type: 'string',  format: 'date-time', example: '2026-03-21T10:00:00+07:00'),
+                    new OA\Property(
+                        property: 'users',
+                        type: 'array',
+                        items: new OA\Items(properties: [
+                            new OA\Property(property: 'username',        type: 'string',  example: 'john.doe'),
+                            new OA\Property(property: 'employee_number', type: 'string',  example: 'EMP001', nullable: true),
+                            new OA\Property(property: 'name',            type: 'string',  example: 'John Doe'),
+                            new OA\Property(property: 'email',           type: 'string',  example: 'john@company.com', nullable: true),
+                            new OA\Property(property: 'department',      type: 'string',  example: 'IT', nullable: true),
+                            new OA\Property(property: 'title',           type: 'string',  example: 'Developer', nullable: true),
+                            new OA\Property(
+                                property: 'systems',
+                                type: 'object',
+                                description: 'permissions จัด group ตาม system slug',
+                                additionalProperties: new OA\AdditionalProperties(
+                                    type: 'array',
+                                    items: new OA\Items(type: 'string'),
+                                ),
+                                example: ['repair-system' => ['view_report', 'edit_order'], 'hr-system' => ['view_employee']],
+                            ),
+                        ]),
+                    ),
+                ]),
+            ),
+            new OA\Response(response: 401, description: 'ไม่มี token', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
+    public function exportUsers(): void {}
 }

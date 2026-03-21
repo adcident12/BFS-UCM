@@ -13,6 +13,7 @@ use App\Services\LdapService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserController extends Controller
 {
@@ -393,6 +394,72 @@ class UserController extends Controller
         };
 
         return back()->with('success', "อัปเดตสิทธิ์ {$user->name} เป็น {$levelName} เรียบร้อย");
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $userIds = array_filter(array_map('intval', (array) $request->input('user_ids', [])));
+
+        $query = UcmUser::where('is_active', true)->orderBy('name');
+        if (!empty($userIds)) {
+            $query->whereIn('id', $userIds);
+        }
+        $users = $query->get();
+
+        $systems = System::where('is_active', true)->orderBy('name')->get();
+
+        // โหลด permissions ทุก user ในคำสั่งเดียว (ไม่ N+1)
+        $permRows = UserSystemPermission::whereIn('user_id', $users->pluck('id'))
+            ->join('systems', function ($j) {
+                $j->on('user_system_permissions.system_id', '=', 'systems.id')
+                  ->where('systems.is_active', true)
+                  ->whereNull('systems.deleted_at');
+            })
+            ->select('user_system_permissions.user_id', 'systems.name as system_name', 'user_system_permissions.permission_key')
+            ->get();
+
+        // group: user_id → system_name → "key1, key2"
+        $permsMap = [];
+        foreach ($permRows as $row) {
+            $permsMap[$row->user_id][$row->system_name][] = $row->permission_key;
+        }
+
+        $filename = 'ucm-users-' . now()->format('Ymd-His') . '.csv';
+
+        return response()->streamDownload(function () use ($users, $systems, $permsMap) {
+            $handle = fopen('php://output', 'w');
+            // UTF-8 BOM for Excel
+            fwrite($handle, "\xEF\xBB\xBF");
+
+            // Header
+            $header = ['username', 'employee_number', 'name', 'email', 'department', 'title'];
+            foreach ($systems as $sys) {
+                $header[] = $sys->name . '_permissions';
+            }
+            fputcsv($handle, $header);
+
+            // Rows
+            foreach ($users as $user) {
+                $row = [
+                    $user->username,
+                    $user->employee_number ?? '',
+                    $user->name,
+                    $user->email ?? '',
+                    $user->department ?? '',
+                    $user->title ?? '',
+                ];
+                foreach ($systems as $sys) {
+                    $keys = $permsMap[$user->id][$sys->name] ?? [];
+                    $row[] = implode(', ', $keys);
+                }
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Cache-Control'       => 'no-store, no-cache',
+        ]);
     }
 
     public function searchLdap(Request $request)

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\UserExportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,4 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{username}/permissions', [PermissionController::class, 'forUser']);
     Route::get('/users/{username}/permissions/all', [PermissionController::class, 'allSystems']);
     Route::post('/permissions/check', [PermissionController::class, 'check']);
+
+    // User export
+    Route::get('/users/export', [UserExportController::class, 'export']);
 });

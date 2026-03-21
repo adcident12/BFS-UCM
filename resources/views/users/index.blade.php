@@ -11,6 +11,11 @@
 
 @section('content')
 
+{{-- Export form (hidden, submitted by JS) --}}
+<form id="export-form" method="GET" action="{{ route('users.export') }}" style="display:none">
+    <div id="export-ids-container"></div>
+</form>
+
 {{-- Toolbar --}}
 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-5 gap-3">
     {{-- Search bar --}}
@@ -41,6 +46,7 @@
         </button>
     </form>
 
+    {{-- AD Management (admin only) — global actions, not related to row selection --}}
     @if (auth()->user()->isAdmin())
     <div class="flex items-center gap-2 flex-shrink-0">
         <button id="btn-check-ad"
@@ -338,22 +344,84 @@
 
 {{-- Users Table --}}
 <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
-    <div class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+
+    {{-- Card header: default state --}}
+    <div id="table-header-default" class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-slate-100 bg-slate-50/50">
         <div class="flex items-center gap-2.5">
             <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
                 <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                 </svg>
             </div>
-            <span class="text-sm font-bold text-slate-700">รายชื่อผู้ใช้งาน</span>
+            <div>
+                <span class="text-sm font-bold text-slate-700">รายชื่อผู้ใช้งาน</span>
+                <span class="ml-2 text-xs text-slate-400 font-medium">{{ $users->count() }} / {{ $users->total() }} คน</span>
+            </div>
         </div>
-        <span class="text-xs text-slate-400 font-medium">{{ $users->count() }} / {{ $users->total() }} คน</span>
+        <button id="btn-export-all" onclick="doExport()"
+                class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            ส่งออก CSV ทั้งหมด
+        </button>
     </div>
+
+    {{-- Card header: selection state (appears when rows checked) --}}
+    <div id="table-header-selection" style="display:none"
+         class="flex items-center justify-between px-4 md:px-6 py-3.5 border-b border-emerald-200 bg-emerald-50">
+        <div class="flex items-center gap-3">
+            <button onclick="clearSelection()"
+                    class="w-7 h-7 flex items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors" title="ยกเลิกการเลือก">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <span class="text-sm font-semibold text-emerald-800">
+                เลือกแล้ว <span id="selected-count-num">0</span> คน
+            </span>
+        </div>
+        <button id="btn-export-selected" onclick="doExport()"
+                class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-lg transition-colors shadow-sm shadow-emerald-200 whitespace-nowrap">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            ส่งออก <span id="btn-export-selected-count">0</span> คน
+        </button>
+    </div>
+
+    {{-- "Select all pages" notice (appears only when all current-page rows checked AND more pages exist) --}}
+    @if ($users->hasPages())
+    <div id="select-all-pages-notice" style="display:none"
+         class="flex items-center justify-center gap-3 px-4 py-2.5 border-b border-blue-100 bg-blue-50 text-xs">
+        <span id="notice-text-page" class="text-blue-700 font-medium">
+            เลือก {{ $users->count() }} คนในหน้านี้แล้ว
+        </span>
+        <span class="text-blue-300">·</span>
+        <button id="btn-select-all-pages" onclick="selectAllPages()"
+                class="text-blue-700 font-bold underline underline-offset-2 hover:text-blue-900 transition-colors whitespace-nowrap">
+            เลือกทั้งหมด {{ $users->total() }} คนทุกหน้า
+        </button>
+        <span id="notice-all-selected" style="display:none" class="flex items-center gap-2">
+            <span class="text-blue-700 font-semibold">เลือกทั้งหมด {{ $users->total() }} คนแล้ว</span>
+            <button onclick="cancelAllPages()" class="text-blue-500 hover:text-blue-700 font-medium underline underline-offset-2">ยกเลิก</button>
+        </span>
+    </div>
+    @endif
+
     <div class="overflow-x-auto">
         <table class="w-full text-sm min-w-[560px]">
             <thead>
                 <tr class="border-b border-slate-100 bg-slate-50/80">
-                    <th class="text-left px-4 md:px-6 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wide">ชื่อ-สกุล</th>
+                    <th class="px-3 md:px-4 py-3 w-12">
+                        <div class="flex flex-col items-center gap-1">
+                            <input type="checkbox" id="select-all-chk"
+                                   class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500/30 cursor-pointer"
+                                   title="เลือกทั้งหมดในหน้านี้">
+                            <span class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider leading-none">CSV</span>
+                        </div>
+                    </th>
+                    <th class="text-left px-4 md:px-6 py-3 font-semibold text-slate-500 text-xs uppercase tracking-wide">ชื่อ-สกุล</th>
                     <th class="text-left px-4 md:px-6 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wide hidden sm:table-cell">Username</th>
                     <th class="text-left px-4 md:px-6 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wide hidden lg:table-cell">แผนก</th>
                     <th class="text-left px-4 md:px-6 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wide hidden xl:table-cell">ตำแหน่ง</th>
@@ -363,7 +431,11 @@
             </thead>
             <tbody class="divide-y divide-slate-50">
                 @forelse ($users as $user)
-                    <tr class="hover:bg-indigo-50/30 transition-colors group">
+                    <tr class="hover:bg-indigo-50/30 transition-colors group" data-user-id="{{ $user->id }}">
+                        <td class="px-3 md:px-4 py-3.5">
+                            <input type="checkbox" class="user-chk w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500/30 cursor-pointer"
+                                   value="{{ $user->id }}" data-name="{{ $user->name }}">
+                        </td>
                         <td class="px-4 md:px-6 py-3.5">
                             <div class="flex items-center gap-3">
                                 <div class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-sm shadow-indigo-100 flex-shrink-0">
@@ -398,7 +470,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-16 text-center">
+                        <td colspan="7" class="px-6 py-16 text-center">
                             <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
                                 <svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -461,6 +533,161 @@
 <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
 @push('scripts')
+<script>
+// ── Export + Checkbox logic ──────────────────────────────────────────────────
+(function () {
+    var selected      = {}; // id → true
+    var allPagesMode  = false; // true = ส่งออกทุก page (ไม่ส่ง user_ids)
+
+    var PAGE_COUNT    = {{ $users->count() }};
+    var TOTAL_COUNT   = {{ $users->total() }};
+    var HAS_PAGES     = {{ $users->hasPages() ? 'true' : 'false' }};
+
+    var selectAllChk       = document.getElementById('select-all-chk');
+    var headerDefault      = document.getElementById('table-header-default');
+    var headerSelection    = document.getElementById('table-header-selection');
+    var countNum           = document.getElementById('selected-count-num');
+    var btnExportSelCount  = document.getElementById('btn-export-selected-count');
+    var exportForm         = document.getElementById('export-form');
+    var idsContainer       = document.getElementById('export-ids-container');
+    var noticeBar          = document.getElementById('select-all-pages-notice');
+    var noticeTextPage     = document.getElementById('notice-text-page');
+    var btnSelectAllPages  = document.getElementById('btn-select-all-pages');
+    var noticeAllSelected  = document.getElementById('notice-all-selected');
+
+    function getCheckboxes() {
+        return Array.prototype.slice.call(document.querySelectorAll('.user-chk'));
+    }
+
+    function allCurrentPageChecked() {
+        var chks = getCheckboxes();
+        return chks.length > 0 && chks.every(function(c) { return selected[c.value]; });
+    }
+
+    function updateUI() {
+        var ids   = Object.keys(selected).filter(function(k) { return selected[k]; });
+        var count = allPagesMode ? TOTAL_COUNT : ids.length;
+
+        if (allPagesMode || count > 0) {
+            headerDefault.style.display   = 'none';
+            headerSelection.style.display = '';
+            countNum.textContent          = count;
+            btnExportSelCount.textContent = count;
+        } else {
+            headerDefault.style.display   = '';
+            headerSelection.style.display = 'none';
+        }
+
+        // sync select-all checkbox
+        if (selectAllChk) {
+            var chks       = getCheckboxes();
+            var allChecked = allCurrentPageChecked();
+            selectAllChk.checked       = allChecked || allPagesMode;
+            selectAllChk.indeterminate = !selectAllChk.checked && ids.length > 0;
+        }
+
+        // show/hide "select all pages" notice
+        if (noticeBar) {
+            if (!allPagesMode && HAS_PAGES && allCurrentPageChecked()) {
+                noticeBar.style.display         = '';
+                noticeTextPage.style.display    = '';
+                btnSelectAllPages.style.display = '';
+                noticeAllSelected.style.display = 'none';
+            } else if (allPagesMode) {
+                noticeBar.style.display         = '';
+                noticeTextPage.style.display    = 'none';
+                btnSelectAllPages.style.display = 'none';
+                noticeAllSelected.style.display = '';
+            } else {
+                noticeBar.style.display = 'none';
+            }
+        }
+
+        // highlight selected rows
+        document.querySelectorAll('tr[data-user-id]').forEach(function(row) {
+            var id = row.getAttribute('data-user-id');
+            if (allPagesMode || selected[id]) {
+                row.classList.add('bg-emerald-50/60');
+            } else {
+                row.classList.remove('bg-emerald-50/60');
+            }
+        });
+    }
+
+    // Individual checkbox change
+    document.addEventListener('change', function(e) {
+        if (!e.target.classList.contains('user-chk')) return;
+        allPagesMode = false; // ถ้า uncheck ใดๆ ยกเลิก all-pages mode
+        selected[e.target.value] = e.target.checked;
+        updateUI();
+    });
+
+    // Select all in current page
+    if (selectAllChk) {
+        selectAllChk.addEventListener('change', function() {
+            if (allPagesMode) {
+                // uncheck select-all → ยกเลิก all-pages mode
+                allPagesMode = false;
+                selected = {};
+                getCheckboxes().forEach(function(chk) { chk.checked = false; });
+            } else {
+                getCheckboxes().forEach(function(chk) {
+                    chk.checked = selectAllChk.checked;
+                    selected[chk.value] = selectAllChk.checked;
+                });
+            }
+            updateUI();
+        });
+    }
+
+    // เลือกทั้งหมดทุก page
+    window.selectAllPages = function() {
+        allPagesMode = true;
+        // check all current-page boxes ด้วย (visual feedback)
+        getCheckboxes().forEach(function(chk) {
+            chk.checked = true;
+            selected[chk.value] = true;
+        });
+        updateUI();
+    };
+
+    // ยกเลิก all-pages mode
+    window.cancelAllPages = function() {
+        allPagesMode = false;
+        selected = {};
+        getCheckboxes().forEach(function(chk) { chk.checked = false; });
+        updateUI();
+    };
+
+    // Clear selection ทั้งหมด
+    window.clearSelection = function() {
+        allPagesMode = false;
+        selected = {};
+        getCheckboxes().forEach(function(chk) { chk.checked = false; });
+        updateUI();
+    };
+
+    // Export
+    window.doExport = function() {
+        idsContainer.innerHTML = '';
+        if (!allPagesMode) {
+            // ส่งเฉพาะ selected ids (ถ้าไม่มีคือ export ทั้งหมด)
+            var ids = Object.keys(selected).filter(function(k) { return selected[k]; });
+            ids.forEach(function(id) {
+                var inp = document.createElement('input');
+                inp.type  = 'hidden';
+                inp.name  = 'user_ids[]';
+                inp.value = id;
+                idsContainer.appendChild(inp);
+            });
+        }
+        // allPagesMode = true → ไม่ส่ง user_ids ใดๆ → controller export ทั้งหมด
+        exportForm.submit();
+    };
+})();
+</script>
+
+@if (auth()->user()->isAdmin())
 <script>
 (function () {
     // ─── AD Check Modal ──────────────────────────────────────────────────
@@ -646,7 +873,7 @@
 
 <script>
 (function () {
-    // ─── Server data ────────────────────────────────────────────────────
+    // ─── Import Modal (AD + ระบบ) ──────────────────────────────────────
     var SEARCH_URL  = '{{ route("users.search-ldap") }}';
     var IMPORT_URL  = '{{ route("users.import-bulk") }}';
     var systemUrls  = {!! Js::from($importableSystems->mapWithKeys(fn($s) => [$s->id => route('systems.users-for-import', $s)])) !!};
@@ -1056,5 +1283,6 @@
     });
 })();
 </script>
+@endif {{-- isAdmin --}}
 @endpush
 @endsection

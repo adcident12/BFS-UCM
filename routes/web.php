@@ -43,6 +43,7 @@ Route::middleware('auth')->group(function () {
 
     // Users
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
     Route::get('/admin/levels', [UserController::class, 'adminLevels'])->name('admin.levels');
     Route::post('/users/{user}/admin-level', [UserController::class, 'updateAdminLevel'])->name('users.admin-level.update');
     Route::get('/users/search-ldap', [UserController::class, 'searchLdap'])->name('users.search-ldap');

@@ -513,6 +513,144 @@
                     }
                 ]
             }
+        },
+        "/users/export": {
+            "get": {
+                "tags": [
+                    "Export"
+                ],
+                "summary": "ส่งออกข้อมูลผู้ใช้ + permissions ทุกระบบ",
+                "description": "ดึงข้อมูลผู้ใช้ (username, employee_number, name, email, department, title) พร้อม permissions ทุกระบบที่ active\n\n- ถ้าไม่ส่ง filter จะดึงผู้ใช้ทั้งหมด\n- กรองด้วย `user_ids[]` หรือ `usernames[]` ได้ (เลือกอย่างใดอย่างหนึ่ง)\n- permissions จัด group ตาม system slug",
+                "operationId": "exportUsers",
+                "parameters": [
+                    {
+                        "name": "user_ids[]",
+                        "in": "query",
+                        "description": "กรอง user ด้วย UCM user ID (ส่งได้หลายค่า)",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ]
+                    },
+                    {
+                        "name": "usernames[]",
+                        "in": "query",
+                        "description": "กรอง user ด้วย username (ใช้แทน user_ids ได้)",
+                        "required": false,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "example": [
+                            "john.doe",
+                            "jane.smith"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "ข้อมูลผู้ใช้ + permissions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "count": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
+                                        "exported": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2026-03-21T10:00:00+07:00"
+                                        },
+                                        "users": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "username": {
+                                                        "type": "string",
+                                                        "example": "john.doe"
+                                                    },
+                                                    "employee_number": {
+                                                        "type": "string",
+                                                        "example": "EMP001",
+                                                        "nullable": true
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "John Doe"
+                                                    },
+                                                    "email": {
+                                                        "type": "string",
+                                                        "example": "john@company.com",
+                                                        "nullable": true
+                                                    },
+                                                    "department": {
+                                                        "type": "string",
+                                                        "example": "IT",
+                                                        "nullable": true
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "example": "Developer",
+                                                        "nullable": true
+                                                    },
+                                                    "systems": {
+                                                        "description": "permissions จัด group ตาม system slug",
+                                                        "type": "object",
+                                                        "example": {
+                                                            "repair-system": [
+                                                                "view_report",
+                                                                "edit_order"
+                                                            ],
+                                                            "hr-system": [
+                                                                "view_employee"
+                                                            ]
+                                                        },
+                                                        "additionalProperties": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "type": "string"
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "ไม่มี token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -590,6 +728,10 @@
         {
             "name": "Permissions",
             "description": "ตรวจสอบและดึง permissions ของผู้ใช้"
+        },
+        {
+            "name": "Export",
+            "description": "ส่งออกข้อมูลผู้ใช้ + permissions ทุกระบบ"
         }
     ]
 }

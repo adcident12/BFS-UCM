@@ -17,6 +17,7 @@ $sections = [
     ['id' => 'login',        'label' => 'การเข้าสู่ระบบ'],
     ['id' => 'dashboard',    'label' => 'Dashboard'],
     ['id' => 'users',        'label' => 'จัดการผู้ใช้'],
+    ['id' => 'export-csv',   'label' => 'ส่งออก CSV'],
     ['id' => 'permissions',  'label' => 'จัดการสิทธิ์'],
     ['id' => 'systems',      'label' => 'ระบบที่เชื่อมต่อ'],
     ['id' => 'ref-data',     'label' => 'ข้อมูล Reference'],
@@ -227,6 +228,80 @@ $sections = [
                 <div class="border-t border-slate-100 pt-4">
                     <h3 class="font-bold text-slate-900 mb-2">ค้นหาผู้ใช้</h3>
                     <p class="text-slate-600">ใช้ช่องค้นหาด้านบนเพื่อกรองตามชื่อ, username หรือแผนก ผลลัพธ์จะแสดงจำนวนที่พบ พร้อมปุ่ม × เพื่อล้างการค้นหา</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── ส่งออก CSV ── --}}
+        <div id="export-csv" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">ส่งออกข้อมูล (Export CSV)</h2>
+            </div>
+            <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+                <p>ฟีเจอร์ <strong>ส่งออก CSV</strong> ช่วยให้ดึงข้อมูลผู้ใช้พร้อม permissions ทุกระบบออกมาเป็นไฟล์ CSV สำหรับใช้งานใน Excel หรือเครื่องมืออื่น — <strong>ใช้ได้ทุกระดับ (ทั่วไป, L1, L2)</strong></p>
+
+                {{-- ข้อมูลใน CSV --}}
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-2">ข้อมูลที่ได้รับ</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        @foreach ([
+                            ['label' => 'username',         'desc' => 'ชื่อผู้ใช้ในระบบ'],
+                            ['label' => 'employee_number',  'desc' => 'รหัสพนักงาน'],
+                            ['label' => 'name',             'desc' => 'ชื่อ-นามสกุล'],
+                            ['label' => 'email',            'desc' => 'อีเมล'],
+                            ['label' => 'department',       'desc' => 'แผนก'],
+                            ['label' => 'title',            'desc' => 'ตำแหน่ง'],
+                            ['label' => '[ชื่อระบบ]_permissions', 'desc' => 'Permission keys ของระบบนั้น (comma-separated)'],
+                        ] as $col)
+                        <div class="flex items-start gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                            <code class="text-xs font-mono text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded flex-shrink-0 mt-0.5">{{ $col['label'] }}</code>
+                            <span class="text-xs text-slate-600">{{ $col['desc'] }}</span>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- วิธีใช้ --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">วิธีการส่งออก</h3>
+                    <div class="space-y-3">
+
+                        <div class="flex gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <span class="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                            <div>
+                                <div class="font-semibold text-slate-800 text-xs mb-0.5">ส่งออกทั้งหมด</div>
+                                <p class="text-xs text-slate-600">กดปุ่ม <strong>ส่งออก CSV ทั้งหมด</strong> ที่มุมขวาของหัวตาราง โดยไม่ต้องติ๊กเลือกใดๆ — ระบบจะส่งออกผู้ใช้ทุกคน</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <span class="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                            <div>
+                                <div class="font-semibold text-slate-800 text-xs mb-0.5">ส่งออกรายบุคคล หรือหลายคน</div>
+                                <p class="text-xs text-slate-600">ติ๊ก checkbox ที่ column <strong>CSV</strong> ด้านซ้ายของแต่ละแถว — header ของตารางจะเปลี่ยนเป็นสีเขียวแสดงจำนวนที่เลือก จากนั้นกด <strong>ส่งออก N คน</strong></p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <span class="w-6 h-6 bg-emerald-600 text-white text-xs font-bold rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                            <div>
+                                <div class="font-semibold text-slate-800 text-xs mb-0.5">ส่งออกทุกหน้า (ข้ามหลาย page)</div>
+                                <p class="text-xs text-slate-600">ติ๊ก checkbox ที่ header (เลือกทั้งหมดในหน้า) — แถบสีฟ้าจะโผล่พร้อมข้อความ <strong>"เลือกทั้งหมด N คนทุกหน้า"</strong> กดลิงก์นั้นเพื่อ export ข้ามทุก page โดยไม่ต้องเปิดแต่ละหน้า</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- หมายเหตุ --}}
+                <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
+                    <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                    <span>ไฟล์ CSV มี <strong>UTF-8 BOM</strong> เพื่อให้ Excel เปิดภาษาไทยได้ถูกต้องโดยไม่ต้องแปลง encoding หากใช้ Mac หรือ Google Sheets ก็รองรับได้เช่นกัน</span>
                 </div>
             </div>
         </div>
