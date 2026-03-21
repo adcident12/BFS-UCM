@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/{user}/permissions', [UserController::class, 'updatePermissions'])->name('users.permissions.update');
     Route::patch('/users/{user}/info', [UserController::class, 'updateInfo'])->name('users.info.update');
     Route::post('/users/{user}/systems/{system}/status', [UserController::class, 'setSystemStatus'])->name('users.system.status');
+    Route::post('/users/{user}/systems/{system}/discover', [UserController::class, 'discoverFromRemote'])->name('users.system.discover');
 
     // Systems
     Route::resource('systems', SystemController::class);

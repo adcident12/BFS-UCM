@@ -201,6 +201,62 @@ class UserController extends Controller
         );
     }
 
+    public function discoverFromRemote(UcmUser $user, System $system)
+    {
+        abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถ Discover สิทธิ์ได้');
+
+        if (! AdapterFactory::hasAdapter($system)) {
+            return back()->withErrors(['ระบบ ' . $system->name . ' ไม่มี adapter']);
+        }
+
+        $adapter     = AdapterFactory::make($system);
+        $remotePerms = $adapter->getCurrentPermissions($user);
+
+        if ($remotePerms === null) {
+            return back()->withErrors(['ไม่สามารถดึงข้อมูลสิทธิ์จาก ' . $system->name . ' ได้']);
+        }
+
+        // กรองเฉพาะ keys ที่มีอยู่จริงในระบบ (ป้องกัน injection)
+        $validKeys = SystemPermission::where('system_id', $system->id)->pluck('key')->toArray();
+        $newPerms  = array_values(array_intersect($remotePerms, $validKeys));
+
+        $adminId = Auth::id();
+        $now     = now();
+
+        DB::transaction(function () use ($user, $system, $newPerms, $adminId, $now) {
+            UserSystemPermission::where('user_id', $user->id)
+                ->where('system_id', $system->id)
+                ->delete();
+
+            if (! empty($newPerms)) {
+                $rows = array_map(fn ($key) => [
+                    'user_id'        => $user->id,
+                    'system_id'      => $system->id,
+                    'permission_key' => $key,
+                    'granted_by'     => $adminId,
+                    'granted_at'     => $now,
+                    'created_at'     => $now,
+                    'updated_at'     => $now,
+                ], $newPerms);
+
+                UserSystemPermission::insert($rows);
+            }
+        });
+
+        SyncLog::create([
+            'user_id'      => $user->id,
+            'system_id'    => $system->id,
+            'performed_by' => $adminId,
+            'action'       => 'discover',
+            'payload'      => ['permissions' => $newPerms],
+            'status'       => 'success',
+            'synced_at'    => $now,
+        ]);
+
+        $count = count($newPerms);
+        return back()->with('success', "Discover สิทธิ์ {$user->name} จาก {$system->name} เรียบร้อย ({$count} สิทธิ์)");
+    }
+
     public function updateInfo(Request $request, UcmUser $user)
     {
         abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขข้อมูลผู้ใช้ได้');
