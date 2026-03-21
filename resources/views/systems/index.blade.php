@@ -27,7 +27,7 @@
     @endif
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
     @forelse ($systems as $system)
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden group hover:shadow-md hover:ring-indigo-100 transition-all duration-200 hover:-translate-y-0.5">
             {{-- Top color bar --}}

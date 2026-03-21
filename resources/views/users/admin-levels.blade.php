@@ -164,7 +164,7 @@
 
     {{-- Sticky toolbar: search + level filter --}}
     {{-- top-[52px] = ความสูงของ app header (py-3.5 + text-sm content ≈ 48-52px) --}}
-    <div class="sticky top-16 lg:top-[52px] z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-5 py-3 flex flex-wrap items-center gap-3 rounded-t-2xl">
+    <div class="sticky top-[52px] z-10 bg-white/95 backdrop-blur-sm border-b border-slate-100 px-5 py-3 flex flex-wrap items-center gap-3 rounded-t-2xl">
         {{-- Search --}}
         <div class="relative flex-1 min-w-[200px]">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none"

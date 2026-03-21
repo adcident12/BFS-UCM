@@ -87,10 +87,10 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 {{ auth()->user()->isSuperAdmin() ? 'lg:grid-cols-3' : '' }} gap-6">
+<div class="grid grid-cols-1 {{ auth()->user()->isSuperAdmin() ? 'xl:grid-cols-3' : '' }} gap-6">
 
     {{-- ── Left: Permission list ── --}}
-    <div class="{{ auth()->user()->isSuperAdmin() ? 'lg:col-span-2' : '' }} space-y-4">
+    <div class="{{ auth()->user()->isSuperAdmin() ? 'xl:col-span-2' : '' }} space-y-4">
 
         {{-- Summary bar --}}
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 px-5 py-4 flex flex-wrap items-center gap-4">
@@ -189,7 +189,7 @@
                             @endif
                         </div>
                         @if (auth()->user()->isAdmin())
-                        <div class="flex items-center gap-1.5 flex-shrink-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                        <div class="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                             @if ($perm->remote_value && \App\Adapters\AdapterFactory::supports2WayPermissions($system))
                             <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full ring-1 ring-amber-200/70" title="ลบที่ UCM แล้วจะลบใน {{ $system->name }} ด้วย">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,7 +273,7 @@
     {{-- ── Right: Add permission form (L2 only) ── --}}
     @if (auth()->user()->isSuperAdmin())
     <div>
-        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden lg:sticky lg:top-20">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden sticky top-20">
             <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
