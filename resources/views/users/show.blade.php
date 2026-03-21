@@ -231,7 +231,7 @@
                     {{-- ── Exclusive permission groups (radio pills per row) ── --}}
                     @if ($exclusiveGroups->isNotEmpty())
                         <div class="px-5 pt-5 {{ $checkboxGroups->isNotEmpty() ? 'pb-2' : 'pb-4' }}">
-                            <div class="rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
+                            <div class="rounded-xl border border-slate-100 overflow-x-auto divide-y divide-slate-50">
                                 {{-- Column header --}}
                                 @php
                                     $firstGroup = $exclusiveGroups->first();
@@ -240,8 +240,8 @@
                                         return trim(end($parts));
                                     });
                                 @endphp
-                                <div class="flex items-center gap-3 px-4 py-2 bg-slate-50/80">
-                                    <div class="flex-1 text-xs font-bold text-slate-400 uppercase tracking-wider">กลุ่มสิทธิ์</div>
+                                <div class="flex items-center gap-3 px-4 py-2 bg-slate-50/80 min-w-max">
+                                    <div class="w-24 text-xs font-bold text-slate-400 uppercase tracking-wider">กลุ่มสิทธิ์</div>
                                     <div class="flex items-center gap-1.5 flex-shrink-0">
                                         @foreach ($optionHeaders as $header)
                                             @php
@@ -252,15 +252,15 @@
                                                     default => 'text-slate-500',
                                                 };
                                             @endphp
-                                            <span class="w-24 text-center text-xs font-bold {{ $hdrColor }} uppercase tracking-wide">{{ $header }}</span>
+                                            <span class="w-20 md:w-24 text-center text-xs font-bold {{ $hdrColor }} uppercase tracking-wide">{{ $header }}</span>
                                         @endforeach
                                     </div>
                                 </div>
 
                                 {{-- Permission rows --}}
                                 @foreach ($exclusiveGroups as $group => $perms)
-                                    <div class="flex items-center gap-3 px-4 py-2.5 bg-white hover:bg-slate-50/60 transition-colors">
-                                        <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-3 px-4 py-2.5 bg-white hover:bg-slate-50/60 transition-colors min-w-max">
+                                        <div class="w-24 min-w-0">
                                             <span class="text-sm font-medium text-slate-700">{{ $group ?: 'ทั่วไป' }}</span>
                                         </div>
                                         <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -283,7 +283,7 @@
                                                         default                                => 'bg-white border-slate-200 text-slate-500 hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50',
                                                     };
                                                 @endphp
-                                                <label class="radio-pill w-24 justify-center inline-flex items-center gap-1 px-2 py-1.5 rounded-lg cursor-pointer border transition-all text-xs font-semibold {{ $isChecked ? $checkedCls : $uncheckedCls }}"
+                                                <label class="radio-pill w-20 md:w-24 justify-center inline-flex items-center gap-1 px-2 py-1.5 rounded-lg cursor-pointer border transition-all text-xs font-semibold {{ $isChecked ? $checkedCls : $uncheckedCls }}"
                                                        data-checked="{{ $checkedCls }}"
                                                        data-unchecked="{{ $uncheckedCls }}">
                                                     <input type="radio"
@@ -353,7 +353,7 @@
                         <p class="text-sm text-slate-400 font-medium">ไม่มีสิทธิ์ที่ได้รับมอบหมาย</p>
                     @else
                         @if ($exclusiveGroups->isNotEmpty())
-                            <div class="rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-50 mb-4">
+                            <div class="rounded-xl border border-slate-100 overflow-x-auto divide-y divide-slate-50 mb-4">
                                 @php
                                     $firstGroup = $exclusiveGroups->first();
                                     $optionHeaders = $firstGroup->map(function($p) {
@@ -361,8 +361,8 @@
                                         return trim(end($parts));
                                     });
                                 @endphp
-                                <div class="flex items-center gap-3 px-4 py-2 bg-slate-50/80">
-                                    <div class="flex-1 text-xs font-bold text-slate-400 uppercase tracking-wider">กลุ่มสิทธิ์</div>
+                                <div class="flex items-center gap-3 px-4 py-2 bg-slate-50/80 min-w-max">
+                                    <div class="w-24 text-xs font-bold text-slate-400 uppercase tracking-wider">กลุ่มสิทธิ์</div>
                                     <div class="flex items-center gap-1.5 flex-shrink-0">
                                         @foreach ($optionHeaders as $header)
                                             @php
@@ -373,13 +373,13 @@
                                                     default => 'text-slate-500',
                                                 };
                                             @endphp
-                                            <span class="w-24 text-center text-xs font-bold {{ $hdrColor }} uppercase tracking-wide">{{ $header }}</span>
+                                            <span class="w-20 md:w-24 text-center text-xs font-bold {{ $hdrColor }} uppercase tracking-wide">{{ $header }}</span>
                                         @endforeach
                                     </div>
                                 </div>
                                 @foreach ($exclusiveGroups as $group => $perms)
-                                    <div class="flex items-center gap-3 px-4 py-2.5 bg-white">
-                                        <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-3 px-4 py-2.5 bg-white min-w-max">
+                                        <div class="w-24 min-w-0">
                                             <span class="text-sm font-medium text-slate-700">{{ $group ?: 'ทั่วไป' }}</span>
                                         </div>
                                         <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -395,7 +395,7 @@
                                                         default                                => 'bg-violet-600 border-violet-600 text-white',
                                                     };
                                                 @endphp
-                                                <span class="w-24 text-center inline-flex justify-center items-center px-2 py-1.5 rounded-lg border text-xs font-semibold
+                                                <span class="w-20 md:w-24 text-center inline-flex justify-center items-center px-2 py-1.5 rounded-lg border text-xs font-semibold
                                                              {{ $isChecked ? $activeCls : 'bg-white border-slate-100 text-slate-300' }}">
                                                     {{ $shortLabel }}
                                                 </span>

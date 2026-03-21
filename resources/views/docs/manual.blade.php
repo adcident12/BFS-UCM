@@ -405,8 +405,8 @@ $sections = [
                 <div class="border-t border-slate-100 pt-3">
                     <h3 class="font-bold text-slate-900 mb-2">Toggle 2-way ON/OFF ต่อระบบ</h3>
                     <p class="text-slate-600 text-xs mb-2">แต่ละระบบที่ Adapter รองรับ 2-way จะมีปุ่ม <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-amber-500 text-white">⇄ 2-way ON</span> / <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold border border-slate-200 text-slate-600 bg-white">⇄ 2-way OFF</span> ที่ด้านบนของหน้ารายละเอียดระบบ — <strong class="text-amber-700">เฉพาะ Admin ระดับ 2</strong> เท่านั้นที่กดสลับได้</p>
-                    <div class="overflow-hidden rounded-xl border border-slate-200 text-xs">
-                        <div class="grid grid-cols-4 bg-slate-50 font-bold text-slate-500 px-3 py-2 border-b border-slate-200">
+                    <div class="overflow-x-auto rounded-xl border border-slate-200 text-xs">
+                        <div class="grid grid-cols-4 bg-slate-50 font-bold text-slate-500 px-3 py-2 border-b border-slate-200 min-w-[480px]">
                             <div>Action</div><div>2-way ON</div><div>2-way OFF</div><div class="text-slate-400">หมายเหตุ</div>
                         </div>
                         @foreach ([
@@ -415,7 +415,7 @@ $sections = [
                             ['แก้ไข label/key', 'UCM เท่านั้น', 'UCM เท่านั้น', 'ไม่ rename ในระบบภายนอก'],
                             ['Sync สิทธิ์ผู้ใช้', 'ส่งไประบบภายนอกเสมอ', 'ส่งไประบบภายนอกเสมอ', 'ไม่เกี่ยวกับ toggle นี้'],
                         ] as $row)
-                        <div class="grid grid-cols-4 px-3 py-2 border-b border-slate-100 last:border-0">
+                        <div class="grid grid-cols-4 px-3 py-2 border-b border-slate-100 last:border-0 min-w-[480px]">
                             <div class="font-medium text-slate-700">{{ $row[0] }}</div>
                             <div class="text-amber-700 font-medium">{{ $row[1] }}</div>
                             <div class="text-slate-500">{{ $row[2] }}</div>
@@ -467,8 +467,8 @@ $sections = [
                 </div>
 
                 {{-- Admin level requirements --}}
-                <div class="overflow-hidden rounded-xl border border-slate-200 text-xs">
-                    <div class="grid grid-cols-3 bg-slate-50 font-bold text-slate-500 px-3 py-2 border-b border-slate-200">
+                <div class="overflow-x-auto rounded-xl border border-slate-200 text-xs">
+                    <div class="grid grid-cols-3 bg-slate-50 font-bold text-slate-500 px-3 py-2 border-b border-slate-200 min-w-[400px]">
                         <div>การกระทำ</div><div>ระดับที่ต้องการ</div><div class="text-slate-400">หมายเหตุ</div>
                     </div>
                     @foreach ([
@@ -476,7 +476,7 @@ $sections = [
                         ['แก้ไขรายการ', 'Admin ระดับ 2 เท่านั้น', 'bg-amber-50 text-amber-700', 'กดปุ่มดินสอ ✏️'],
                         ['ลบรายการ', 'Admin ระดับ 2 เท่านั้น', 'bg-amber-50 text-amber-700', 'มีกล่องยืนยันก่อนลบ'],
                     ] as [$action, $level, $cls, $note])
-                    <div class="grid grid-cols-3 px-3 py-2 border-b border-slate-100 last:border-0">
+                    <div class="grid grid-cols-3 px-3 py-2 border-b border-slate-100 last:border-0 min-w-[400px]">
                         <div class="font-medium text-slate-700">{{ $action }}</div>
                         <div class="{{ $cls }} font-semibold px-2 py-0.5 rounded-md w-fit">{{ $level }}</div>
                         <div class="text-slate-400">{{ $note }}</div>

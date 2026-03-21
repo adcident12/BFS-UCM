@@ -141,10 +141,10 @@
 </div>
 
 {{-- ── Main content: Failed Jobs + Sync Activity ───────────────────────── --}}
-<div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+<div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
     {{-- ────── Failed Jobs table (col-span 3) ────── --}}
-    <div class="xl:col-span-3 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden flex flex-col">
+    <div class="lg:col-span-3 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden flex flex-col">
 
         {{-- Header --}}
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
@@ -252,7 +252,7 @@
                         </td>
                         @if (auth()->user()->isSuperAdmin())
                         <td class="px-3 py-3 text-right">
-                            <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div class="flex items-center justify-end gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                 <form method="POST" action="{{ route('queue.failed.retry', $job->uuid) }}">
                                     @csrf
                                     <button type="submit" title="Retry"
@@ -295,7 +295,7 @@
     </div>
 
     {{-- ────── Recent Sync Activity (col-span 2) ────── --}}
-    <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden flex flex-col">
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden flex flex-col">
 
         <div class="px-5 py-4 border-b border-slate-100">
             <div class="flex items-center gap-3">
