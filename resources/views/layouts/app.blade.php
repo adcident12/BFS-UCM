@@ -263,7 +263,7 @@
 
         {{-- User --}}
         <div class="px-4 py-4 border-t border-white/5 bg-white/[0.02]">
-            <div class="flex items-center gap-3 mb-3">
+            <div class="flex items-center gap-3 mb-2.5">
                 <div class="w-9 h-9 sidebar-gradient rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-sm shadow-indigo-500/30 flex-shrink-0">
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                 </div>
@@ -271,6 +271,25 @@
                     <div class="text-sm font-semibold text-white truncate">{{ auth()->user()->name }}</div>
                     <div class="text-xs text-slate-400 truncate font-mono">{{ auth()->user()->username }}</div>
                 </div>
+            </div>
+            @php $adminLevel = auth()->user()->is_admin ?? 0; @endphp
+            <div class="mb-2.5">
+                @if ($adminLevel >= 2)
+                    <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-amber-300 bg-amber-500/15 border border-amber-500/25 px-2.5 py-1 rounded-lg">
+                        <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        Admin ระดับ 2
+                    </span>
+                @elseif ($adminLevel >= 1)
+                    <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-indigo-300 bg-indigo-500/15 border border-indigo-500/25 px-2.5 py-1 rounded-lg">
+                        <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        Admin ระดับ 1
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1.5 text-[10px] font-bold text-slate-400 bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                        <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        ผู้ใช้ทั่วไป
+                    </span>
+                @endif
             </div>
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
