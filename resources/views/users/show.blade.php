@@ -44,6 +44,7 @@
             <div class="mt-3 flex flex-wrap items-center gap-2">
                 <span class="text-xs text-slate-400 font-medium">รหัสพนักงาน:</span>
                 <span id="emp-view" class="text-sm font-mono font-semibold text-slate-700">{{ $user->employee_number ?: '—' }}</span>
+                @if (auth()->user()->isSuperAdmin())
                 <button id="emp-edit-btn" onclick="empEdit()"
                         class="text-xs font-semibold text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-lg transition-colors">แก้ไข</button>
                 <form id="emp-form" style="display:none"
@@ -55,9 +56,11 @@
                     <button type="submit" class="text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg px-3 py-1.5 transition-colors">บันทึก</button>
                     <button type="button" onclick="empCancel()" class="text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg px-2 py-1.5 transition-colors">ยกเลิก</button>
                 </form>
+                @endif
             </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap sm:flex-shrink-0 sm:flex-col sm:items-end">
+            @if (auth()->user()->isAdmin())
             <form action="{{ route('users.import') }}" method="POST">
                 @csrf
                 <input type="hidden" name="username" value="{{ $user->username }}">
@@ -68,6 +71,7 @@
                     ดึงข้อมูลจาก LDAP
                 </button>
             </form>
+            @endif
             <a href="{{ route('users.index') }}"
                class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 px-3 py-2 rounded-xl transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,6 +129,7 @@
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full ring-1 ring-emerald-200/60">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active
                         </span>
+                        @if (auth()->user()->isSuperAdmin())
                         <form id="form-disable-{{ $system->id }}" action="{{ route('users.system.status', [$user, $system]) }}" method="POST" class="hidden">
                             @csrf <input type="hidden" name="active" value="0">
                         </form>
@@ -133,10 +138,12 @@
                                 class="text-xs font-semibold text-red-600 hover:text-red-800 border border-red-200 hover:bg-red-50 rounded-lg px-2.5 py-1 transition-colors">
                             ปิดการใช้งาน
                         </button>
+                        @endif
                     @elseif ($accountStatus === false)
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 bg-red-50 px-2.5 py-1 rounded-full ring-1 ring-red-200/60">
                             <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Disabled
                         </span>
+                        @if (auth()->user()->isSuperAdmin())
                         <form id="form-enable-{{ $system->id }}" action="{{ route('users.system.status', [$user, $system]) }}" method="POST" class="hidden">
                             @csrf <input type="hidden" name="active" value="1">
                         </form>
@@ -145,6 +152,7 @@
                                 class="text-xs font-semibold text-emerald-600 hover:text-emerald-800 border border-emerald-200 hover:bg-emerald-50 rounded-lg px-2.5 py-1 transition-colors">
                             เปิดใช้งาน
                         </button>
+                        @endif
                     @endif
 
                     {{-- Out-of-sync --}}
@@ -199,6 +207,8 @@
                     </span>
                 </div>
             @else
+                @if (auth()->user()->isAdmin())
+                {{-- ── Editable permission form (L1+) ── --}}
                 <form method="POST" action="{{ route('users.permissions.update', $user) }}">
                     @csrf
                     <input type="hidden" name="system_id" value="{{ $system->id }}">
@@ -336,6 +346,90 @@
                         </button>
                     </div>
                 </form>
+                @else
+                {{-- ── Read-only permission view (L0 only) ── --}}
+                <div class="px-5 py-5">
+                    @if ($selectedCount === 0)
+                        <p class="text-sm text-slate-400 font-medium">ไม่มีสิทธิ์ที่ได้รับมอบหมาย</p>
+                    @else
+                        @if ($exclusiveGroups->isNotEmpty())
+                            <div class="rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-50 mb-4">
+                                @php
+                                    $firstGroup = $exclusiveGroups->first();
+                                    $optionHeaders = $firstGroup->map(function($p) {
+                                        $parts = explode('—', $p->label);
+                                        return trim(end($parts));
+                                    });
+                                @endphp
+                                <div class="flex items-center gap-3 px-4 py-2 bg-slate-50/80">
+                                    <div class="flex-1 text-xs font-bold text-slate-400 uppercase tracking-wider">กลุ่มสิทธิ์</div>
+                                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                                        @foreach ($optionHeaders as $header)
+                                            @php
+                                                $hdrColor = match(true) {
+                                                    str_contains($header, 'Editable') => 'text-indigo-500',
+                                                    str_contains($header, 'Read Only') => 'text-sky-500',
+                                                    str_contains($header, 'Denied') => 'text-rose-400',
+                                                    default => 'text-slate-500',
+                                                };
+                                            @endphp
+                                            <span class="w-24 text-center text-xs font-bold {{ $hdrColor }} uppercase tracking-wide">{{ $header }}</span>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @foreach ($exclusiveGroups as $group => $perms)
+                                    <div class="flex items-center gap-3 px-4 py-2.5 bg-white">
+                                        <div class="flex-1 min-w-0">
+                                            <span class="text-sm font-medium text-slate-700">{{ $group ?: 'ทั่วไป' }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                                            @foreach ($perms as $perm)
+                                                @php
+                                                    $parts = explode('—', $perm->label);
+                                                    $shortLabel = trim(end($parts));
+                                                    $isChecked  = in_array($perm->key, $userPerms);
+                                                    $activeCls = match(true) {
+                                                        str_contains($shortLabel, 'Editable')  => 'bg-indigo-600 border-indigo-600 text-white',
+                                                        str_contains($shortLabel, 'Read Only') => 'bg-sky-500 border-sky-500 text-white',
+                                                        str_contains($shortLabel, 'Denied')    => 'bg-rose-500 border-rose-500 text-white',
+                                                        default                                => 'bg-violet-600 border-violet-600 text-white',
+                                                    };
+                                                @endphp
+                                                <span class="w-24 text-center inline-flex justify-center items-center px-2 py-1.5 rounded-lg border text-xs font-semibold
+                                                             {{ $isChecked ? $activeCls : 'bg-white border-slate-100 text-slate-300' }}">
+                                                    {{ $shortLabel }}
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        @if ($checkboxGroups->isNotEmpty())
+                            @foreach ($checkboxGroups as $group => $perms)
+                                @if ($group)
+                                    <div class="flex items-center gap-2 mb-3 mt-5 first:mt-0">
+                                        <div class="h-px flex-1 bg-slate-100"></div>
+                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">{{ $group }}</span>
+                                        <div class="h-px flex-1 bg-slate-100"></div>
+                                    </div>
+                                @endif
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach ($perms as $perm)
+                                        @if (in_array($perm->key, $userPerms))
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-xl ring-1 ring-indigo-200/60">
+                                                <svg class="w-3 h-3 text-indigo-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                                {{ $perm->label }}
+                                            </span>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endforeach
+                        @endif
+                    @endif
+                </div>
+                @endif {{-- isAdmin --}}
             @endif
         </div>
     @empty
@@ -346,7 +440,9 @@
                 </svg>
             </div>
             <p class="text-sm font-semibold text-slate-400 mb-1">ยังไม่มีระบบที่เชื่อมต่อ</p>
+            @if (auth()->user()->isSuperAdmin())
             <a href="{{ route('systems.create') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:underline">เพิ่มระบบ →</a>
+            @endif
         </div>
     @endforelse
 </div>

@@ -41,6 +41,7 @@
         </button>
     </form>
 
+    @if (auth()->user()->isAdmin())
     <div class="flex items-center gap-2 flex-shrink-0">
         <button id="btn-check-ad"
                 class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-sm font-semibold rounded-xl transition-all duration-150 whitespace-nowrap">
@@ -57,6 +58,7 @@
             นำเข้าจาก AD
         </button>
     </div>
+    @endif
 </div>
 
 {{-- Stats bar --}}

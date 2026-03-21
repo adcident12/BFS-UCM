@@ -110,6 +110,8 @@ class UserController extends Controller
 
     public function updatePermissions(Request $request, UcmUser $user)
     {
+        abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถแก้ไขสิทธิ์ผู้ใช้ได้');
+
         $validated = $request->validate([
             'system_id'              => 'required|integer|exists:systems,id',
             'permissions'            => 'array',
@@ -177,6 +179,8 @@ class UserController extends Controller
 
     public function setSystemStatus(Request $request, UcmUser $user, System $system)
     {
+        abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเปิด/ปิด account ในระบบได้');
+
         $validated = $request->validate(['active' => 'required|boolean']);
 
         if (! AdapterFactory::hasAdapter($system)) {
@@ -198,6 +202,8 @@ class UserController extends Controller
 
     public function updateInfo(Request $request, UcmUser $user)
     {
+        abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขข้อมูลผู้ใช้ได้');
+
         $validated = $request->validate([
             'employee_number' => 'nullable|string|max:50',
         ]);
@@ -209,6 +215,8 @@ class UserController extends Controller
 
     public function importBulkFromLdap(Request $request)
     {
+        abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถนำเข้าผู้ใช้ได้');
+
         $validated = $request->validate([
             'usernames'   => 'required|array|min:1',
             'usernames.*' => 'string|max:100',
@@ -303,6 +311,8 @@ class UserController extends Controller
 
     public function checkAdStatus()
     {
+        abort_unless(Auth::user()?->isAdmin(), 403);
+
         $users = UcmUser::where('is_active', true)
             ->select('id', 'username', 'name', 'department', 'email')
             ->orderBy('name')
@@ -323,6 +333,8 @@ class UserController extends Controller
 
     public function removeUsers(Request $request)
     {
+        abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบผู้ใช้ได้');
+
         $validated = $request->validate([
             'user_ids'   => 'required|array|min:1|max:200',
             'user_ids.*' => 'integer|exists:ucm_users,id',
@@ -385,6 +397,8 @@ class UserController extends Controller
 
     public function searchLdap(Request $request)
     {
+        abort_unless(Auth::user()?->isAdmin(), 403);
+
         $request->validate(['q' => 'required|string|min:2|max:100']);
 
         $users = $this->ldap->searchUsers($request->input('q'), 50);
@@ -394,6 +408,8 @@ class UserController extends Controller
 
     public function importFromLdap(Request $request)
     {
+        abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถนำเข้าผู้ใช้ได้');
+
         $validated = $request->validate(['username' => 'required|string|max:100']);
 
         $ldapUser = $this->ldap->findUser($validated['username']);

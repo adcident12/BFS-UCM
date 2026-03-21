@@ -444,9 +444,9 @@ $sections = [
                         <div>ค่า is_admin</div><div>ระดับ</div><div>สิทธิ์หลัก</div>
                     </div>
                     @foreach ([
-                        ['0', 'ทั่วไป', 'จัดการสิทธิ์ผู้ใช้', 'text-slate-600'],
-                        ['1', 'Admin ระดับ 1', 'เพิ่ม Reference Data ได้', 'text-indigo-700'],
-                        ['2', 'Admin ระดับ 2', 'ทุกอย่าง + จัดการ Admin', 'text-amber-700'],
+                        ['0', 'ทั่วไป', 'ดูข้อมูลได้อย่างเดียว', 'text-slate-600'],
+                        ['1', 'Admin ระดับ 1', 'แก้ไขสิทธิ์ผู้ใช้ + นำเข้า AD', 'text-indigo-700'],
+                        ['2', 'Admin ระดับ 2', 'ทุกอย่าง + จัดการระบบ/Admin', 'text-amber-700'],
                     ] as [$val, $level, $perm, $cls])
                     <div class="grid grid-cols-3 px-3 py-2 border-b border-slate-100 last:border-0">
                         <div class="font-mono font-bold text-slate-700">{{ $val }}</div>

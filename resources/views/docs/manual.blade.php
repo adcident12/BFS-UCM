@@ -588,11 +588,12 @@ $sections = [
                             <span class="font-bold text-slate-700 text-sm">ทั่วไป (0)</span>
                         </div>
                         <ul class="space-y-1 text-xs text-slate-600">
-                            <li>✅ เข้าดูข้อมูลได้</li>
-                            <li>✅ จัดการสิทธิ์ผู้ใช้ได้</li>
-                            <li>❌ เพิ่ม/แก้ไข/ลบ Reference Data ไม่ได้</li>
+                            <li>✅ เข้าดูข้อมูลและ Permission ได้ (อ่านอย่างเดียว)</li>
+                            <li>❌ แก้ไขสิทธิ์ผู้ใช้ไม่ได้</li>
+                            <li>❌ แก้ไข / ลบ Permission ไม่ได้</li>
+                            <li>❌ ตรวจสอบ / นำเข้าจาก AD ไม่ได้</li>
+                            <li>❌ จัดการข้อมูล Reference ไม่ได้</li>
                             <li>❌ Toggle 2-way ไม่ได้</li>
-                            <li>❌ จัดการสิทธิ์ Admin ไม่ได้</li>
                         </ul>
                     </div>
                     <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-200">
@@ -602,8 +603,12 @@ $sections = [
                         </div>
                         <ul class="space-y-1 text-xs text-indigo-700">
                             <li>✅ ทุกอย่างของผู้ใช้ทั่วไป</li>
-                            <li>✅ <strong>เพิ่ม</strong> Reference Data ได้ (Department / Document Category)</li>
-                            <li>❌ แก้ไข/ลบ Reference Data ไม่ได้</li>
+                            <li>✅ <strong>แก้ไขสิทธิ์ผู้ใช้</strong> ในทุกระบบได้</li>
+                            <li>✅ <strong>แก้ไข / ลบ Permission</strong> ในระบบได้</li>
+                            <li>✅ <strong>ตรวจสอบ / นำเข้า</strong> ผู้ใช้จาก AD ได้</li>
+                            <li>✅ <strong>Discover Permissions</strong> จากระบบภายนอกได้</li>
+                            <li>✅ <strong>เพิ่ม</strong> Reference Data ได้</li>
+                            <li>❌ แก้ไข / ลบ Reference Data ไม่ได้</li>
                             <li>❌ Toggle 2-way ไม่ได้</li>
                             <li>❌ จัดการสิทธิ์ Admin ไม่ได้</li>
                         </ul>
@@ -615,8 +620,9 @@ $sections = [
                         </div>
                         <ul class="space-y-1 text-xs text-amber-700">
                             <li>✅ ทุกอย่างของ Admin ระดับ 1</li>
-                            <li>✅ <strong>แก้ไข/ลบ</strong> Reference Data ได้</li>
+                            <li>✅ <strong>แก้ไข / ลบ</strong> Reference Data ได้</li>
                             <li>✅ Toggle 2-way ON/OFF ได้</li>
+                            <li>✅ เปิด / ปิด Account ในระบบภายนอกได้</li>
                             <li>✅ <strong>จัดการสิทธิ์ Admin</strong> ของผู้ใช้อื่นได้</li>
                             <li>⚠️ ไม่สามารถลดระดับตัวเองได้</li>
                         </ul>

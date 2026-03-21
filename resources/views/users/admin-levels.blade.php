@@ -63,15 +63,15 @@
         <ul class="space-y-1.5 text-xs text-slate-500 font-medium">
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                ดูข้อมูลและ Permission ของตัวเอง
+                ดูข้อมูลและ Permission ได้ (อ่านอย่างเดียว)
             </li>
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-slate-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                <span class="text-slate-300">จัดการข้อมูล Reference</span>
+                <span class="text-slate-300">แก้ไขสิทธิ์ผู้ใช้ / แก้ไข Permission</span>
             </li>
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-slate-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                <span class="text-slate-300">จัดการผู้ใช้หรือระบบ</span>
+                <span class="text-slate-300">ตรวจสอบ / นำเข้าจาก AD</span>
             </li>
         </ul>
     </div>
@@ -93,15 +93,31 @@
         <ul class="space-y-1.5 text-xs text-slate-500 font-medium">
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                เพิ่ม Reference (Department / PageGroup)
+                <strong>แก้ไขสิทธิ์ผู้ใช้</strong>ทุกคนในทุกระบบ
             </li>
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                ดู Queue Monitor
+                <strong>แก้ไข / ลบ Permission</strong> ในระบบ
+            </li>
+            <li class="flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                ตรวจสอบ / นำเข้าจาก AD
+            </li>
+            <li class="flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                Discover Permissions
+            </li>
+            <li class="flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                เพิ่ม Reference Data
             </li>
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-slate-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 <span class="text-slate-300">แก้ไข / ลบ Reference, เปิด 2-way</span>
+            </li>
+            <li class="flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-slate-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <span class="text-slate-300">จัดการสิทธิ์ Admin</span>
             </li>
         </ul>
     </div>
@@ -127,11 +143,15 @@
             </li>
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                แก้ไข / ลบ Reference, เปิด 2-way Sync
+                แก้ไข / ลบ Reference Data, เปิด 2-way Sync
             </li>
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                จัดการสิทธิ์ Admin ของผู้ใช้อื่น
+                เปิด / ปิด Account ในระบบภายนอก
+            </li>
+            <li class="flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                <strong>จัดการสิทธิ์ Admin</strong> ของผู้ใช้อื่น
             </li>
         </ul>
     </div>

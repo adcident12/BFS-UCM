@@ -33,6 +33,8 @@ class SystemController extends Controller
 
     public function store(Request $request)
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่มระบบได้');
+
         $data = $request->validate([
             'name'          => 'required|string|max:100',
             'slug'          => 'required|string|max:50|unique:systems,slug|alpha_dash',
@@ -80,11 +82,15 @@ class SystemController extends Controller
 
     public function edit(System $system)
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขระบบได้');
+
         return view('systems.edit', compact('system'));
     }
 
     public function update(Request $request, System $system)
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขระบบได้');
+
         $data = $request->validate([
             'name'          => 'required|string|max:100',
             'slug'          => "required|string|max:50|alpha_dash|unique:systems,slug,{$system->id}",
@@ -118,6 +124,8 @@ class SystemController extends Controller
 
     public function destroy(System $system)
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบระบบได้');
+
         $system->delete();
 
         return redirect()->route('systems.index')
@@ -138,6 +146,8 @@ class SystemController extends Controller
 
     public function storePermission(Request $request, System $system)
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่ม Permission ได้');
+
         $data = $request->validate([
             'key'          => "required|string|max:100|unique:system_permissions,key,NULL,id,system_id,{$system->id}",
             'label'        => 'required|string|max:100',
@@ -167,6 +177,7 @@ class SystemController extends Controller
 
     public function updatePermission(Request $request, System $system, SystemPermission $permission)
     {
+        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถแก้ไข Permission ได้');
         abort_if($permission->system_id !== $system->id, 404);
 
         $data = $request->validate([
@@ -198,6 +209,8 @@ class SystemController extends Controller
 
     public function discoverPermissions(System $system)
     {
+        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถ Discover Permissions ได้');
+
         if (! AdapterFactory::hasAdapter($system)) {
             return back()->withErrors(['ระบบ ' . $system->name . ' ไม่มี adapter รองรับ discoverPermissions']);
         }
@@ -214,6 +227,7 @@ class SystemController extends Controller
 
     public function destroyPermission(System $system, SystemPermission $permission)
     {
+        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถลบ Permission ได้');
         abort_if($permission->system_id !== $system->id, 404);
 
         // ลบ permission definition จากระบบภายนอก เฉพาะเมื่อ 2-way เปิดอยู่
