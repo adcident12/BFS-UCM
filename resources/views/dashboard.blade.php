@@ -49,7 +49,7 @@
 </div>
 
 {{-- Stats Cards --}}
-<div class="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
     @php
         $cards = [
             [
@@ -132,10 +132,10 @@
     @endforeach
 </div>
 
-<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
     {{-- Connected Systems --}}
-    <div class="xl:col-span-1 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+    <div class="md:col-span-1 xl:col-span-1 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <div class="flex items-center gap-2.5">
                 <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -206,7 +206,7 @@
     </div>
 
     {{-- Recent Activity Feed --}}
-    <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+    <div class="md:col-span-1 xl:col-span-2 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
         <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <div class="flex items-center gap-2.5">
                 <div class="w-7 h-7 bg-violet-100 rounded-lg flex items-center justify-center">
