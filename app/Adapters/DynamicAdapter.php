@@ -21,7 +21,9 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
     {
         parent::__construct($system);
 
-        $config = ConnectorConfig::where('system_id', $system->id)->first();
+        $config = $system->relationLoaded('connectorConfig')
+            ? $system->connectorConfig
+            : ConnectorConfig::where('system_id', $system->id)->first();
 
         if (! $config) {
             throw new \RuntimeException(
@@ -212,12 +214,12 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         }
 
         try {
-            $pdo        = $this->getConnection();
-            $table      = $this->quoteIdentifier($cfg->user_table);
-            $idCol      = $this->quoteIdentifier($cfg->user_identifier_col);
+            $pdo   = $this->getConnection();
+            $table = $this->quoteIdentifier($cfg->user_table);
 
-            $ucmUsernames = UcmUser::pluck('username')->toArray();
-            $ucmEmployees = UcmUser::pluck('employee_number')->filter()->toArray();
+            $ucmUsers     = UcmUser::select('username', 'employee_number')->get();
+            $ucmUsernames = $ucmUsers->pluck('username')->toArray();
+            $ucmEmployees = $ucmUsers->pluck('employee_number')->filter()->toArray();
 
             $stmt = $pdo->query("SELECT * FROM {$table}");
             $rows = $stmt->fetchAll();

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class System extends Model
@@ -16,24 +18,29 @@ class System extends Model
     ];
 
     protected $casts = [
-        'is_active'          => 'boolean',
+        'is_active'           => 'boolean',
         'two_way_permissions' => 'boolean',
     ];
 
     protected $hidden = ['db_password', 'api_token'];
 
-    public function permissions()
+    public function permissions(): HasMany
     {
         return $this->hasMany(SystemPermission::class);
     }
 
-    public function userPermissions()
+    public function userPermissions(): HasMany
     {
         return $this->hasMany(UserSystemPermission::class);
     }
 
-    public function syncLogs()
+    public function syncLogs(): HasMany
     {
         return $this->hasMany(SyncLog::class);
+    }
+
+    public function connectorConfig(): HasOne
+    {
+        return $this->hasOne(ConnectorConfig::class);
     }
 }

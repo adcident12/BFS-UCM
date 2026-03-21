@@ -49,7 +49,10 @@ class UserController extends Controller
     public function show(UcmUser $user)
     {
         $systems = System::where('is_active', true)
-            ->with(['permissions' => fn ($q) => $q->orderBy('sort_order')])
+            ->with([
+                'permissions'     => fn ($q) => $q->orderBy('sort_order'),
+                'connectorConfig',
+            ])
             ->get();
 
         // โหลด sync logs ทุกระบบของ user ในคำสั่งเดียว (ไม่ N+1)
