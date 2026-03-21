@@ -367,6 +367,31 @@ $sections = [
                 </div>
 
                 <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-2">ปุ่ม Discover — ดึงสิทธิ์จากระบบจริง</h3>
+                    <p class="text-slate-600 mb-3">เมื่อระบบปลายทางเปลี่ยนสิทธิ์ของผู้ใช้โดยตรง (ไม่ผ่าน UCM) ระบบจะแสดง Badge <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">Out of Sync</span> และปุ่ม <strong class="text-indigo-600">Discover</strong> จะปรากฏข้างๆ</p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                            <svg class="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <div>
+                                <strong class="text-indigo-800">กด Discover</strong>
+                                <p class="text-slate-600 mt-0.5">UCM จะดึงสิทธิ์ปัจจุบันจากระบบปลายทาง แล้วบันทึกทับข้อมูลใน UCM ทันที — เหมาะเมื่อต้องการให้ UCM ตามระบบจริง</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <svg class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div>
+                                <strong class="text-slate-700">กด บันทึกสิทธิ์ระบบนี้</strong>
+                                <p class="text-slate-600 mt-0.5">UCM จะ Push สิทธิ์ที่ตั้งไว้ใน UCM กลับไปยังระบบปลายทาง — เหมาะเมื่อต้องการให้ระบบจริงตาม UCM</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                        <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                        <span>ปุ่ม Discover ปรากฏเฉพาะระบบที่มี Adapter และสถานะเป็น <strong>Out of Sync</strong> เท่านั้น — ต้องเป็น Admin ระดับ 1 ขึ้นไปจึงจะใช้งานได้</span>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
                     <h3 class="font-bold text-slate-900 mb-2">สถานะบัญชีในระบบ</h3>
                     <p class="text-slate-600 mb-2">แต่ละระบบมีปุ่ม Toggle สำหรับเปิด/ปิดบัญชีของผู้ใช้ในระบบนั้น ๆ โดยเฉพาะ:</p>
                     <ul class="space-y-1 text-slate-600 text-xs list-disc list-inside">
@@ -631,7 +656,7 @@ $sections = [
                         </div>
                         <div class="flex items-center gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
                             <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-700 flex-shrink-0 whitespace-nowrap">Out of Sync</span>
-                            <p class="text-slate-700">สิทธิ์ผู้ใช้ใน UCM ไม่ตรงกับระบบปลายทาง — กด "บันทึกสิทธิ์" เพื่อ Sync ใหม่</p>
+                            <p class="text-slate-700">สิทธิ์ผู้ใช้ใน UCM ไม่ตรงกับระบบปลายทาง — กด <strong>"Discover"</strong> เพื่อดึงสิทธิ์จากระบบจริงมาเก็บใน UCM หรือกด "บันทึกสิทธิ์" เพื่อ Push สิทธิ์ UCM กลับไปยังระบบปลายทาง</p>
                         </div>
                     </div>
                 </div>
