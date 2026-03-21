@@ -1,59 +1,232 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# UCM — User Centralized Management
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+ระบบจัดการผู้ใช้และสิทธิ์การเข้าถึงแบบรวมศูนย์ (Centralized) สำหรับองค์กร
+รองรับการซิงค์สิทธิ์กับระบบภายนอกหลายระบบผ่าน Adapter Pattern และ LDAP/Active Directory
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## ภาพรวม
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+UCM ทำหน้าที่เป็น **Single Source of Truth** สำหรับ User Account และ Permission
+ผู้ดูแลระบบสามารถกำหนดสิทธิ์ผ่าน Web UI แล้ว UCM จะ sync ไปยังระบบปลายทางโดยอัตโนมัติ
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### ฟีเจอร์หลัก
 
-## Learning Laravel
+- **LDAP / Active Directory Integration** — นำเข้าและตรวจสอบผู้ใช้จาก AD
+- **Adapter Pattern** — เชื่อมต่อระบบภายนอกได้หลายระบบโดยไม่กระทบโค้ดหลัก
+- **2-Way Permission Sync** — sync สิทธิ์ทั้งขาเข้าและขาออกกับระบบที่รองรับ
+- **REST API + Sanctum** — ระบบภายนอกสามารถ query สิทธิ์ผ่าน API Token
+- **Queue-based Background Jobs** — sync งานหนักผ่าน Job Queue ไม่บล็อก UI
+- **Admin Level System** — ระดับผู้ดูแล 3 ระดับ (ผู้ใช้ทั่วไป / Admin L1 / Admin L2)
+- **Audit Log** — บันทึก Sync Log ทุกครั้งที่มีการเปลี่ยนแปลงสิทธิ์
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Tech Stack
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| Backend Framework | [Laravel](https://laravel.com) | ^13.0 |
+| Language | PHP | ^8.3 |
+| Frontend CSS | [Tailwind CSS](https://tailwindcss.com) | ^4.0.0 |
+| Build Tool | [Vite](https://vitejs.dev) | ^8.0.0 |
+| HTTP Client (FE) | Axios | ^1.11.0 |
+| API Auth | Laravel Sanctum | latest |
+| API Docs | [L5-Swagger](https://github.com/DarkaOnLine/L5-Swagger) | latest |
+| Queue / Cache | Database Driver | — |
+| Interactive Shell | Laravel Tinker | ^3.0 |
+| Testing | PHPUnit | ^12.5 |
+| Code Style | Laravel Pint | ^1.27 |
 
-## Agentic Development
+> Frontend ใช้ **Tailwind CSS + Vanilla JS** เท่านั้น (ไม่มี Alpine.js / Vue / React)
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+---
 
-```bash
-composer require laravel/boost --dev
+## โครงสร้างโปรเจค
 
-php artisan boost:install
+```
+app/
+├── Adapters/               # System adapters (Adapter Pattern)
+│   ├── SystemAdapterInterface.php
+│   ├── BaseAdapter.php
+│   ├── AdapterFactory.php
+│   ├── EarthAdapter.php
+│   ├── EFilingAdapter.php
+│   └── RepairSystemAdapter.php
+├── Http/Controllers/
+│   ├── Auth/LoginController.php
+│   ├── DashboardController.php
+│   ├── UserController.php
+│   ├── SystemController.php
+│   ├── QueueMonitorController.php
+│   └── Api/
+│       ├── AuthController.php
+│       ├── PermissionController.php
+│       └── UserExportController.php
+└── Models/
+    ├── UcmUser.php               # ผู้ใช้งาน (LDAP)
+    ├── System.php                # ระบบที่เชื่อมต่อ
+    ├── SystemPermission.php      # Permission definition
+    ├── UserSystemPermission.php  # User ↔ Permission mapping
+    └── SyncLog.php               # Audit trail
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## ความต้องการของระบบ
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- PHP **8.3+**
+- Composer **2.x**
+- Node.js **18+** และ npm
+- MySQL **8.0+** หรือ MariaDB **10.6+**
+- LDAP / Active Directory server
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## การติดตั้ง
 
-## Security Vulnerabilities
+### 1. Clone repository
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+git clone <repository-url>
+cd user-centralized-managment
+```
+
+### 2. ติดตั้ง dependencies
+
+```bash
+composer install
+npm install
+```
+
+### 3. ตั้งค่า Environment
+
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+
+แก้ไขค่าใน `.env`:
+
+```env
+APP_NAME="UCM"
+APP_URL=https://your-domain.com
+
+# Database
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ucm
+DB_USERNAME=your_user
+DB_PASSWORD=your_password
+
+# Queue (ใช้ database driver)
+QUEUE_CONNECTION=database
+
+# Session
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+```
+
+### 4. Migrate และ Seed
+
+```bash
+php artisan migrate
+```
+
+### 5. Build Frontend
+
+```bash
+# Development
+npm run dev
+
+# Production
+npm run build
+```
+
+### 6. รัน Queue Worker
+
+```bash
+php artisan queue:work --tries=3
+```
+
+---
+
+## Web Routes
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/` | Dashboard |
+| `GET/POST` | `/login` | เข้าสู่ระบบ (LDAP) |
+| `GET` | `/users` | รายการผู้ใช้ |
+| `POST` | `/users/import` | นำเข้าผู้ใช้จาก AD |
+| `GET` | `/users/{id}` | จัดการสิทธิ์ผู้ใช้ |
+| `GET` | `/systems` | ระบบที่เชื่อมต่อ |
+| `GET` | `/systems/{id}` | รายละเอียด + Permission |
+| `GET` | `/admin/levels` | จัดการระดับ Admin |
+| `GET` | `/queue/monitor` | Queue Monitor |
+| `GET` | `/manual` | คู่มือผู้ใช้งาน |
+| `GET` | `/api-docs` | API Documentation |
+
+---
+
+## REST API
+
+Base URL: `/api`
+Authentication: `Bearer <token>` (Laravel Sanctum)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/auth/token` | ออก Token สำหรับ Admin |
+| `POST` | `/auth/user-login` | Login + รับ Token + Permissions |
+| `DELETE` | `/auth/token` | Revoke Token |
+| `GET` | `/users/{username}/permissions` | สิทธิ์ของ User ใน System นั้น |
+| `GET` | `/users/{username}/permissions/all` | สิทธิ์ทุก System |
+| `POST` | `/permissions/check` | ตรวจสอบสิทธิ์เฉพาะรายการ |
+| `GET` | `/users/export` | Export ผู้ใช้ทั้งหมด (CSV) |
+
+> Rate limit: 10 requests/min สำหรับ endpoint สาธารณะ
+
+---
+
+## Adapter Pattern
+
+การเพิ่มระบบใหม่ทำโดย implement `SystemAdapterInterface`:
+
+```php
+class MySystemAdapter extends BaseAdapter implements SystemAdapterInterface
+{
+    public function syncPermissions(UcmUser $user, array $permissions): bool { ... }
+    public function getAvailablePermissions(): array { ... }
+    public function getCurrentPermissions(UcmUser $user): array { ... }
+    public function testConnection(): bool { ... }
+}
+```
+
+จากนั้นลงทะเบียน class ใน `AdapterFactory` และสร้าง System record ผ่าน Web UI
+
+---
+
+## Admin Levels
+
+| Level | ความสามารถ |
+|-------|-----------|
+| `0` — ผู้ใช้ทั่วไป | ดูสิทธิ์ของตัวเองเท่านั้น |
+| `1` — Admin L1 | จัดการสิทธิ์ผู้ใช้ได้ |
+| `2` — Admin L2 (Super Admin) | จัดการทุกอย่าง รวมถึง System และ Admin อื่น |
+
+---
+
+## เครื่องมือที่ใช้พัฒนา
+
+โปรเจคนี้พัฒนาด้วยความช่วยเหลือของ:
+
+- **[Claude Code](https://claude.ai/claude-code)** by Anthropic — AI coding assistant (Claude Sonnet 4.6)
+  ช่วยในการออกแบบ Architecture, เขียนโค้ด, Code Review และ Refactoring
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# BFS-UCM
+Internal use only — Bangkok Flight Services
+&copy; 2026 BFS IT Team
