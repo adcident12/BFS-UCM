@@ -1,6 +1,12 @@
 *.log
 .DS_Store
 .env
+
+# Laravel Boost (AI development tools — per-developer config)
+CLAUDE.md
+.mcp.json
+boost.json
+.github/skills/
 .env.backup
 .env.production
 .phpactor.json

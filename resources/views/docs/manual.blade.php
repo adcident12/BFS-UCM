@@ -26,6 +26,7 @@ $sections = [
     ['id' => 'ad-check',          'label' => 'ตรวจสอบ AD'],
     ['id' => 'sync',              'label' => 'การ Sync สิทธิ์'],
     ['id' => 'connector-wizard',  'label' => 'Connector Wizard'],
+    ['id' => 'queue-monitor',     'label' => 'Queue Monitor'],
 ];
 @endphp
 
@@ -100,7 +101,7 @@ $sections = [
                             </svg>
                         </div>
                         <div class="font-bold text-emerald-900 text-sm mb-1">จัดการสิทธิ์</div>
-                        <p class="text-xs text-emerald-700">กำหนด Editable / Read Only / Denied ต่อระบบและโมดูลได้ละเอียด</p>
+                        <p class="text-xs text-emerald-700">กำหนด Permission Keys ต่อระบบและโมดูลได้ละเอียด รองรับทั้ง Multi-select และ Exclusive mode</p>
                     </div>
                     <div class="bg-sky-50 rounded-xl p-4 border border-sky-100">
                         <div class="w-8 h-8 bg-sky-600 rounded-xl flex items-center justify-center mb-2">
@@ -321,29 +322,37 @@ $sections = [
                 <p>กดปุ่ม <strong>จัดการสิทธิ์</strong> ที่แถวของผู้ใช้ เพื่อเข้าหน้า Permission Matrix ของผู้ใช้คนนั้น</p>
 
                 <div>
-                    <h3 class="font-bold text-slate-900 mb-3">ระดับสิทธิ์</h3>
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-3 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-200 text-indigo-800">Editable</span>
-                            <p class="text-slate-700 text-xs">สามารถเข้าถึงและแก้ไขข้อมูลในโมดูลนั้นได้ (s_id = 2)</p>
+                    <h3 class="font-bold text-slate-900 mb-3">Permission Key System</h3>
+                    <p class="text-slate-600 text-xs mb-3">UCM ใช้ระบบ <strong>Permission Key</strong> ที่ยืดหยุ่น — แต่ละระบบกำหนด Permission ของตนเองผ่านหน้า "ระบบที่เชื่อมต่อ" โดย Admin ระดับ 1 ขึ้นไป และ Permission เหล่านี้จะปรากฏเป็น Checkbox หรือ Radio Pill ให้กำหนดให้ผู้ใช้</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                            <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-indigo-800 mb-0.5">Multi-select (Checkbox)</p>
+                                <p class="text-indigo-700">กลุ่มสิทธิ์ที่ผู้ใช้เลือกได้หลาย Permission พร้อมกัน เช่น module ต่าง ๆ ในระบบ</p>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-3 p-3 bg-sky-50 rounded-xl border border-sky-100">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-sky-200 text-sky-800">Read Only</span>
-                            <p class="text-slate-700 text-xs">สามารถดูข้อมูลได้อย่างเดียว ไม่สามารถแก้ไขได้ (s_id = 1)</p>
-                        </div>
-                        <div class="flex items-center gap-3 p-3 bg-rose-50 rounded-xl border border-rose-100">
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-200 text-rose-800">Denied</span>
-                            <p class="text-slate-700 text-xs">ไม่มีสิทธิ์เข้าถึงโมดูลนั้น (s_id = 3)</p>
+                        <div class="flex items-start gap-3 p-3 bg-violet-50 rounded-xl border border-violet-100">
+                            <div class="w-7 h-7 bg-violet-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-violet-800 mb-0.5">Exclusive (Radio Pill)</p>
+                                <p class="text-violet-700">กลุ่มสิทธิ์ที่เลือกได้เพียง 1 ค่า เช่น Editable / Read Only / Denied สำหรับแต่ละโมดูลของระบบ Earth</p>
+                            </div>
                         </div>
                     </div>
+                    <p class="text-xs text-slate-500 mt-2">รูปแบบ (Checkbox หรือ Radio) ขึ้นอยู่กับวิธีที่แต่ละระบบกำหนด Permission ไว้ — Admin ระดับ 2 ตั้งค่าได้ในหน้า "ระบบที่เชื่อมต่อ"</p>
                 </div>
 
                 <div class="border-t border-slate-100 pt-4">
                     <h3 class="font-bold text-slate-900 mb-2">วิธีการกำหนดสิทธิ์</h3>
                     <div class="space-y-2">
                         @foreach ([
-                            'เลือกระบบที่ต้องการกำหนดสิทธิ์ (แต่ละระบบมีส่วนแยก)',
-                            'แต่ละกลุ่ม (เช่น Daily Flight, PAX, RAMP) แสดงเป็นแถว — เลือก Editable / Read Only / Denied ด้วยการคลิก Radio Pill',
+                            'เลือกระบบที่ต้องการกำหนดสิทธิ์ (แต่ละระบบแสดงเป็นส่วนแยก)',
+                            'แต่ละกลุ่ม Permission แสดงเป็นแถว — ติ๊ก Checkbox (เลือกได้หลาย) หรือคลิก Radio Pill (เลือกได้ 1 ค่า) ตามรูปแบบที่ระบบกำหนด',
                             'กด <strong>บันทึกสิทธิ์ระบบนี้</strong> เพื่อส่งคำสั่ง Sync ไปยังระบบปลายทาง',
                             'สถานะ Sync (success/failed) จะแสดงทันทีหลังบันทึก',
                         ] as $i => $text)
@@ -364,6 +373,31 @@ $sections = [
                         <li>เมื่อ <strong>ลบ Permission</strong> จะมีกล่องยืนยันพร้อมคำเตือนว่าจะลบออกจากระบบปลายทางด้วย</li>
                         <li>เมื่อ <strong>แก้ไข</strong> label/key — บันทึกใน UCM เท่านั้น ไม่ rename ในระบบปลายทาง</li>
                     </ul>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-2">ปุ่ม Discover — ดึงสิทธิ์จากระบบจริง</h3>
+                    <p class="text-slate-600 mb-3">เมื่อระบบปลายทางเปลี่ยนสิทธิ์ของผู้ใช้โดยตรง (ไม่ผ่าน UCM) ระบบจะแสดง Badge <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700">Out of Sync</span> และปุ่ม <strong class="text-indigo-600">Discover</strong> จะปรากฏข้างๆ</p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                            <svg class="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <div>
+                                <strong class="text-indigo-800">กด Discover</strong>
+                                <p class="text-slate-600 mt-0.5">UCM จะดึงสิทธิ์ปัจจุบันจากระบบปลายทาง แล้วบันทึกทับข้อมูลใน UCM ทันที — เหมาะเมื่อต้องการให้ UCM ตามระบบจริง</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <svg class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div>
+                                <strong class="text-slate-700">กด บันทึกสิทธิ์ระบบนี้</strong>
+                                <p class="text-slate-600 mt-0.5">UCM จะ Push สิทธิ์ที่ตั้งไว้ใน UCM กลับไปยังระบบปลายทาง — เหมาะเมื่อต้องการให้ระบบจริงตาม UCM</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                        <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                        <span>ปุ่ม Discover ปรากฏเฉพาะระบบที่มี Adapter และสถานะเป็น <strong>Out of Sync</strong> เท่านั้น — ต้องเป็น Admin ระดับ 1 ขึ้นไปจึงจะใช้งานได้</span>
+                    </div>
                 </div>
 
                 <div class="border-t border-slate-100 pt-4">
@@ -631,7 +665,7 @@ $sections = [
                         </div>
                         <div class="flex items-center gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
                             <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-amber-100 text-amber-700 flex-shrink-0 whitespace-nowrap">Out of Sync</span>
-                            <p class="text-slate-700">สิทธิ์ผู้ใช้ใน UCM ไม่ตรงกับระบบปลายทาง — กด "บันทึกสิทธิ์" เพื่อ Sync ใหม่</p>
+                            <p class="text-slate-700">สิทธิ์ผู้ใช้ใน UCM ไม่ตรงกับระบบปลายทาง — กด <strong>"Discover"</strong> เพื่อดึงสิทธิ์จากระบบจริงมาเก็บใน UCM หรือกด "บันทึกสิทธิ์" เพื่อ Push สิทธิ์ UCM กลับไปยังระบบปลายทาง</p>
                         </div>
                     </div>
                 </div>
@@ -998,6 +1032,94 @@ $sections = [
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+        {{-- ── Queue Monitor ── --}}
+        <div id="queue-monitor" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-violet-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-slate-800">Queue Monitor</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">ตรวจสอบสถานะ Job และประวัติการ Sync</p>
+                </div>
+                <span class="ml-auto text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">Admin L1 ขึ้นไป</span>
+            </div>
+            <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+
+                <p>หน้า <strong>Queue Monitor</strong> ช่วยให้ Admin ตรวจสอบสถานะของ Sync Jobs และ Failed Jobs ได้แบบ Real-time เข้าถึงได้จากเมนู <strong>ผู้ดูแลระบบ → Queue Monitor</strong></p>
+
+                {{-- Stat Cards --}}
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-3">ข้อมูลที่แสดง</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                        @foreach ([
+                            ['label' => 'Pending Jobs', 'color' => 'sky', 'desc' => 'Jobs ที่รอ Worker ประมวลผล'],
+                            ['label' => 'Processing', 'color' => 'amber', 'desc' => 'Jobs ที่ Worker กำลังรันอยู่'],
+                            ['label' => 'Failed Jobs', 'color' => 'red', 'desc' => 'Jobs ที่ล้มเหลวทั้งหมด (ทุก retry)'],
+                            ['label' => 'Sync Success วันนี้', 'color' => 'emerald', 'desc' => 'จำนวน Sync ที่สำเร็จในวันนี้'],
+                            ['label' => 'Sync Failed วันนี้', 'color' => 'rose', 'desc' => 'จำนวน Sync ที่ล้มเหลวในวันนี้'],
+                            ['label' => 'Recent Activity', 'color' => 'violet', 'desc' => 'ประวัติ Sync 40 รายการล่าสุด พร้อม error message'],
+                        ] as $item)
+                        <div class="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-2 h-2 rounded-full bg-{{ $item['color'] }}-500 mt-1 flex-shrink-0"></div>
+                            <div>
+                                <p class="font-semibold text-slate-800">{{ $item['label'] }}</p>
+                                <p class="text-slate-500 mt-0.5">{{ $item['desc'] }}</p>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Failed Jobs Actions --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">การจัดการ Failed Jobs <span class="text-xs font-normal text-slate-400">(Admin ระดับ 2 เท่านั้น)</span></h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                            <svg class="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <div>
+                                <p class="font-semibold text-indigo-800">Retry (ทีละ Job)</p>
+                                <p class="text-slate-600 mt-0.5">กด <strong>Retry</strong> ที่แถว Failed Job ที่ต้องการ — ระบบจะส่ง Job กลับเข้า Queue ทันที เหมาะเมื่อแก้ไขปัญหาแล้วและต้องการลอง Sync ซ้ำ</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
+                            <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                            <div>
+                                <p class="font-semibold text-amber-800">Retry All</p>
+                                <p class="text-slate-600 mt-0.5">กด <strong>Retry ทั้งหมด</strong> เพื่อส่ง Failed Jobs ทั้งหมดกลับเข้า Queue พร้อมกัน ใช้เมื่อระบบปลายทาง Down ชั่วคราวแล้วกลับมาออนไลน์</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <svg class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <div>
+                                <p class="font-semibold text-slate-700">ลบ Job (Forget / Flush)</p>
+                                <p class="text-slate-600 mt-0.5">กด <strong>ลบ</strong> เพื่อลบ Failed Job ทีละรายการ หรือ <strong>ล้างทั้งหมด (Flush)</strong> เพื่อลบ Failed Jobs ทุกรายการออก — ใช้เมื่อ Job เก่าเกินไปหรือไม่สามารถ retry ได้แล้ว</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- SyncLog detail --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-2">ประวัติ Sync (Recent Activity)</h3>
+                    <p class="text-slate-600 text-xs mb-2">แสดง Sync Log 40 รายการล่าสุดพร้อมข้อมูล:</p>
+                    <ul class="space-y-1 text-slate-600 text-xs list-disc list-inside">
+                        <li>ผู้ใช้ที่ถูก Sync และระบบที่ Sync ไป</li>
+                        <li>ผู้ที่สั่ง Sync (Performed By)</li>
+                        <li>สถานะ (success / failed) และเวลาที่ทำ</li>
+                        <li>Error message (กรณีล้มเหลว) เพื่อช่วยวินิจฉัยปัญหา</li>
+                    </ul>
+                </div>
+
+                <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
+                    <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                    <span>หาก Queue ค้างหรือ Worker หยุดทำงาน ให้รัน <code class="font-mono bg-blue-100 px-1 rounded">docker restart ucm-queue</code> (Docker) หรือ <code class="font-mono bg-blue-100 px-1 rounded">sudo supervisorctl restart ucm-queue:*</code> (Bare Server) เพื่อ restart Queue Worker</span>
+                </div>
             </div>
         </div>
 

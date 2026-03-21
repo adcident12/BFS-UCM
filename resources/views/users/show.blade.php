@@ -246,7 +246,8 @@
                     {{-- ── Exclusive permission groups (radio pills per row) ── --}}
                     @if ($exclusiveGroups->isNotEmpty())
                         <div class="px-5 pt-5 {{ $checkboxGroups->isNotEmpty() ? 'pb-2' : 'pb-4' }}">
-                            <div class="rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-50">
+                            <div class="overflow-x-auto rounded-xl border border-slate-100">
+                            <div class="divide-y divide-slate-50 min-w-fit">
                                 {{-- Column header --}}
                                 @php
                                     $firstGroup = $exclusiveGroups->first();
@@ -313,6 +314,7 @@
                                     </div>
                                 @endforeach
                             </div>
+                            </div>
                         </div>
                     @endif
 
@@ -368,7 +370,8 @@
                         <p class="text-sm text-slate-400 font-medium">ไม่มีสิทธิ์ที่ได้รับมอบหมาย</p>
                     @else
                         @if ($exclusiveGroups->isNotEmpty())
-                            <div class="rounded-xl border border-slate-100 overflow-hidden divide-y divide-slate-50 mb-4">
+                            <div class="overflow-x-auto rounded-xl border border-slate-100 mb-4">
+                            <div class="divide-y divide-slate-50 min-w-fit">
                                 @php
                                     $firstGroup = $exclusiveGroups->first();
                                     $optionHeaders = $firstGroup->map(function($p) {
@@ -418,6 +421,7 @@
                                         </div>
                                     </div>
                                 @endforeach
+                            </div>
                             </div>
                         @endif
 
