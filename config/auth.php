@@ -118,4 +118,14 @@ return [
      */
     'allowed_department' => env('UCM_ALLOWED_DEPARTMENT'),
 
+    /*
+     | แผนกที่สามารถดู Audit Log ได้ (Read-only)
+     | ตั้งค่าใน .env: UCM_AUDIT_DEPARTMENTS="Safety,Quality Assurance"
+     | คั่นหลายแผนกด้วยเครื่องหมายจุลภาค (,)
+     */
+    'audit_departments' => array_map(
+        'trim',
+        explode(',', env('UCM_AUDIT_DEPARTMENTS', 'Safety,Quality Assurance'))
+    ),
+
 ];

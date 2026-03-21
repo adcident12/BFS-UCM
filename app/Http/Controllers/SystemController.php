@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Adapters\AdapterFactory;
+use App\Models\AuditLog;
 use App\Models\System;
 use App\Models\SystemPermission;
 use App\Models\UcmUser;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -53,6 +55,15 @@ class SystemController extends Controller
         ]);
 
         $system = System::create($data);
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_SYSTEM_CREATED,
+            "สร้างระบบใหม่: {$system->name} (slug: {$system->slug})",
+            ['system_id' => $system->id, 'name' => $system->name, 'slug' => $system->slug],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
 
         return redirect()->route('systems.show', $system)
             ->with('success', "เพิ่มระบบ {$system->name} เรียบร้อย");
@@ -118,6 +129,15 @@ class SystemController extends Controller
 
         $system->update($data);
 
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_SYSTEM_UPDATED,
+            "อัปเดตระบบ: {$system->name}",
+            ['system_id' => $system->id, 'name' => $system->name],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
+
         return redirect()->route('systems.show', $system)
             ->with('success', "อัปเดตระบบ {$system->name} เรียบร้อย");
     }
@@ -126,10 +146,21 @@ class SystemController extends Controller
     {
         abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบระบบได้');
 
+        $systemName = $system->name;
+        $systemId = $system->id;
         $system->delete();
 
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_SYSTEM_DELETED,
+            "ลบระบบ: {$systemName}",
+            ['system_id' => $systemId, 'name' => $systemName],
+            $this->authUser(),
+            'system', $systemId, $systemName,
+        );
+
         return redirect()->route('systems.index')
-            ->with('success', "ลบระบบ {$system->name} เรียบร้อย");
+            ->with('success', "ลบระบบ {$systemName} เรียบร้อย");
     }
 
     public function toggle2WayPermissions(System $system)
@@ -140,6 +171,15 @@ class SystemController extends Controller
         $system->update(['two_way_permissions' => ! $system->two_way_permissions]);
 
         $state = $system->two_way_permissions ? 'เปิด' : 'ปิด';
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_SYSTEM_2WAY_TOGGLED,
+            "{$state} 2-way permission sync สำหรับระบบ {$system->name}",
+            ['system_id' => $system->id, 'two_way_permissions' => $system->two_way_permissions],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
 
         return back()->with('success', "{$state} 2-way permission sync สำหรับ {$system->name} เรียบร้อย");
     }
@@ -170,7 +210,16 @@ class SystemController extends Controller
             }
         }
 
-        $system->permissions()->create($data);
+        $perm = $system->permissions()->create($data);
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_PERM_DEF_CREATED,
+            "เพิ่ม permission key '{$perm->key}' ({$perm->label}) ในระบบ {$system->name}",
+            ['system_id' => $system->id, 'system_name' => $system->name, 'key' => $perm->key, 'label' => $perm->label, 'group' => $perm->group],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
 
         return back()->with('success', "เพิ่ม permission '{$data['label']}' เรียบร้อย");
     }
@@ -192,6 +241,15 @@ class SystemController extends Controller
         $data['is_exclusive'] = $request->boolean('is_exclusive');
 
         $permission->update($data);
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_PERM_DEF_UPDATED,
+            "อัปเดต permission key '{$permission->key}' ในระบบ {$system->name}",
+            ['system_id' => $system->id, 'system_name' => $system->name, 'key' => $permission->key, 'label' => $permission->label],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
 
         return back()->with('success', "อัปเดต permission '{$permission->key}' เรียบร้อย");
     }
@@ -222,6 +280,15 @@ class SystemController extends Controller
             return back()->with('success', 'ไม่พบ permission ใหม่จาก ' . $system->name . ' (ครบถ้วนแล้ว)');
         }
 
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_PERM_DEF_DISCOVERED,
+            'Discover permission definitions จากระบบ ' . $system->name . ': ' . count($created) . ' รายการ',
+            ['system_id' => $system->id, 'system_name' => $system->name, 'created' => $created],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
+
         return back()->with('success', 'พบ ' . count($created) . ' permission ใหม่จาก ' . $system->name . ': ' . implode(', ', $created));
     }
 
@@ -235,7 +302,18 @@ class SystemController extends Controller
             AdapterFactory::make($system)->deletePermission($permission->remote_value);
         }
 
+        $permKey = $permission->key;
+        $permLabel = $permission->label;
         $permission->delete();
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_PERM_DEF_DELETED,
+            "ลบ permission key '{$permKey}' ({$permLabel}) ออกจากระบบ {$system->name}",
+            ['system_id' => $system->id, 'system_name' => $system->name, 'key' => $permKey, 'label' => $permLabel],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
 
         return back()->with('success', 'ลบ permission เรียบร้อย');
     }

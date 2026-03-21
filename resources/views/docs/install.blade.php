@@ -375,6 +375,7 @@ $sections = [
                     ]],
                     ['section' => 'UCM Settings', 'color' => 'amber', 'vars' => [
                         ['key' => 'UCM_ALLOWED_DEPARTMENT', 'val' => '"Systems Development and IT"', 'note' => 'แผนกที่อนุญาต Login (เว้นว่างเพื่ออนุญาตทุกแผนก)'],
+                        ['key' => 'UCM_AUDIT_DEPARTMENTS', 'val' => '"Safety,Quality Assurance"', 'note' => 'แผนกที่ดู Audit Log ได้ (Read-Only) คั่นด้วย , เพิ่มแผนกได้ในอนาคต'],
                     ]],
                     ['section' => 'Swagger / API Docs', 'color' => 'rose', 'vars' => [
                         ['key' => 'SWAGGER_GENERATE_ALWAYS', 'val' => 'false', 'note' => 'false = ใช้ cached JSON (แนะนำ)'],

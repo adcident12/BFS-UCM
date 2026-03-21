@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use App\Models\System;
 use App\Models\UcmUser;
+use App\Services\AuditLogger;
 use App\Services\LdapService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,6 +51,16 @@ class AuthController extends Controller
 
         $token = $user->createToken($request->token_name);
 
+        AuditLogger::log(
+            AuditLog::CATEGORY_API,
+            AuditLog::EVENT_API_TOKEN_ISSUED,
+            "ออก API Token '{$request->token_name}' สำหรับ {$user->username} ({$user->name})",
+            ['token_name' => $request->token_name, 'username' => $user->username],
+            $user,
+            null, null, null,
+            $request,
+        );
+
         auth()->logout();
 
         return response()->json([
@@ -64,7 +76,19 @@ class AuthController extends Controller
      */
     public function revokeToken(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        $tokenName = $user->currentAccessToken()->name;
+        $user->currentAccessToken()->delete();
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_API,
+            AuditLog::EVENT_API_TOKEN_REVOKED,
+            "ยกเลิก API Token '{$tokenName}' ของ {$user->username}",
+            ['token_name' => $tokenName, 'username' => $user->username],
+            $user,
+            null, null, null,
+            $request,
+        );
 
         return response()->json(['message' => 'Token revoked']);
     }
@@ -136,6 +160,16 @@ class AuthController extends Controller
                 $permissions = $user->getPermissionsForSystem($system->id);
             }
         }
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_API,
+            AuditLog::EVENT_API_USER_LOGIN,
+            "User login ผ่าน API: {$user->username} ({$user->name}) ระบบ: " . ($validated['system'] ?? 'ไม่ระบุ'),
+            ['username' => $user->username, 'system' => $validated['system'] ?? null],
+            $user,
+            null, null, null,
+            $request,
+        );
 
         return response()->json([
             'token' => $token->plainTextToken,

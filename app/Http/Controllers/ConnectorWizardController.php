@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Adapters\DynamicAdapter;
+use App\Models\AuditLog;
 use App\Models\ConnectorConfig;
 use App\Models\System;
 use App\Models\UcmUser;
+use App\Services\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,6 +65,15 @@ class ConnectorWizardController extends Controller
         if ($system && $system->adapter_class === DynamicAdapter::class) {
             $system->update(['adapter_class' => null]);
         }
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_CONNECTORS,
+            AuditLog::EVENT_CONNECTOR_DELETED,
+            'ลบ Connector ของระบบ ' . ($system?->name ?? 'ไม่ทราบ'),
+            ['system_id' => $system?->id, 'system_name' => $system?->name],
+            $this->authUser(),
+            'system', $system?->id, $system?->name,
+        );
 
         return redirect()->route('connectors.index')
             ->with('success', 'ลบ Connector สำเร็จ');
@@ -357,6 +368,17 @@ class ConnectorWizardController extends Controller
         if ($system->adapter_class !== DynamicAdapter::class) {
             $system->update(['adapter_class' => DynamicAdapter::class]);
         }
+
+        $isNew = ! isset($data['system_id']);
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_CONNECTORS,
+            $isNew ? AuditLog::EVENT_CONNECTOR_CREATED : AuditLog::EVENT_CONNECTOR_UPDATED,
+            ($isNew ? 'สร้าง' : 'อัปเดต') . " Connector สำหรับระบบ {$system->name} ({$data['db_driver']}://{$data['db_host']}/{$data['db_name']})",
+            ['system_id' => $system->id, 'system_name' => $system->name, 'db_driver' => $data['db_driver'], 'db_host' => $data['db_host'], 'db_name' => $data['db_name'], 'permission_mode' => $data['permission_mode']],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
 
         return response()->json([
             'ok'         => true,

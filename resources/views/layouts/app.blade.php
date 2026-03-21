@@ -25,6 +25,7 @@
         .nav-acc-chevron { transition: transform 0.22s ease; flex-shrink: 0; }
         .nav-acc-chevron.closed { transform: rotate(-90deg); }
     </style>
+    @stack('styles')
 </head>
 <body class="bg-slate-50 min-h-screen flex font-sans">
 
@@ -88,7 +89,7 @@
             $activeSection = '';
             if (request()->routeIs('dashboard') || request()->routeIs('users.*') || request()->routeIs('systems.*'))
                 $activeSection = 'main';
-            elseif (request()->routeIs('admin.levels') || request()->routeIs('queue.monitor') || request()->routeIs('connectors.*'))
+            elseif (request()->routeIs('admin.levels') || request()->routeIs('queue.monitor') || request()->routeIs('connectors.*') || request()->routeIs('audit.*'))
                 $activeSection = 'admin';
             elseif (request()->routeIs('docs.manual'))
                 $activeSection = 'docs';
@@ -167,6 +168,25 @@
                     <span class="truncate">Queue Monitor</span>
                     @if ($queueActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
+                @php
+                    $auditActive = request()->routeIs('audit.*');
+                    $auditDepts = array_map('strtoupper', config('auth.audit_departments', []));
+                    $canSeeAudit = auth()->user()?->isAdmin() || in_array(strtoupper(auth()->user()?->department ?? ''), $auditDepts);
+                @endphp
+                @if ($canSeeAudit)
+                <a href="{{ route('audit.index') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                          {{ $auditActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $auditActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">Audit Log</span>
+                    @if ($auditActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
+                @endif
                 @php $connActive = request()->routeIs('connectors.*') @endphp
                 <a href="{{ route('connectors.index') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group

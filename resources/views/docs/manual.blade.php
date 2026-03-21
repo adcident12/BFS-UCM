@@ -27,6 +27,7 @@ $sections = [
     ['id' => 'sync',              'label' => 'การ Sync สิทธิ์'],
     ['id' => 'connector-wizard',  'label' => 'Connector Wizard'],
     ['id' => 'queue-monitor',     'label' => 'Queue Monitor'],
+    ['id' => 'audit-log',         'label' => 'Audit Log'],
 ];
 @endphp
 
@@ -1119,6 +1120,140 @@ $sections = [
                 <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
                     <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
                     <span>หาก Queue ค้างหรือ Worker หยุดทำงาน ให้รัน <code class="font-mono bg-blue-100 px-1 rounded">docker restart ucm-queue</code> (Docker) หรือ <code class="font-mono bg-blue-100 px-1 rounded">sudo supervisorctl restart ucm-queue:*</code> (Bare Server) เพื่อ restart Queue Worker</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Audit Log ── --}}
+        <div id="audit-log" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-violet-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-slate-800">Audit Log</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">บันทึกการกระทำทั้งหมดในระบบ</p>
+                </div>
+                <span class="ml-auto text-[10px] font-bold bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full">Admin / SQA / QA</span>
+            </div>
+            <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+
+                <p>หน้า <strong>Audit Log</strong> รวบรวมบันทึกการกระทำทุกรายการในระบบ UCM ให้ผู้ดูแลและแผนกที่ได้รับสิทธิ์ตรวจสอบย้อนหลังได้ เข้าถึงได้จากเมนู <strong>Audit Log</strong> ในแถบนำทาง</p>
+
+                {{-- สิทธิ์การเข้าถึง --}}
+                <div>
+                    <h3 class="font-bold text-slate-900 mb-3">สิทธิ์การเข้าถึง</h3>
+                    <div class="grid sm:grid-cols-2 gap-3 text-xs">
+                        @foreach ([
+                            ['role' => 'Admin (ทุกระดับ)', 'color' => 'indigo', 'desc' => 'เข้าถึงและดูบันทึกทั้งหมดได้'],
+                            ['role' => 'SQA / QA (Read-Only)', 'color' => 'violet', 'desc' => 'ดูได้เฉพาะ — ไม่สามารถแก้ไขหรือลบข้อมูลใดๆ ได้ กำหนดแผนกใน .env ด้วย UCM_AUDIT_DEPARTMENTS'],
+                        ] as $item)
+                        <div class="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-2 h-2 rounded-full bg-{{ $item['color'] }}-500 mt-1 flex-shrink-0"></div>
+                            <div>
+                                <p class="font-semibold text-slate-800">{{ $item['role'] }}</p>
+                                <p class="text-slate-500 mt-0.5">{{ $item['desc'] }}</p>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- ประเภทเหตุการณ์ --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">ประเภทเหตุการณ์ (Category)</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                        @foreach ([
+                            ['label' => 'Auth', 'color' => 'sky', 'desc' => 'Login / Logout / Login Failed'],
+                            ['label' => 'Users', 'color' => 'indigo', 'desc' => 'Import, อัปเดต, ลบผู้ใช้'],
+                            ['label' => 'Permissions', 'color' => 'violet', 'desc' => 'เพิ่ม/ลบ/เปลี่ยน สิทธิ์ผู้ใช้'],
+                            ['label' => 'Systems', 'color' => 'emerald', 'desc' => 'สร้าง/แก้ไข/ลบ ระบบและ Permission Definition'],
+                            ['label' => 'Connectors', 'color' => 'amber', 'desc' => 'สร้าง/แก้ไข/ลบ Connector Wizard'],
+                            ['label' => 'API', 'color' => 'rose', 'desc' => 'ออก Token / Revoke / User Login ผ่าน API'],
+                        ] as $item)
+                        <div class="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-2 h-2 rounded-full bg-{{ $item['color'] }}-500 mt-1 flex-shrink-0"></div>
+                            <div>
+                                <p class="font-semibold text-slate-800">{{ $item['label'] }}</p>
+                                <p class="text-slate-500 mt-0.5">{{ $item['desc'] }}</p>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- การกรองและค้นหา --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">การกรองและค้นหา</h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                            <svg class="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a2 2 0 012-2z"/></svg>
+                            <div>
+                                <p class="font-semibold text-indigo-800">กรองตามประเภท</p>
+                                <p class="text-slate-600 mt-0.5">คลิกแท็บ Auth / Users / Permissions / Systems / Connectors / API เพื่อกรองเฉพาะหมวดนั้น</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <svg class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <div>
+                                <p class="font-semibold text-slate-700">ค้นหาข้อความ</p>
+                                <p class="text-slate-600 mt-0.5">ค้นหาด้วย Username, คำอธิบาย หรือ Subject ของเหตุการณ์</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <svg class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <div>
+                                <p class="font-semibold text-slate-700">กรองตามวันที่ (Preset / DatePicker)</p>
+                                <p class="text-slate-600 mt-0.5">
+                                    เลือกจากปุ่ม Preset ได้แก่
+                                    <strong>CD</strong> (วันนี้), <strong>PD</strong> (เมื่อวาน),
+                                    <strong>CW</strong> (สัปดาห์นี้), <strong>PW</strong> (สัปดาห์ก่อน),
+                                    <strong>CM</strong> (เดือนนี้), <strong>PM</strong> (เดือนก่อน) —
+                                    หรือเลือกช่วงวันที่เองด้วย DatePicker
+                                    <br class="my-1">
+                                    <span class="text-slate-500">กดปุ่ม Preset ซ้ำเพื่อเลื่อนช่วงวันที่ไปข้างหน้า/ข้างหลังตามหน่วยของปุ่มนั้น</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ข้อมูลที่แสดง --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">ข้อมูลในแต่ละรายการ</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50">
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 rounded-tl-lg border border-slate-100">คอลัมน์</th>
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 rounded-tr-lg border border-slate-100">ความหมาย</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ([
+                                    ['col' => 'ประเภท', 'desc' => 'หมวดหมู่เหตุการณ์ (Auth / Users / Permissions / Systems / Connectors / API)'],
+                                    ['col' => 'เหตุการณ์', 'desc' => 'ชื่อ Event เช่น Login, Update Permissions, Create System'],
+                                    ['col' => 'ผู้กระทำ', 'desc' => 'Username ของผู้ดำเนินการ (หรือ System หากเกิดจาก API)'],
+                                    ['col' => 'เป้าหมาย', 'desc' => 'ข้อมูลที่ถูกกระทำ เช่น ชื่อผู้ใช้ ชื่อระบบ'],
+                                    ['col' => 'รายละเอียด', 'desc' => 'คำอธิบายเหตุการณ์ พร้อม Metadata (JSON) ที่สามารถขยายดูได้'],
+                                    ['col' => 'IP Address', 'desc' => 'IP ของผู้ดำเนินการ'],
+                                    ['col' => 'เวลา', 'desc' => 'วันที่และเวลาที่เกิดเหตุการณ์'],
+                                ] as $row)
+                                <tr class="border border-slate-100">
+                                    <td class="px-3 py-2 font-mono font-semibold text-slate-700 bg-slate-50/50 whitespace-nowrap">{{ $row['col'] }}</td>
+                                    <td class="px-3 py-2 text-slate-600">{{ $row['desc'] }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-800">
+                    <svg class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    <span>Audit Log เป็น <strong>Read-Only</strong> — ไม่มีการแก้ไขหรือลบข้อมูล ทุกรายการถูกบันทึกอย่างถาวรเพื่อวัตถุประสงค์ตรวจสอบ (Compliance)</span>
                 </div>
             </div>
         </div>

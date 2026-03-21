@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ApiDocsController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ConnectorWizardController;
 use App\Http\Controllers\DashboardController;
@@ -80,6 +81,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/connectors/ajax/preview-permissions', [ConnectorWizardController::class, 'previewPermissions'])->name('connectors.ajax.preview-permissions');
     Route::post('/connectors', [ConnectorWizardController::class, 'store'])->name('connectors.store');
     Route::put('/connectors/{connectorConfig}', [ConnectorWizardController::class, 'update'])->name('connectors.update');
+
+    // Audit Log
+    Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit.index');
 
     // Queue Monitor
     Route::get('/queue/monitor', [QueueMonitorController::class, 'index'])->name('queue.monitor');

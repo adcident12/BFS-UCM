@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Adapters\AdapterFactory;
 use App\Jobs\SyncPermissionsJob;
+use App\Models\AuditLog;
 use App\Models\System;
 use App\Models\SyncLog;
 use App\Models\SystemPermission;
 use App\Models\UcmUser;
 use App\Models\UserSystemPermission;
+use App\Services\AuditLogger;
 use App\Services\LdapService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -178,6 +180,15 @@ class UserController extends Controller
             $msg = "บันทึกสิทธิ์ {$user->name} ในระบบ {$system->name} เรียบร้อย";
         }
 
+        AuditLogger::log(
+            AuditLog::CATEGORY_PERMISSIONS,
+            AuditLog::EVENT_PERMISSIONS_UPDATED,
+            "อัปเดตสิทธิ์ {$user->name} ({$user->username}) ในระบบ {$system->name}: " . implode(', ', $newPerms ?: ['(ไม่มีสิทธิ์)']),
+            ['system_id' => $system->id, 'system_name' => $system->name, 'permissions' => $newPerms],
+            Auth::user(),
+            'user', $user->id, $user->username,
+        );
+
         return back()->with('success', $msg);
     }
 
@@ -196,6 +207,17 @@ class UserController extends Controller
         $ok      = $adapter->setAccountStatus($user, $active);
 
         $label = $active ? 'เปิดใช้งาน' : 'ปิดการใช้งาน';
+
+        if ($ok) {
+            AuditLogger::log(
+                AuditLog::CATEGORY_PERMISSIONS,
+                AuditLog::EVENT_ACCOUNT_STATUS_CHANGED,
+                "{$label} account {$user->name} ({$user->username}) ในระบบ {$system->name}",
+                ['system_id' => $system->id, 'system_name' => $system->name, 'active' => $active],
+                Auth::user(),
+                'user', $user->id, $user->username,
+            );
+        }
 
         return back()->with(
             $ok ? 'success' : 'error',
@@ -257,6 +279,16 @@ class UserController extends Controller
         ]);
 
         $count = count($newPerms);
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_PERMISSIONS,
+            AuditLog::EVENT_PERMISSIONS_DISCOVERED,
+            "Discover สิทธิ์ {$user->name} ({$user->username}) จากระบบ {$system->name}: {$count} สิทธิ์",
+            ['system_id' => $system->id, 'system_name' => $system->name, 'permissions' => $newPerms, 'count' => $count],
+            Auth::user(),
+            'user', $user->id, $user->username,
+        );
+
         return back()->with('success', "Discover สิทธิ์ {$user->name} จาก {$system->name} เรียบร้อย ({$count} สิทธิ์)");
     }
 
@@ -268,7 +300,17 @@ class UserController extends Controller
             'employee_number' => 'nullable|string|max:50',
         ]);
 
+        $old = $user->employee_number;
         $user->update(['employee_number' => $validated['employee_number'] ?: null]);
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_USERS,
+            AuditLog::EVENT_USER_INFO_UPDATED,
+            "อัปเดตรหัสพนักงาน {$user->name} ({$user->username}): '{$old}' → '{$user->employee_number}'",
+            ['old_employee_number' => $old, 'new_employee_number' => $user->employee_number],
+            Auth::user(),
+            'user', $user->id, $user->username,
+        );
 
         return back()->with('success', "บันทึกรหัสพนักงาน {$user->name} เรียบร้อย");
     }
@@ -356,6 +398,14 @@ class UserController extends Controller
             $msg .= " (ไม่พบใน AD: {$skipped} คน)";
         }
 
+        AuditLogger::log(
+            AuditLog::CATEGORY_USERS,
+            AuditLog::EVENT_USER_BULK_IMPORTED,
+            "Bulk import จาก LDAP: {$imported} คน (ข้าม {$skipped} คน)",
+            ['usernames' => $validated['usernames'], 'imported' => $imported, 'skipped' => $skipped, 'systems' => $systemNames],
+            Auth::user(),
+        );
+
         if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json([
                 'success'  => true,
@@ -407,11 +457,21 @@ class UserController extends Controller
             return response()->json(['success' => false, 'message' => 'ไม่สามารถลบบัญชีของตัวเองได้'], 422);
         }
 
+        $removedUsers = UcmUser::whereIn('id', $ids)->select('id', 'username', 'name')->get();
+
         DB::transaction(function () use ($ids) {
             UserSystemPermission::whereIn('user_id', $ids)->delete();
             UcmUser::whereIn('id', $ids)->update(['is_active' => false]);
             UcmUser::whereIn('id', $ids)->delete(); // soft delete
         });
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_USERS,
+            AuditLog::EVENT_USER_REMOVED,
+            'ลบผู้ใช้ ' . count($ids) . ' คน: ' . $removedUsers->pluck('username')->join(', '),
+            ['user_ids' => $ids, 'users' => $removedUsers->map(fn ($u) => ['id' => $u->id, 'username' => $u->username, 'name' => $u->name])->toArray()],
+            Auth::user(),
+        );
 
         return response()->json([
             'success' => true,
@@ -444,6 +504,7 @@ class UserController extends Controller
             return back()->withErrors(['ไม่สามารถลดระดับสิทธิ์ของตัวเองได้']);
         }
 
+        $oldLevel = $user->is_admin;
         $user->update(['is_admin' => $level]);
 
         $levelName = match($level) {
@@ -451,6 +512,20 @@ class UserController extends Controller
             1 => 'Admin ระดับ 1',
             default => 'ผู้ใช้ทั่วไป',
         };
+        $oldLevelName = match($oldLevel) {
+            2 => 'Admin ระดับ 2',
+            1 => 'Admin ระดับ 1',
+            default => 'ผู้ใช้ทั่วไป',
+        };
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_USERS,
+            AuditLog::EVENT_ADMIN_LEVEL_UPDATED,
+            "เปลี่ยนระดับสิทธิ์ {$user->name} ({$user->username}): {$oldLevelName} → {$levelName}",
+            ['old_level' => $oldLevel, 'new_level' => $level],
+            Auth::user(),
+            'user', $user->id, $user->username,
+        );
 
         return back()->with('success', "อัปเดตสิทธิ์ {$user->name} เป็น {$levelName} เรียบร้อย");
     }
@@ -555,6 +630,15 @@ class UserController extends Controller
                 'ldap_guid'       => $ldapUser['guid'] ?: null,
                 'is_active'       => true,
             ]
+        );
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_USERS,
+            AuditLog::EVENT_USER_IMPORTED,
+            "นำเข้าผู้ใช้ {$user->name} ({$user->username}) จาก LDAP",
+            ['username' => $user->username, 'department' => $user->department, 'was_existing' => ! $user->wasRecentlyCreated],
+            Auth::user(),
+            'user', $user->id, $user->username,
         );
 
         return redirect()->route('users.show', $user)->with('success', "นำเข้าผู้ใช้ {$user->name} เรียบร้อย");
