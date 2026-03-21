@@ -184,7 +184,7 @@ $sections = [
                         @if($cmd === '')
                             <div class="h-1"></div>
                         @else
-                            <div class="bg-slate-900 rounded-xl px-4 py-2 font-mono text-xs {{ str_starts_with($cmd, '#') ? 'text-slate-500' : 'text-slate-300' }} overflow-x-auto">{{ $cmd }}</div>
+                            <div class="bg-slate-900 rounded-xl px-4 py-2 font-mono text-xs {{ str_starts_with($cmd, '#') ? 'text-slate-500' : 'text-slate-300' }} overflow-x-auto mt-1">{{ $cmd }}</div>
                         @endif
                     @endforeach
                 </div>
