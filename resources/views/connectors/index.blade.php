@@ -2,6 +2,12 @@
 
 @section('title', 'Connector Wizard')
 
+@section('breadcrumbs')
+<a href="{{ route('dashboard') }}" class="text-slate-400 hover:text-slate-600 font-medium transition-colors whitespace-nowrap">Dashboard</a>
+<svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+<span class="font-semibold text-slate-800 truncate">Connector Wizard</span>
+@endsection
+
 @section('content')
 <div class="max-w-5xl mx-auto py-8 px-4">
 
