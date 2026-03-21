@@ -97,7 +97,7 @@
             $activeSection = '';
             if (request()->routeIs('dashboard') || request()->routeIs('users.*') || request()->routeIs('systems.*'))
                 $activeSection = 'main';
-            elseif (request()->routeIs('admin.levels') || request()->routeIs('queue.monitor'))
+            elseif (request()->routeIs('admin.levels') || request()->routeIs('queue.monitor') || request()->routeIs('connectors.*'))
                 $activeSection = 'admin';
             elseif (request()->routeIs('docs.manual'))
                 $activeSection = 'docs';
@@ -175,6 +175,19 @@
                     </div>
                     <span class="truncate">Queue Monitor</span>
                     @if ($queueActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
+                @php $connActive = request()->routeIs('connectors.*') @endphp
+                <a href="{{ route('connectors.index') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                          {{ $connActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $connActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">Connector Wizard</span>
+                    @if ($connActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
             </div>
             @endif

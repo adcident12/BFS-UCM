@@ -13,18 +13,19 @@
 
 @php
 $sections = [
-    ['id' => 'overview',     'label' => 'ภาพรวมระบบ'],
-    ['id' => 'login',        'label' => 'การเข้าสู่ระบบ'],
-    ['id' => 'dashboard',    'label' => 'Dashboard'],
-    ['id' => 'users',        'label' => 'จัดการผู้ใช้'],
-    ['id' => 'export-csv',   'label' => 'ส่งออก CSV'],
-    ['id' => 'permissions',  'label' => 'จัดการสิทธิ์'],
-    ['id' => 'systems',      'label' => 'ระบบที่เชื่อมต่อ'],
-    ['id' => 'ref-data',     'label' => 'ข้อมูล Reference'],
-    ['id' => 'twoway-sync',  'label' => '2-Way Sync'],
-    ['id' => 'admin-levels', 'label' => 'สิทธิ์ Admin'],
-    ['id' => 'ad-check',     'label' => 'ตรวจสอบ AD'],
-    ['id' => 'sync',         'label' => 'การ Sync สิทธิ์'],
+    ['id' => 'overview',          'label' => 'ภาพรวมระบบ'],
+    ['id' => 'login',             'label' => 'การเข้าสู่ระบบ'],
+    ['id' => 'dashboard',         'label' => 'Dashboard'],
+    ['id' => 'users',             'label' => 'จัดการผู้ใช้'],
+    ['id' => 'export-csv',        'label' => 'ส่งออก CSV'],
+    ['id' => 'permissions',       'label' => 'จัดการสิทธิ์'],
+    ['id' => 'systems',           'label' => 'ระบบที่เชื่อมต่อ'],
+    ['id' => 'ref-data',          'label' => 'ข้อมูล Reference'],
+    ['id' => 'twoway-sync',       'label' => '2-Way Sync'],
+    ['id' => 'admin-levels',      'label' => 'สิทธิ์ Admin'],
+    ['id' => 'ad-check',          'label' => 'ตรวจสอบ AD'],
+    ['id' => 'sync',              'label' => 'การ Sync สิทธิ์'],
+    ['id' => 'connector-wizard',  'label' => 'Connector Wizard'],
 ];
 @endphp
 
@@ -796,6 +797,210 @@ $sections = [
             </div>
         </div>
 
+        {{-- ── Connector Wizard ── --}}
+        <div id="connector-wizard" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-slate-800">Connector Wizard</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">เชื่อมต่อฐานข้อมูลระบบภายนอกเข้ากับ UCM โดยไม่ต้องเขียนโค้ด</p>
+                </div>
+                <span class="ml-auto text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Admin L2 เท่านั้น</span>
+            </div>
+            <div class="px-6 py-5 space-y-6 text-sm text-slate-700 leading-relaxed">
+
+                {{-- คืออะไร --}}
+                <div>
+                    <p><strong class="text-slate-900">Connector Wizard</strong> คือเครื่องมือที่ช่วยให้ Admin ระดับ 2 สามารถเชื่อมต่อฐานข้อมูลของระบบภายนอก (เช่น ระบบซ่อมบำรุง, ระบบ HR, ระบบจัดการเอกสาร) เข้ากับ UCM ได้ <strong>โดยไม่ต้องเขียนโค้ด PHP</strong> เพียงกรอกข้อมูลผ่านหน้า Wizard แบบ Step-by-Step</p>
+
+                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+                            <div class="text-2xl mb-2">🔌</div>
+                            <div class="font-bold text-indigo-900 text-sm mb-1">No-Code</div>
+                            <p class="text-xs text-indigo-700">ไม่ต้องเขียน Adapter PHP ด้วยตนเอง ระบบสร้าง DynamicAdapter ให้อัตโนมัติ</p>
+                        </div>
+                        <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+                            <div class="text-2xl mb-2">🗄️</div>
+                            <div class="font-bold text-emerald-900 text-sm mb-1">หลาย DB Driver</div>
+                            <p class="text-xs text-emerald-700">รองรับ MySQL / MariaDB, PostgreSQL และ Microsoft SQL Server</p>
+                        </div>
+                        <div class="bg-sky-50 rounded-xl p-4 border border-sky-100">
+                            <div class="text-2xl mb-2">⚡</div>
+                            <div class="font-bold text-sky-900 text-sm mb-1">Sync อัตโนมัติ</div>
+                            <p class="text-xs text-sky-700">หลังตั้งค่าแล้ว UCM จะ sync สิทธิ์ไปยังระบบปลายทางทันทีที่มีการเปลี่ยนแปลง</p>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- วิธีเปิดใช้งาน --}}
+                <div class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-3">วิธีเข้าใช้งาน</h3>
+                    <p class="text-slate-600 mb-3">ไปที่เมนู <strong>ผู้ดูแลระบบ → Connector Wizard</strong> ในแถบเมนูด้านซ้าย (ต้องเป็น Admin ระดับ 2 เท่านั้น)</p>
+                    <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                        <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                        <span>Connector Wizard ต้องการสิทธิ์เข้าถึงฐานข้อมูลโดยตรง กรุณาเตรียม <strong>Host, Port, ชื่อ Database, Username, Password</strong> ของระบบปลายทางไว้ก่อน</span>
+                    </div>
+                </div>
+
+                {{-- 5 ขั้นตอน --}}
+                <div class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-4">5 ขั้นตอนของ Wizard</h3>
+                    <div class="space-y-4">
+
+                        {{-- Step 1 --}}
+                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-8 h-8 bg-indigo-600 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">1</div>
+                            <div class="flex-1">
+                                <p class="font-bold text-slate-900 mb-1">ข้อมูลระบบ</p>
+                                <p class="text-slate-600 text-xs leading-relaxed">กรอกชื่อระบบ, Slug (รหัสระบบ), คำอธิบาย, สีประจำระบบ และ Emoji icon หรือเลือก "เชื่อมกับระบบที่มีอยู่แล้ว" หากต้องการเพิ่ม Connector ให้ระบบที่สร้างไว้ก่อนหน้านี้</p>
+                                <div class="mt-2 text-xs text-indigo-700 bg-indigo-50 px-3 py-2 rounded-lg">
+                                    <strong>Slug</strong> — ต้องเป็นตัวพิมพ์เล็ก ตัวเลข และ "-" เท่านั้น เช่น <code class="font-mono bg-white px-1 rounded">repair-system</code> ระบบจะสร้าง Slug ให้อัตโนมัติจากชื่อ
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Step 2 --}}
+                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-8 h-8 bg-indigo-600 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">2</div>
+                            <div class="flex-1">
+                                <p class="font-bold text-slate-900 mb-1">การเชื่อมต่อฐานข้อมูล</p>
+                                <p class="text-slate-600 text-xs leading-relaxed mb-2">เลือก Database Driver จากนั้นกรอก Host, Port, Database Name, Username และ Password</p>
+                                <div class="grid grid-cols-3 gap-2 text-xs">
+                                    @foreach (['🐬 MySQL / MariaDB' => '3306', '🐘 PostgreSQL' => '5432', '🪟 SQL Server' => '1433'] as $name => $port)
+                                    <div class="bg-white border border-slate-200 rounded-lg p-2 text-center">
+                                        <p class="font-semibold text-slate-800">{{ $name }}</p>
+                                        <p class="text-slate-400 mt-0.5">Port: {{ $port }}</p>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                <p class="mt-2 text-xs text-slate-600">กด <strong>"ทดสอบการเชื่อมต่อ"</strong> เพื่อตรวจสอบว่าเข้าถึงฐานข้อมูลได้ก่อนดำเนินการต่อ</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 3 --}}
+                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-8 h-8 bg-indigo-600 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">3</div>
+                            <div class="flex-1">
+                                <p class="font-bold text-slate-900 mb-1">ตาราง Users</p>
+                                <p class="text-slate-600 text-xs leading-relaxed mb-2">เลือกตารางที่เก็บข้อมูลผู้ใช้ในระบบภายนอก จากนั้น map คอลัมน์:</p>
+                                <div class="space-y-1.5 text-xs">
+                                    @foreach ([
+                                        ['col' => 'Identifier', 'req' => true, 'desc' => 'คอลัมน์ที่ตรงกับ UCM username หรือ employee_number เช่น user_code, login_name'],
+                                        ['col' => 'ชื่อ-นามสกุล', 'req' => false, 'desc' => 'คอลัมน์ชื่อผู้ใช้สำหรับแสดงผล'],
+                                        ['col' => 'อีเมล', 'req' => false, 'desc' => 'คอลัมน์อีเมล'],
+                                        ['col' => 'แผนก', 'req' => false, 'desc' => 'คอลัมน์แผนกหรือหน่วยงาน'],
+                                        ['col' => 'สถานะ Active', 'req' => false, 'desc' => 'คอลัมน์ที่บ่งบอกว่า user ยังใช้งานอยู่หรือไม่ พร้อมระบุค่าที่หมายถึง Active เช่น 1, Y, active'],
+                                    ] as $f)
+                                    <div class="flex items-start gap-2">
+                                        <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold {{ $f['req'] ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500' }} flex-shrink-0 mt-0.5">{{ $f['req'] ? 'บังคับ' : 'ไม่บังคับ' }}</span>
+                                        <span><strong class="text-slate-800">{{ $f['col'] }}:</strong> {{ $f['desc'] }}</span>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                <p class="mt-2 text-xs text-slate-600">กด <strong>"ดูตัวอย่างข้อมูล"</strong> เพื่อดู 10 แถวแรกจากตาราง ช่วยยืนยันว่า mapping ถูกต้อง</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 4 --}}
+                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-8 h-8 bg-indigo-600 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">4</div>
+                            <div class="flex-1">
+                                <p class="font-bold text-slate-900 mb-2">Permission Mode</p>
+                                <p class="text-slate-600 text-xs mb-3">เลือกวิธีที่ระบบภายนอกจัดเก็บสิทธิ์ มี 3 รูปแบบ:</p>
+                                <div class="space-y-3">
+                                    <div class="bg-white border border-slate-200 rounded-xl p-3">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-base">🔗</span>
+                                            <p class="font-bold text-slate-800 text-xs">Junction Table</p>
+                                            <span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">แนะนำ</span>
+                                        </div>
+                                        <p class="text-xs text-slate-600">ตาราง mapping แยกต่างหาก เช่น <code class="font-mono bg-slate-100 px-1 rounded text-[10px]">user_roles(user_id, role_code)</code> เหมาะสำหรับระบบที่ผู้ใช้มีได้หลายสิทธิ์</p>
+                                        <p class="text-xs text-slate-500 mt-1">→ ต้องระบุ: ตาราง, FK column ที่ชี้หาผู้ใช้, column ค่าสิทธิ์</p>
+                                    </div>
+                                    <div class="bg-white border border-slate-200 rounded-xl p-3">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-base">📋</span>
+                                            <p class="font-bold text-slate-800 text-xs">Single Column</p>
+                                        </div>
+                                        <p class="text-xs text-slate-600">คอลัมน์ <code class="font-mono bg-slate-100 px-1 rounded text-[10px]">role</code> อยู่บนตาราง users เดิม เหมาะสำหรับระบบที่ผู้ใช้มีได้แค่ 1 role</p>
+                                        <p class="text-xs text-slate-500 mt-1">→ ต้องระบุ: ตาราง users เดิม, column ที่เก็บค่าสิทธิ์</p>
+                                    </div>
+                                    <div class="bg-white border border-slate-200 rounded-xl p-3">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="text-base">✍️</span>
+                                            <p class="font-bold text-slate-800 text-xs">Manual</p>
+                                        </div>
+                                        <p class="text-xs text-slate-600">ไม่มีตาราง permission ในระบบ — กำหนด permission list ด้วยตนเองใน UCM โดยไม่ sync ไปยังฐานข้อมูล</p>
+                                        <p class="text-xs text-slate-500 mt-1">→ เหมาะสำหรับระบบที่ตรวจสิทธิ์ผ่าน UCM API โดยตรง</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Step 5 --}}
+                        <div class="flex gap-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <div class="w-8 h-8 bg-emerald-600 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">5</div>
+                            <div class="flex-1">
+                                <p class="font-bold text-slate-900 mb-1">ยืนยันการสร้าง Connector</p>
+                                <p class="text-slate-600 text-xs leading-relaxed">ตรวจสอบข้อมูลสรุปทั้งหมด — ชื่อระบบ, DB Connection, User Table Mapping และ Permission Mode จากนั้นกด <strong>"สร้าง Connector"</strong></p>
+                                <div class="mt-2 text-xs text-emerald-700 bg-white border border-emerald-200 px-3 py-2 rounded-lg">
+                                    หลังสร้างสำเร็จ ระบบจะสร้าง <strong>System</strong> ใหม่ใน UCM พร้อม <strong>DynamicAdapter</strong> และ redirect ไปยังหน้าจัดการระบบโดยอัตโนมัติ
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- หลังสร้างแล้วทำอะไรต่อ --}}
+                <div class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-3">หลังสร้าง Connector แล้ว ทำอะไรต่อ?</h3>
+                    <div class="space-y-2">
+                        @foreach ([
+                            ['icon' => 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', 'color' => 'indigo', 'title' => 'สร้าง Permissions', 'desc' => 'ไปที่หน้า "ระบบที่เชื่อมต่อ" เลือกระบบที่สร้างใหม่ กด "Discover Permissions" เพื่อดึง permissions จากฐานข้อมูลปลายทางมาใน UCM โดยอัตโนมัติ'],
+                            ['icon' => 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z', 'color' => 'emerald', 'title' => 'กำหนดสิทธิ์ผู้ใช้', 'desc' => 'ไปที่ "จัดการผู้ใช้" เลือกผู้ใช้ที่ต้องการ แล้ว assign permissions ของระบบใหม่ — UCM จะ sync ไปยังฐานข้อมูลปลายทางทันที'],
+                            ['icon' => 'M13 10V3L4 14h7v7l9-11h-7z', 'color' => 'sky', 'title' => 'ทดสอบการเชื่อมต่อ', 'desc' => 'ในหน้าจัดการระบบ กด "ทดสอบการเชื่อมต่อ" เพื่อยืนยันว่า UCM สื่อสารกับฐานข้อมูลปลายทางได้สำเร็จ'],
+                        ] as $item)
+                        <div class="flex gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+                            <div class="w-8 h-8 bg-{{ $item['color'] }}-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-{{ $item['color'] }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $item['icon'] }}"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-slate-900 text-xs mb-0.5">{{ $item['title'] }}</p>
+                                <p class="text-xs text-slate-600">{{ $item['desc'] }}</p>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- แก้ไขและลบ --}}
+                <div class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-2">การแก้ไขและลบ Connector</h3>
+                    <div class="space-y-2 text-sm text-slate-600">
+                        <p><strong class="text-slate-800">แก้ไข:</strong> ไปที่หน้า Connector Wizard → กด "แก้ไข Connector" ข้าง Connector ที่ต้องการ → ปรับข้อมูลและกดบันทึก การแก้ไขจะมีผลกับ sync ครั้งถัดไปทันที</p>
+                        <p><strong class="text-slate-800">ลบ:</strong> กด "ลบ" ในหน้ารายการ Connector — ระบบจะลบเฉพาะ Connector Config แต่ไม่ลบ System และข้อมูล Permissions ที่กำหนดไว้</p>
+                    </div>
+                </div>
+
+                {{-- Security Note --}}
+                <div class="flex items-start gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800">
+                    <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    <div>
+                        <strong class="block mb-0.5">ข้อควรระวังด้านความปลอดภัย</strong>
+                        ควรใช้ DB User ที่มีสิทธิ์ขั้นต่ำที่จำเป็นเท่านั้น (เช่น SELECT บนตาราง users, INSERT/DELETE บนตาราง permissions) และหลีกเลี่ยงการใช้ root หรือ sa account ของฐานข้อมูลปลายทาง
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -805,13 +1010,7 @@ $sections = [
     var links = document.querySelectorAll('.toc-link');
     var ids   = Array.from(links).map(function (l) { return l.getAttribute('href').slice(1); });
 
-    function onScroll() {
-        var scrollY = window.scrollY + 120;
-        var active  = ids[0];
-        ids.forEach(function (id) {
-            var el = document.getElementById(id);
-            if (el && el.offsetTop <= scrollY) active = id;
-        });
+    function setActive(active) {
         links.forEach(function (l) {
             var isCur = l.getAttribute('href') === '#' + active;
             l.className = 'toc-link flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors ' +
@@ -819,6 +1018,18 @@ $sections = [
             l.querySelector('span').className = 'w-1.5 h-1.5 rounded-full flex-shrink-0 ' +
                 (isCur ? 'bg-indigo-500' : 'bg-slate-300');
         });
+    }
+
+    function onScroll() {
+        // Use getBoundingClientRect so the position is always relative to the viewport,
+        // not the offsetParent — works correctly inside flex/grid containers.
+        var threshold = 140; // px from top of viewport to "activate" the section
+        var active    = ids[0];
+        ids.forEach(function (id) {
+            var el = document.getElementById(id);
+            if (el && el.getBoundingClientRect().top <= threshold) active = id;
+        });
+        setActive(active);
     }
 
     window.addEventListener('scroll', onScroll, { passive: true });

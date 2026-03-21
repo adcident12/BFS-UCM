@@ -25,9 +25,16 @@ class AdapterFactory
         // ถ้า system กำหนด adapter_class ไว้ใน DB ให้ใช้นั้นก่อน
         $class = $system->adapter_class ?: (static::$map[$system->slug] ?? null);
 
+        // Fallback: ถ้ามี ConnectorConfig ให้ใช้ DynamicAdapter
+        if (! $class || ! class_exists($class)) {
+            if (\App\Models\ConnectorConfig::where('system_id', $system->id)->exists()) {
+                $class = DynamicAdapter::class;
+            }
+        }
+
         if (! $class || ! class_exists($class)) {
             throw new InvalidArgumentException(
-                "ไม่พบ Adapter สำหรับระบบ '{$system->slug}' — กรุณาตั้งค่า adapter_class ใน System settings"
+                "ไม่พบ Adapter สำหรับระบบ '{$system->slug}' — กรุณาตั้งค่า adapter_class ใน System settings หรือใช้ Connector Wizard"
             );
         }
 
@@ -37,7 +44,13 @@ class AdapterFactory
     public static function hasAdapter(System $system): bool
     {
         $class = $system->adapter_class ?: (static::$map[$system->slug] ?? null);
-        return $class && class_exists($class);
+
+        if ($class && class_exists($class)) {
+            return true;
+        }
+
+        // DynamicAdapter ถือว่ามี adapter ถ้ามี ConnectorConfig
+        return \App\Models\ConnectorConfig::where('system_id', $system->id)->exists();
     }
 
     /**

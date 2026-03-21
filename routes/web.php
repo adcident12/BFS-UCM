@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\ConnectorWizardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QueueMonitorController;
 use App\Http\Controllers\SystemController;
@@ -64,6 +65,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/systems/{system}/users-for-import', [SystemController::class, 'usersForImport'])->name('systems.users-for-import');
     Route::put('/systems/{system}/permissions/{permission}', [SystemController::class, 'updatePermission'])->name('systems.permissions.update');
     Route::delete('/systems/{system}/permissions/{permission}', [SystemController::class, 'destroyPermission'])->name('systems.permissions.destroy');
+
+    // Connector Wizard
+    Route::get('/connectors', [ConnectorWizardController::class, 'index'])->name('connectors.index');
+    Route::get('/connectors/wizard', [ConnectorWizardController::class, 'create'])->name('connectors.create');
+    Route::get('/connectors/{connectorConfig}/edit', [ConnectorWizardController::class, 'edit'])->name('connectors.edit');
+    Route::delete('/connectors/{connectorConfig}', [ConnectorWizardController::class, 'destroy'])->name('connectors.destroy');
+    // Wizard AJAX
+    Route::post('/connectors/ajax/test-connection', [ConnectorWizardController::class, 'testConnection'])->name('connectors.ajax.test-connection');
+    Route::post('/connectors/ajax/fetch-tables', [ConnectorWizardController::class, 'fetchTables'])->name('connectors.ajax.fetch-tables');
+    Route::post('/connectors/ajax/fetch-columns', [ConnectorWizardController::class, 'fetchColumns'])->name('connectors.ajax.fetch-columns');
+    Route::post('/connectors/ajax/preview-users', [ConnectorWizardController::class, 'previewUsers'])->name('connectors.ajax.preview-users');
+    Route::post('/connectors/ajax/preview-permissions', [ConnectorWizardController::class, 'previewPermissions'])->name('connectors.ajax.preview-permissions');
+    Route::post('/connectors', [ConnectorWizardController::class, 'store'])->name('connectors.store');
+    Route::put('/connectors/{connectorConfig}', [ConnectorWizardController::class, 'update'])->name('connectors.update');
 
     // Queue Monitor
     Route::get('/queue/monitor', [QueueMonitorController::class, 'index'])->name('queue.monitor');

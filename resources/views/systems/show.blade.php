@@ -334,7 +334,7 @@
                         </div>
                     </div>
                     @if (\App\Adapters\AdapterFactory::supports2WayPermissions($system))
-                    <div class="flex items-start gap-2.5 p-3 bg-amber-50 rounded-xl border border-amber-200">
+                    <div class="flex items-start gap-2.5 p-3 bg-amber-50 rounded-xl border border-amber-200 mt-3">
                         <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
