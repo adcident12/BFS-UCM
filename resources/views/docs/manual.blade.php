@@ -30,6 +30,9 @@ $sections = [
     ['id' => 'audit-log',             'label' => 'Audit Log'],
     ['id' => 'notification-channels', 'label' => 'Notification Channels'],
     ['id' => 'permission-matrix',     'label' => 'Permission Matrix'],
+    ['id' => 'permission-timeline',   'label' => 'Permission Timeline'],
+    ['id' => 'inactive-users',        'label' => 'ผู้ใช้ไม่ได้ใช้งาน'],
+    ['id' => 'health-check',          'label' => 'ทดสอบการเชื่อมต่อ'],
 ];
 @endphp
 
@@ -192,6 +195,13 @@ $sections = [
                         <div>
                             <div class="font-semibold text-slate-900 mb-0.5">กิจกรรมล่าสุด</div>
                             <p class="text-slate-600 text-xs">Timeline แสดงการ Sync สิทธิ์ 10 รายการล่าสุด พร้อมสถานะและข้อผิดพลาด (ถ้ามี)</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 p-3 bg-red-50 rounded-xl border border-red-100">
+                        <div class="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></div>
+                        <div>
+                            <div class="font-semibold text-slate-900 mb-0.5">Login ล้มเหลวล่าสุด</div>
+                            <p class="text-slate-600 text-xs">Widget แสดง 10 รายการ Login ล้มเหลวล่าสุด พร้อม Username, สาเหตุ (รหัสผ่านผิด / แผนกไม่มีสิทธิ์), IP Address และเวลา — ปรากฏเฉพาะเมื่อมีข้อมูล (เฉพาะ Admin)</p>
                         </div>
                     </div>
                 </div>
@@ -438,6 +448,7 @@ $sections = [
                     <li>จำนวน Permissions ที่กำหนดไว้</li>
                     <li>จำนวน Assignments (ผู้ใช้ที่ได้รับสิทธิ์)</li>
                     <li>สถานะ Active / Inactive</li>
+                    <li>ปุ่ม <strong>ทดสอบ</strong> — ทดสอบการเชื่อมต่อระบบปลายทางทันที (เฉพาะ Admin ระดับ 1 ขึ้นไป)</li>
                 </ul>
                 <div class="border-t border-slate-100 pt-3">
                     <h3 class="font-bold text-slate-900 mb-2">หน้ารายละเอียดระบบ</h3>
@@ -1453,6 +1464,123 @@ $sections = [
                 <div class="flex items-start gap-3 p-3.5 bg-sky-50 border border-sky-100 rounded-xl text-xs text-sky-800">
                     <svg class="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span>ตารางรองรับผู้ใช้จำนวนมาก (Pagination 50 คน/หน้า) — ใช้ตัวกรองระบบและค้นหาเพื่อจำกัดผลลัพธ์ก่อน Export</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Permission Timeline ── --}}
+        <div id="permission-timeline" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-violet-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">Permission Timeline</h2>
+            </div>
+            <div class="px-6 py-5 space-y-4 text-sm text-slate-700 leading-relaxed">
+                <p><strong>Permission Timeline</strong> แสดงประวัติการเปลี่ยนแปลงสิทธิ์ทั้งหมดของผู้ใช้คนใดคนหนึ่ง พร้อม Permission Matrix ปัจจุบัน</p>
+                <div class="space-y-3">
+                    <div class="flex gap-3 p-3 bg-violet-50 rounded-xl border border-violet-100">
+                        <div class="w-2 h-2 rounded-full bg-violet-500 mt-1.5 flex-shrink-0"></div>
+                        <div>
+                            <div class="font-semibold text-slate-900 mb-0.5 text-xs">วิธีเข้าใช้งาน</div>
+                            <p class="text-slate-600 text-xs">ไปที่หน้า <strong>จัดการผู้ใช้</strong> → กด <strong>Permission Timeline</strong> (ปุ่มสีม่วง) บนการ์ดผู้ใช้ที่ต้องการ</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="w-2 h-2 rounded-full bg-indigo-400 mt-1.5 flex-shrink-0"></div>
+                        <div>
+                            <div class="font-semibold text-slate-900 mb-0.5 text-xs">Permission Matrix (ด้านซ้าย)</div>
+                            <p class="text-slate-600 text-xs">แสดงสิทธิ์ปัจจุบันของผู้ใช้ในทุกระบบ แยกตามระบบและ Permission key — ✓ = มีสิทธิ์ / — = ไม่มีสิทธิ์</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="w-2 h-2 rounded-full bg-sky-400 mt-1.5 flex-shrink-0"></div>
+                        <div>
+                            <div class="font-semibold text-slate-900 mb-0.5 text-xs">Timeline ประวัติ (ด้านขวา)</div>
+                            <p class="text-slate-600 text-xs">แสดง 100 รายการล่าสุดของเหตุการณ์ที่เกี่ยวกับสิทธิ์ผู้ใช้ แต่ละรายการมี: Admin ที่ดำเนินการ, วันเวลา, คำอธิบาย และ Permission Matrix Snapshot ณ เวลานั้น</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
+                    <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                    <span>ต้องการสิทธิ์ Admin ระดับ 1 ขึ้นไปในการดู Timeline ข้อมูลประวัติจะถูกบันทึกตั้งแต่ระบบ Audit Log เริ่มทำงาน</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── ผู้ใช้ที่ไม่ได้ใช้งาน ── --}}
+        <div id="inactive-users" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-rose-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">ผู้ใช้ที่ไม่ได้ใช้งาน</h2>
+            </div>
+            <div class="px-6 py-5 space-y-4 text-sm text-slate-700 leading-relaxed">
+                <p>หน้า <strong>ผู้ใช้ที่ไม่ได้ใช้งาน</strong> แสดงรายชื่อผู้ใช้ที่ไม่ได้ Login เกินช่วงเวลาที่กำหนด ช่วยในการตรวจสอบและจัดการสิทธิ์ผู้ใช้ที่ไม่ได้ Active</p>
+                <div class="space-y-2">
+                    <div class="flex gap-3 p-3 bg-rose-50 rounded-xl border border-rose-100">
+                        <div class="w-2 h-2 rounded-full bg-rose-500 mt-1.5 flex-shrink-0"></div>
+                        <div>
+                            <div class="font-semibold text-slate-900 mb-0.5 text-xs">วิธีเข้าใช้งาน</div>
+                            <p class="text-slate-600 text-xs">ไปที่ <strong>จัดการผู้ใช้</strong> → กดปุ่ม <strong>ไม่ได้ใช้งาน</strong> (ปุ่มสีแดง) ที่แถบเครื่องมือด้านบน</p>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden rounded-xl border border-slate-200 text-xs">
+                        <div class="grid grid-cols-2 bg-slate-50 font-bold text-slate-500 px-3 py-2 border-b border-slate-200">
+                            <div>ฟีเจอร์</div><div>รายละเอียด</div>
+                        </div>
+                        @foreach ([
+                            ['ตัวกรองช่วงเวลา', 'เลือกได้ 3 ระดับ: 30 / 60 / 90 วัน'],
+                            ['ค้นหา', 'ค้นหาจากชื่อ, username หรือแผนก'],
+                            ['ข้อมูลที่แสดง', 'ชื่อผู้ใช้, แผนก, จำนวนสิทธิ์ที่มี, วันที่ Login ล่าสุด'],
+                            ['ผู้ใช้ที่ไม่เคย Login', 'แสดงเป็น "ไม่มีข้อมูล" (Login ก่อน deploy เวอร์ชันนี้)'],
+                        ] as [$feat, $desc])
+                        <div class="grid grid-cols-2 px-3 py-2 border-b border-slate-100 last:border-0">
+                            <div class="font-medium text-slate-700">{{ $feat }}</div>
+                            <div class="text-slate-500">{{ $desc }}</div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                    <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    <span>ข้อมูล Login จะถูกบันทึกตั้งแต่เวอร์ชันที่มีการ deploy migration <code class="font-mono bg-amber-100 px-1 rounded">add_last_login_at_to_ucm_users</code> เป็นต้นไป — ผู้ใช้ที่ Login ก่อนหน้านั้นจะแสดงเป็น "ไม่มีข้อมูล"</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── ทดสอบการเชื่อมต่อระบบ (Health Check) ── --}}
+        <div id="health-check" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">ทดสอบการเชื่อมต่อระบบ (Health Check)</h2>
+            </div>
+            <div class="px-6 py-5 space-y-4 text-sm text-slate-700 leading-relaxed">
+                <p>ปุ่ม <strong>ทดสอบ</strong> บนการ์ดระบบในหน้า <strong>ระบบที่เชื่อมต่อ</strong> ใช้ตรวจสอบว่าระบบปลายทางสามารถเชื่อมต่อได้หรือไม่ โดยไม่ต้อง Sync จริง</p>
+                <div class="space-y-2">
+                    @foreach ([
+                        ['step' => '1', 'color' => 'bg-emerald-600', 'text' => 'กดปุ่ม <strong>ทดสอบ</strong> (สีเขียว) บนการ์ดระบบที่ต้องการ'],
+                        ['step' => '2', 'color' => 'bg-emerald-600', 'text' => 'ระบบส่งคำขอ POST ไปยัง <code class="font-mono text-xs bg-slate-100 px-1 rounded">/systems/{id}/health-check</code>'],
+                        ['step' => '3', 'color' => 'bg-emerald-600', 'text' => 'ผลลัพธ์แสดงเป็น Flash ข้อความสีเขียว (เชื่อมต่อสำเร็จ) หรือสีแดง (ไม่สามารถเชื่อมต่อได้) ด้านบนหน้า'],
+                    ] as $item)
+                        <div class="flex items-start gap-3">
+                            <span class="w-5 h-5 {{ $item['color'] }} text-white text-xs font-bold rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">{{ $item['step'] }}</span>
+                            <p class="text-xs text-slate-600">{!! $item['text'] !!}</p>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
+                    <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                    <span>ปุ่มทดสอบปรากฏเฉพาะ Admin ระดับ 1 ขึ้นไป — ระบบที่ไม่มี Adapter (ยังไม่ได้ตั้งค่า Connector) จะแจ้งว่า "ระบบนี้ไม่มี Adapter"</span>
                 </div>
             </div>
         </div>

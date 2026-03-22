@@ -28,7 +28,13 @@ class DashboardController extends Controller
 
         $chartData = $this->buildChartData();
 
-        return view('dashboard', compact('stats', 'recentLogs', 'systems', 'chartData'));
+        $failedLogins = AuditLog::where('event_category', AuditLog::CATEGORY_AUTH)
+            ->where('event_type', AuditLog::EVENT_LOGIN_FAILED)
+            ->orderByDesc('created_at')
+            ->limit(10)
+            ->get();
+
+        return view('dashboard', compact('stats', 'recentLogs', 'systems', 'chartData', 'failedLogins'));
     }
 
     private function buildChartData(): array

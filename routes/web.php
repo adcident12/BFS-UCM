@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
     // Users
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/export', [UserController::class, 'export'])->name('users.export');
+    Route::get('/users/inactive', [UserController::class, 'inactive'])->name('users.inactive');
     Route::get('/admin/levels', [UserController::class, 'adminLevels'])->name('admin.levels');
     Route::post('/users/{user}/admin-level', [UserController::class, 'updateAdminLevel'])->name('users.admin-level.update');
     Route::get('/users/search-ldap', [UserController::class, 'searchLdap'])->name('users.search-ldap');
@@ -55,6 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/users/import', [UserController::class, 'importFromLdap'])->name('users.import');
     Route::post('/users/import-bulk', [UserController::class, 'importBulkFromLdap'])->name('users.import-bulk');
     Route::post('/users/remove', [UserController::class, 'removeUsers'])->name('users.remove');
+    Route::get('/users/{user}/permission-timeline', [UserController::class, 'permissionTimeline'])->name('users.permission-timeline');
     Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
     Route::post('/users/{user}/permissions', [UserController::class, 'updatePermissions'])->name('users.permissions.update');
     Route::patch('/users/{user}/info', [UserController::class, 'updateInfo'])->name('users.info.update');
@@ -63,6 +65,7 @@ Route::middleware('auth')->group(function () {
 
     // Systems
     Route::resource('systems', SystemController::class);
+    Route::post('/systems/{system}/health-check', [SystemController::class, 'healthCheck'])->name('systems.health-check');
     Route::post('/systems/{system}/permissions', [SystemController::class, 'storePermission'])->name('systems.permissions.store');
     Route::post('/systems/{system}/discover', [SystemController::class, 'discoverPermissions'])->name('systems.discover');
     Route::post('/systems/{system}/toggle-2way', [SystemController::class, 'toggle2WayPermissions'])->name('systems.toggle-2way');

@@ -9,6 +9,7 @@ use App\Models\SystemPermission;
 use App\Models\UcmUser;
 use App\Services\AuditLogger;
 use App\Services\NotificationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,6 +19,23 @@ class SystemController extends Controller
     {
         /** @var UcmUser|null */
         return Auth::user();
+    }
+
+    public function healthCheck(System $system): JsonResponse
+    {
+        abort_unless($this->authUser()?->isAdmin(), 403);
+
+        if (! AdapterFactory::hasAdapter($system)) {
+            return response()->json(['ok' => false, 'message' => 'ระบบนี้ไม่มี Adapter']);
+        }
+
+        try {
+            $result = AdapterFactory::make($system)->testConnection();
+        } catch (\Throwable $e) {
+            $result = ['ok' => false, 'message' => $e->getMessage()];
+        }
+
+        return response()->json($result);
     }
 
     public function index()

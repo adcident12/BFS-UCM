@@ -65,6 +65,9 @@ class LoginController extends Controller
 
             $request->session()->regenerate();
 
+            /** @var \App\Models\UcmUser $user */
+            $user->update(['last_login_at' => now()]);
+
             AuditLogger::log(
                 AuditLog::CATEGORY_AUTH,
                 AuditLog::EVENT_LOGIN,

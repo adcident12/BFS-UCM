@@ -77,9 +77,21 @@
                 {{-- Actions --}}
                 <div class="flex gap-2">
                     <a href="{{ route('systems.show', $system) }}"
-                       class="{{ auth()->user()->isSuperAdmin() ? '' : 'flex-1 text-center' }} px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors duration-150 {{ auth()->user()->isSuperAdmin() ? 'flex-1 text-center' : '' }}">
+                       class="flex-1 text-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors duration-150">
                         ดูรายละเอียด
                     </a>
+                    @if (auth()->user()->isAdmin())
+                    <button type="button"
+                            onclick="healthCheck(this)"
+                            data-health-url="{{ route('systems.health-check', $system) }}"
+                            data-system-name="{{ $system->name }}"
+                            class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl transition-colors duration-150 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        ทดสอบ
+                    </button>
+                    @endif
                     @if (auth()->user()->isSuperAdmin())
                     <a href="{{ route('systems.edit', $system) }}"
                        class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl transition-colors duration-150">
@@ -118,4 +130,91 @@
         </div>
     @endforelse
 </div>
+
+{{-- Health Check Flash Area — injected dynamically by JS --}}
+<div id="health-flash-area"></div>
+
+@push('scripts')
+<script>
+function healthCheck(btn) {
+    const url        = btn.dataset.healthUrl;
+    const systemName = btn.dataset.systemName;
+    const originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg> กำลังทดสอบ...';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        },
+    })
+    .then(function (r) {
+        if (!r.ok) { throw new Error('HTTP ' + r.status); }
+        return r.json();
+    })
+    .then(function (data) { showHealthFlash(systemName, data.ok, data.message); })
+    .catch(function ()    { showHealthFlash(systemName, false, 'ไม่สามารถเชื่อมต่อได้'); })
+    .finally(function ()  { btn.disabled = false; btn.innerHTML = originalHtml; });
+}
+
+function showHealthFlash(systemName, ok, message) {
+    const area = document.getElementById('health-flash-area');
+    const id   = 'hf-' + Date.now();
+
+    const cfg = ok
+        ? { wrap: 'bg-emerald-50 border-emerald-200/80 text-emerald-800 shadow-emerald-100',
+            icon: 'bg-emerald-100', close: 'text-emerald-400 hover:text-emerald-600',
+            svg: '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>',
+            suffix: ' — เชื่อมต่อสำเร็จ' }
+        : { wrap: 'bg-red-50 border-red-200/80 text-red-800 shadow-red-100',
+            icon: 'bg-red-100', close: 'text-red-400 hover:text-red-600',
+            svg: '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>',
+            suffix: ' — เชื่อมต่อไม่ได้' };
+
+    // Build DOM nodes — no innerHTML for user-controlled strings
+    const el = document.createElement('div');
+    el.id        = id;
+    el.className = 'flash-msg mb-4 flex items-center gap-3 p-4 border rounded-2xl text-sm shadow-sm ' + cfg.wrap;
+
+    // Icon
+    const iconWrap = document.createElement('div');
+    iconWrap.className = 'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ' + cfg.icon;
+    iconWrap.innerHTML = '<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">' + cfg.svg + '</svg>';
+
+    // Text — textContent to prevent XSS
+    const textWrap = document.createElement('div');
+    textWrap.className = 'flex-1 font-medium';
+    const mainText = document.createTextNode(systemName + cfg.suffix);
+    textWrap.appendChild(mainText);
+    if (message) {
+        const span = document.createElement('span');
+        span.className = 'opacity-70';
+        span.textContent = ' — ' + message;
+        textWrap.appendChild(span);
+    }
+
+    // Close button
+    const closeBtn = document.createElement('button');
+    closeBtn.type      = 'button';
+    closeBtn.className = 'transition-colors flex-shrink-0 ' + cfg.close;
+    closeBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+    closeBtn.addEventListener('click', function () { el.remove(); });
+
+    el.appendChild(iconWrap);
+    el.appendChild(textWrap);
+    el.appendChild(closeBtn);
+    area.prepend(el);
+
+    clearTimeout(window._healthFlashTimer);
+    window._healthFlashTimer = setTimeout(function () {
+        el.style.transition = 'opacity 0.5s';
+        el.style.opacity = '0';
+        setTimeout(function () { el.remove(); }, 500);
+    }, 5000);
+}
+</script>
+@endpush
+
 @endsection

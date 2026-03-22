@@ -132,6 +132,63 @@
     @endforeach
 </div>
 
+{{-- Failed Login Widget --}}
+@if ($failedLogins->isNotEmpty())
+<div class="mb-6 bg-white rounded-2xl shadow-sm ring-1 ring-rose-100 overflow-hidden">
+    <div class="h-1 w-full bg-gradient-to-r from-rose-500 to-rose-600"></div>
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 bg-rose-100 rounded-lg flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="font-bold text-slate-800 text-sm">Login ล้มเหลวล่าสุด</h2>
+                <p class="text-xs text-slate-400 font-medium">อาจเกิดจาก brute force หรือ account ถูกล็อค</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 text-[10px] font-bold text-rose-700 bg-rose-100 px-2.5 py-1 rounded-full ring-1 ring-rose-200">
+                <span class="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span>
+                {{ $failedLogins->count() }} รายการ
+            </span>
+            <a href="{{ route('audit.index') }}?category=auth&event_type=login_failed"
+               class="text-xs font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors">
+                ดูทั้งหมด
+            </a>
+        </div>
+    </div>
+    <div class="divide-y divide-slate-50">
+        @foreach ($failedLogins as $fail)
+            <div class="flex items-start gap-3 px-5 py-3 hover:bg-slate-50/60 transition-colors">
+                <div class="w-7 h-7 bg-rose-50 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ring-1 ring-rose-100">
+                    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-sm font-bold text-slate-800">{{ $fail->metadata['username'] ?? $fail->actor_username ?? 'unknown' }}</span>
+                        @if (!empty($fail->metadata['reason']))
+                            <span class="text-[10px] font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md ring-1 ring-rose-100">
+                                {{ $fail->metadata['reason'] === 'department_not_allowed' ? 'แผนกไม่มีสิทธิ์' : 'รหัสผ่านผิด' }}
+                            </span>
+                        @endif
+                    </div>
+                    @if (!empty($fail->ip_address))
+                        <div class="text-[11px] text-slate-400 font-mono mt-0.5">{{ $fail->ip_address }}</div>
+                    @endif
+                </div>
+                <div class="text-xs text-slate-400 font-medium flex-shrink-0 mt-0.5" title="{{ $fail->created_at->format('d/m/Y H:i:s') }}">
+                    {{ $fail->created_at->diffForHumans() }}
+                </div>
+            </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 
     {{-- Connected Systems --}}

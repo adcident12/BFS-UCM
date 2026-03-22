@@ -15,12 +15,13 @@ class UcmUser extends Authenticatable
 
     protected $fillable = [
         'username', 'employee_number', 'name', 'email', 'department', 'title',
-        'ldap_dn', 'ldap_guid', 'is_active', 'is_admin',
+        'ldap_dn', 'ldap_guid', 'is_active', 'is_admin', 'last_login_at',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'is_admin'  => 'integer',   // 0=ทั่วไป | 1=Admin ระดับ 1 | 2=Admin ระดับ 2
+        'is_active'     => 'boolean',
+        'is_admin'      => 'integer',   // 0=ทั่วไป | 1=Admin ระดับ 1 | 2=Admin ระดับ 2
+        'last_login_at' => 'datetime',
     ];
 
     /** Level 1+ (เพิ่ม Reference Data ได้ / ใช้ API ได้) */

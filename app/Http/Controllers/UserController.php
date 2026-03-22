@@ -16,11 +16,18 @@ use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class UserController extends Controller
 {
     public function __construct(protected LdapService $ldap) {}
+
+    private function authUser(): ?UcmUser
+    {
+        /** @var UcmUser|null */
+        return Auth::user();
+    }
 
     public function index(Request $request)
     {
@@ -47,6 +54,64 @@ class UserController extends Controller
             ->values();
 
         return view('users.index', compact('users', 'importableSystems'));
+    }
+
+    public function permissionTimeline(UcmUser $user): View
+    {
+        $logs = AuditLog::where('subject_type', 'user')
+            ->where('subject_id', $user->id)
+            ->where('event_category', AuditLog::CATEGORY_PERMISSIONS)
+            ->with('actor')
+            ->orderByDesc('created_at')
+            ->limit(100)
+            ->get();
+
+        $systems = System::where('is_active', true)
+            ->with(['permissions' => fn ($q) => $q->orderBy('sort_order')])
+            ->orderBy('name')
+            ->get();
+
+        $permsBySystem = UserSystemPermission::where('user_id', $user->id)
+            ->whereIn('system_id', $systems->pluck('id'))
+            ->get()
+            ->groupBy('system_id')
+            ->map(fn ($rows) => $rows->pluck('permission_key')->toArray())
+            ->toArray();
+
+        return view('users.permission-timeline', compact('user', 'logs', 'systems', 'permsBySystem'));
+    }
+
+    public function inactive(Request $request): View
+    {
+        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถดูรายงานนี้ได้');
+
+        $days = (int) $request->input('days', 30);
+        abort_unless(in_array($days, [30, 60, 90], true), 422);
+
+        $search = $request->input('search');
+        $cutoff = now()->subDays($days);
+
+        $query = UcmUser::where('is_active', true)
+            ->where(function ($q) use ($cutoff) {
+                $q->whereNull('last_login_at')
+                    ->orWhere('last_login_at', '<', $cutoff);
+            });
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('username', 'like', "%{$search}%")
+                    ->orWhere('department', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query
+            ->withCount('systemPermissions')
+            ->orderBy('last_login_at')
+            ->paginate(30)
+            ->withQueryString();
+
+        return view('users.inactive', compact('users', 'days', 'search'));
     }
 
     public function show(UcmUser $user)
@@ -117,7 +182,7 @@ class UserController extends Controller
 
     public function updatePermissions(Request $request, UcmUser $user)
     {
-        abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถแก้ไขสิทธิ์ผู้ใช้ได้');
+        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถแก้ไขสิทธิ์ผู้ใช้ได้');
 
         $validated = $request->validate([
             'system_id' => 'required|integer|exists:systems,id',
@@ -204,7 +269,7 @@ class UserController extends Controller
 
     public function setSystemStatus(Request $request, UcmUser $user, System $system)
     {
-        abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเปิด/ปิด account ในระบบได้');
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเปิด/ปิด account ในระบบได้');
 
         $validated = $request->validate(['active' => 'required|boolean']);
 
@@ -238,7 +303,7 @@ class UserController extends Controller
 
     public function discoverFromRemote(UcmUser $user, System $system)
     {
-        abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถ Discover สิทธิ์ได้');
+        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถ Discover สิทธิ์ได้');
 
         if (! AdapterFactory::hasAdapter($system)) {
             return back()->withErrors(['ระบบ '.$system->name.' ไม่มี adapter']);
@@ -304,7 +369,7 @@ class UserController extends Controller
 
     public function updateInfo(Request $request, UcmUser $user)
     {
-        abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขข้อมูลผู้ใช้ได้');
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขข้อมูลผู้ใช้ได้');
 
         $validated = $request->validate([
             'employee_number' => 'nullable|string|max:50',
@@ -327,7 +392,7 @@ class UserController extends Controller
 
     public function importBulkFromLdap(Request $request)
     {
-        abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถนำเข้าผู้ใช้ได้');
+        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถนำเข้าผู้ใช้ได้');
 
         $validated = $request->validate([
             'usernames' => 'required|array|min:1',
@@ -439,7 +504,7 @@ class UserController extends Controller
 
     public function checkAdStatus()
     {
-        abort_unless(Auth::user()?->isAdmin(), 403);
+        abort_unless($this->authUser()?->isAdmin(), 403);
 
         $users = UcmUser::where('is_active', true)
             ->select('id', 'username', 'name', 'department', 'email')
@@ -461,7 +526,7 @@ class UserController extends Controller
 
     public function removeUsers(Request $request)
     {
-        abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบผู้ใช้ได้');
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบผู้ใช้ได้');
 
         $validated = $request->validate([
             'user_ids' => 'required|array|min:1|max:200',
@@ -506,7 +571,7 @@ class UserController extends Controller
 
     public function adminLevels()
     {
-        abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่จัดการสิทธิ์ admin ได้');
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่จัดการสิทธิ์ admin ได้');
 
         $users = UcmUser::whereNull('deleted_at')
             ->select('id', 'username', 'name', 'department', 'is_admin')
@@ -519,7 +584,7 @@ class UserController extends Controller
 
     public function updateAdminLevel(Request $request, UcmUser $user)
     {
-        abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่จัดการสิทธิ์ admin ได้');
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่จัดการสิทธิ์ admin ได้');
 
         $validated = $request->validate(['level' => 'required|integer|in:0,1,2']);
         $level = (int) $validated['level'];
@@ -632,7 +697,7 @@ class UserController extends Controller
 
     public function searchLdap(Request $request)
     {
-        abort_unless(Auth::user()?->isAdmin(), 403);
+        abort_unless($this->authUser()?->isAdmin(), 403);
 
         $request->validate(['q' => 'required|string|min:2|max:100']);
 
@@ -643,7 +708,7 @@ class UserController extends Controller
 
     public function importFromLdap(Request $request)
     {
-        abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถนำเข้าผู้ใช้ได้');
+        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถนำเข้าผู้ใช้ได้');
 
         $validated = $request->validate(['username' => 'required|string|max:100']);
 

@@ -60,6 +60,13 @@
             </div>
         </div>
         <div class="flex items-center gap-2 flex-wrap sm:flex-shrink-0 sm:flex-col sm:items-end">
+            <a href="{{ route('users.permission-timeline', $user) }}"
+               class="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-600 hover:text-violet-800 border border-violet-200 hover:border-violet-300 hover:bg-violet-50 rounded-xl px-3 py-2 transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Permission Timeline
+            </a>
             @if (auth()->user()->isAdmin())
             <form action="{{ route('users.import') }}" method="POST">
                 @csrf
