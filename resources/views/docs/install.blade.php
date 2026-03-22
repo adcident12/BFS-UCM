@@ -83,6 +83,7 @@ $sections = [
                         ['label' => 'PHP 8.3', 'note' => 'pdo_mysql, ldap, curl, mbstring, zip, bcmath, intl extensions', 'color' => 'violet'],
                         ['label' => 'MySQL 8.0', 'note' => 'ฐานข้อมูลหลัก UCM (รันใน Docker container ucm-db)', 'color' => 'sky'],
                         ['label' => 'Composer ≥ 2', 'note' => 'PHP package manager (built-in ใน Docker image)', 'color' => 'emerald'],
+                        ['label' => 'Node.js ≥ 20 (LTS)', 'note' => 'สำหรับ build frontend assets ด้วย Vite 8 — แนะนำ nvm install 22', 'color' => 'lime'],
                         ['label' => 'Active Directory / LDAP', 'note' => 'Authentication + import users', 'color' => 'amber'],
                         ['label' => 'Docker & Compose', 'note' => 'สำหรับ Docker deployment (แนะนำ)', 'color' => 'indigo'],
                         ['label' => 'pdo_sqlsrv (optional)', 'note' => 'เฉพาะระบบที่ต้องเชื่อมต่อ SQL Server ปลายทาง (built-in ใน Docker image)', 'color' => 'slate'],
@@ -152,6 +153,8 @@ $sections = [
                     'docker exec -w /var/www/html/user-centralized-managment php83 php artisan key:generate',
                     '# 6. Run migrations + seed',
                     'docker exec -w /var/www/html/user-centralized-managment php83 php artisan migrate --seed',
+                    '# 7. Install JS dependencies + build frontend assets (requires Node.js ≥ 20 on HOST)',
+                    'cd www/user-centralized-managment && npm install && npm run build',
                 ] as $cmd)
                     <div class="bg-slate-900 rounded-xl px-4 py-2.5 font-mono text-xs {{ str_starts_with($cmd, '#') ? 'text-slate-500' : 'text-slate-300' }} overflow-x-auto">{{ $cmd }}</div>
                 @endforeach
@@ -433,6 +436,10 @@ $sections = [
                 <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
                     <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
                     <span>คอลัมน์ <code class="font-mono bg-blue-100 px-1 rounded">is_admin</code> เป็น <code class="font-mono bg-blue-100 px-1 rounded">tinyInteger</code> ที่รองรับค่า 0 (ทั่วไป), 1 (Admin L1), 2 (Admin L2) — หลัง migrate ต้องตั้งค่า Super Admin คนแรกด้วยตนเอง (ดูหัวข้อถัดไป)</span>
+                </div>
+                <div class="flex items-start gap-3 p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl text-xs text-emerald-800">
+                    <svg class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                    <span>Migration รวม <code class="font-mono bg-emerald-100 px-1 rounded">notification_channels</code> table (ใช้โดย Notification Channels feature) — ไม่ต้องรันคำสั่งพิเศษเพิ่มเติม <code class="font-mono bg-emerald-100 px-1 rounded">php artisan migrate</code> จัดการให้ครบอัตโนมัติ</span>
                 </div>
             </div>
         </div>

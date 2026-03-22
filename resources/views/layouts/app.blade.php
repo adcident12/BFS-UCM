@@ -89,7 +89,7 @@
             $activeSection = '';
             if (request()->routeIs('dashboard') || request()->routeIs('users.*') || request()->routeIs('systems.*'))
                 $activeSection = 'main';
-            elseif (request()->routeIs('admin.levels') || request()->routeIs('queue.monitor') || request()->routeIs('connectors.*') || request()->routeIs('audit.*'))
+            elseif (request()->routeIs('admin.levels') || request()->routeIs('queue.monitor') || request()->routeIs('connectors.*') || request()->routeIs('audit.*') || request()->routeIs('notifications.*') || request()->routeIs('reports.*'))
                 $activeSection = 'admin';
             elseif (request()->routeIs('docs.manual'))
                 $activeSection = 'docs';
@@ -199,6 +199,32 @@
                     </div>
                     <span class="truncate">Connector Wizard</span>
                     @if ($connActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
+                @php $notifActive = request()->routeIs('notifications.*') @endphp
+                <a href="{{ route('notifications.index') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                          {{ $notifActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $notifActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">Notifications</span>
+                    @if ($notifActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
+                @php $reportActive = request()->routeIs('reports.*') @endphp
+                <a href="{{ route('reports.permission-matrix') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                          {{ $reportActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $reportActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">Permission Matrix</span>
+                    @if ($reportActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
             </div>
             @endif
@@ -344,7 +370,7 @@
     </aside>
 
     {{-- Main Content --}}
-    <div class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+    <div class="flex-1 lg:ml-64 flex flex-col min-h-screen min-w-0">
 
         {{-- Sticky Top bar --}}
         <header class="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-100/80 px-4 md:px-8 py-3.5 flex items-center justify-between shadow-sm shadow-slate-100/50">
@@ -434,7 +460,7 @@
         @endif
 
         {{-- Page content --}}
-        <main class="flex-1 p-4 md:p-6 lg:p-8">
+        <main class="flex-1 p-4 md:p-6 lg:p-8 min-w-0">
             @yield('content')
         </main>
     </div>

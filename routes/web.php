@@ -5,7 +5,9 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ConnectorWizardController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QueueMonitorController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SystemController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -84,6 +86,16 @@ Route::middleware('auth')->group(function () {
 
     // Audit Log
     Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit.index');
+
+    // Notification Channels
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
+    Route::put('/notifications/{notificationChannel}', [NotificationController::class, 'update'])->name('notifications.update');
+    Route::delete('/notifications/{notificationChannel}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+    // Reports
+    Route::get('/reports/permission-matrix', [ReportController::class, 'permissionMatrix'])->name('reports.permission-matrix');
+    Route::get('/reports/permission-matrix/export', [ReportController::class, 'exportPermissionMatrix'])->name('reports.permission-matrix.export');
 
     // Queue Monitor
     Route::get('/queue/monitor', [QueueMonitorController::class, 'index'])->name('queue.monitor');

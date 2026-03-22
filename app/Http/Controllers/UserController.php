@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Adapters\AdapterFactory;
 use App\Jobs\SyncPermissionsJob;
 use App\Models\AuditLog;
-use App\Models\System;
 use App\Models\SyncLog;
+use App\Models\System;
 use App\Models\SystemPermission;
 use App\Models\UcmUser;
 use App\Models\UserSystemPermission;
 use App\Services\AuditLogger;
 use App\Services\LdapService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,9 +29,9 @@ class UserController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('username', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('department', 'like', "%{$search}%");
+                    ->orWhere('username', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('department', 'like', "%{$search}%");
             });
         }
 
@@ -52,7 +53,7 @@ class UserController extends Controller
     {
         $systems = System::where('is_active', true)
             ->with([
-                'permissions'     => fn ($q) => $q->orderBy('sort_order'),
+                'permissions' => fn ($q) => $q->orderBy('sort_order'),
                 'connectorConfig',
             ])
             ->get();
@@ -77,13 +78,13 @@ class UserController extends Controller
 
         foreach ($systems as $system) {
             $ucmPerms = $ucmPermsBySystem[$system->id] ?? [];
-            $remotePerms   = null;
+            $remotePerms = null;
             $accountStatus = null;
 
             if (AdapterFactory::hasAdapter($system)) {
                 try {
-                    $adapter       = AdapterFactory::make($system);
-                    $remotePerms   = $adapter->getCurrentPermissions($user);
+                    $adapter = AdapterFactory::make($system);
+                    $remotePerms = $adapter->getCurrentPermissions($user);
                     $accountStatus = $adapter->getAccountStatus($user);
                 } catch (\Throwable) {
                     // remote ล้มเหลว fallback ใช้ UCM
@@ -94,18 +95,18 @@ class UserController extends Controller
                 $outOfSync = array_values(array_diff($ucmPerms, $remotePerms)) !== [] ||
                              array_values(array_diff($remotePerms, $ucmPerms)) !== [];
                 $permsPerSystem[$system->id] = [
-                    'perms'         => $remotePerms,
-                    'ucmPerms'      => $ucmPerms,
-                    'source'        => 'remote',
-                    'outOfSync'     => $outOfSync && ! empty($ucmPerms),
+                    'perms' => $remotePerms,
+                    'ucmPerms' => $ucmPerms,
+                    'source' => 'remote',
+                    'outOfSync' => $outOfSync && ! empty($ucmPerms),
                     'accountStatus' => $accountStatus,
                 ];
             } else {
                 $permsPerSystem[$system->id] = [
-                    'perms'         => $ucmPerms,
-                    'ucmPerms'      => $ucmPerms,
-                    'source'        => 'ucm',
-                    'outOfSync'     => false,
+                    'perms' => $ucmPerms,
+                    'ucmPerms' => $ucmPerms,
+                    'source' => 'ucm',
+                    'outOfSync' => false,
                     'accountStatus' => $accountStatus,
                 ];
             }
@@ -119,19 +120,19 @@ class UserController extends Controller
         abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถแก้ไขสิทธิ์ผู้ใช้ได้');
 
         $validated = $request->validate([
-            'system_id'              => 'required|integer|exists:systems,id',
-            'permissions'            => 'array',
-            'permissions.*'          => 'string|max:100',
-            'exclusive_group'        => 'array',
-            'exclusive_group.*'      => 'nullable|string|max:100',
+            'system_id' => 'required|integer|exists:systems,id',
+            'permissions' => 'array',
+            'permissions.*' => 'string|max:100',
+            'exclusive_group' => 'array',
+            'exclusive_group.*' => 'nullable|string|max:100',
         ]);
 
         $system = System::findOrFail($validated['system_id']);
 
         // รวม checkbox + radio permissions
         $checkboxPerms = $validated['permissions'] ?? [];
-        $radioPerms    = array_values(array_filter($validated['exclusive_group'] ?? []));
-        $allSubmitted  = array_merge($checkboxPerms, $radioPerms);
+        $radioPerms = array_values(array_filter($validated['exclusive_group'] ?? []));
+        $allSubmitted = array_merge($checkboxPerms, $radioPerms);
 
         // ตรวจสอบว่า permission keys ที่ส่งมาเป็นของระบบนี้จริง (ป้องกัน injection)
         $validKeys = SystemPermission::where('system_id', $system->id)
@@ -140,8 +141,8 @@ class UserController extends Controller
 
         $newPerms = array_values(array_intersect($allSubmitted, $validKeys));
 
-        $adminId  = Auth::id();
-        $now      = now();
+        $adminId = Auth::id();
+        $now = now();
 
         DB::transaction(function () use ($user, $system, $newPerms, $adminId, $now) {
             UserSystemPermission::where('user_id', $user->id)
@@ -150,13 +151,13 @@ class UserController extends Controller
 
             if (! empty($newPerms)) {
                 $rows = array_map(fn ($key) => [
-                    'user_id'        => $user->id,
-                    'system_id'      => $system->id,
+                    'user_id' => $user->id,
+                    'system_id' => $system->id,
                     'permission_key' => $key,
-                    'granted_by'     => $adminId,
-                    'granted_at'     => $now,
-                    'created_at'     => $now,
-                    'updated_at'     => $now,
+                    'granted_by' => $adminId,
+                    'granted_at' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ], $newPerms);
 
                 UserSystemPermission::insert($rows);
@@ -164,12 +165,12 @@ class UserController extends Controller
         });
 
         $syncLog = SyncLog::create([
-            'user_id'      => $user->id,
-            'system_id'    => $system->id,
+            'user_id' => $user->id,
+            'system_id' => $system->id,
             'performed_by' => $adminId,
-            'action'       => 'sync',
-            'payload'      => ['permissions' => $newPerms],
-            'status'       => 'pending',
+            'action' => 'sync',
+            'payload' => ['permissions' => $newPerms],
+            'status' => 'pending',
         ]);
 
         if (AdapterFactory::hasAdapter($system)) {
@@ -183,11 +184,20 @@ class UserController extends Controller
         AuditLogger::log(
             AuditLog::CATEGORY_PERMISSIONS,
             AuditLog::EVENT_PERMISSIONS_UPDATED,
-            "อัปเดตสิทธิ์ {$user->name} ({$user->username}) ในระบบ {$system->name}: " . implode(', ', $newPerms ?: ['(ไม่มีสิทธิ์)']),
+            "อัปเดตสิทธิ์ {$user->name} ({$user->username}) ในระบบ {$system->name}: ".implode(', ', $newPerms ?: ['(ไม่มีสิทธิ์)']),
             ['system_id' => $system->id, 'system_name' => $system->name, 'permissions' => $newPerms],
             Auth::user(),
             'user', $user->id, $user->username,
         );
+
+        app(NotificationService::class)->dispatch('permissions_updated', [
+            'username' => $user->username,
+            'name' => $user->name,
+            'system' => $system->name,
+            'permissions' => implode(', ', $newPerms ?: ['(ไม่มีสิทธิ์)']),
+            'performed_by' => Auth::user()?->username,
+            'description' => "อัปเดตสิทธิ์ {$user->name} ในระบบ {$system->name}",
+        ]);
 
         return back()->with('success', $msg);
     }
@@ -199,12 +209,12 @@ class UserController extends Controller
         $validated = $request->validate(['active' => 'required|boolean']);
 
         if (! AdapterFactory::hasAdapter($system)) {
-            return back()->withErrors(['ระบบ ' . $system->name . ' ไม่มี adapter']);
+            return back()->withErrors(['ระบบ '.$system->name.' ไม่มี adapter']);
         }
 
-        $active  = (bool) $validated['active'];
+        $active = (bool) $validated['active'];
         $adapter = AdapterFactory::make($system);
-        $ok      = $adapter->setAccountStatus($user, $active);
+        $ok = $adapter->setAccountStatus($user, $active);
 
         $label = $active ? 'เปิดใช้งาน' : 'ปิดการใช้งาน';
 
@@ -231,22 +241,22 @@ class UserController extends Controller
         abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถ Discover สิทธิ์ได้');
 
         if (! AdapterFactory::hasAdapter($system)) {
-            return back()->withErrors(['ระบบ ' . $system->name . ' ไม่มี adapter']);
+            return back()->withErrors(['ระบบ '.$system->name.' ไม่มี adapter']);
         }
 
-        $adapter     = AdapterFactory::make($system);
+        $adapter = AdapterFactory::make($system);
         $remotePerms = $adapter->getCurrentPermissions($user);
 
         if ($remotePerms === null) {
-            return back()->withErrors(['ไม่สามารถดึงข้อมูลสิทธิ์จาก ' . $system->name . ' ได้']);
+            return back()->withErrors(['ไม่สามารถดึงข้อมูลสิทธิ์จาก '.$system->name.' ได้']);
         }
 
         // กรองเฉพาะ keys ที่มีอยู่จริงในระบบ (ป้องกัน injection)
         $validKeys = SystemPermission::where('system_id', $system->id)->pluck('key')->toArray();
-        $newPerms  = array_values(array_intersect($remotePerms, $validKeys));
+        $newPerms = array_values(array_intersect($remotePerms, $validKeys));
 
         $adminId = Auth::id();
-        $now     = now();
+        $now = now();
 
         DB::transaction(function () use ($user, $system, $newPerms, $adminId, $now) {
             UserSystemPermission::where('user_id', $user->id)
@@ -255,13 +265,13 @@ class UserController extends Controller
 
             if (! empty($newPerms)) {
                 $rows = array_map(fn ($key) => [
-                    'user_id'        => $user->id,
-                    'system_id'      => $system->id,
+                    'user_id' => $user->id,
+                    'system_id' => $system->id,
                     'permission_key' => $key,
-                    'granted_by'     => $adminId,
-                    'granted_at'     => $now,
-                    'created_at'     => $now,
-                    'updated_at'     => $now,
+                    'granted_by' => $adminId,
+                    'granted_at' => $now,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ], $newPerms);
 
                 UserSystemPermission::insert($rows);
@@ -269,13 +279,13 @@ class UserController extends Controller
         });
 
         SyncLog::create([
-            'user_id'      => $user->id,
-            'system_id'    => $system->id,
+            'user_id' => $user->id,
+            'system_id' => $system->id,
             'performed_by' => $adminId,
-            'action'       => 'discover',
-            'payload'      => ['permissions' => $newPerms],
-            'status'       => 'success',
-            'synced_at'    => $now,
+            'action' => 'discover',
+            'payload' => ['permissions' => $newPerms],
+            'status' => 'success',
+            'synced_at' => $now,
         ]);
 
         $count = count($newPerms);
@@ -320,18 +330,18 @@ class UserController extends Controller
         abort_unless(Auth::user()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถนำเข้าผู้ใช้ได้');
 
         $validated = $request->validate([
-            'usernames'   => 'required|array|min:1',
+            'usernames' => 'required|array|min:1',
             'usernames.*' => 'string|max:100',
-            'system_id'   => 'nullable|integer|exists:systems,id',
+            'system_id' => 'nullable|integer|exists:systems,id',
         ]);
 
         // อนุญาต execution นานขึ้นสำหรับ import จำนวนมาก (ไม่ block user ปกติ)
         set_time_limit(300);
 
         $imported = 0;
-        $skipped  = 0;
-        $adminId  = Auth::id();
-        $now      = now();
+        $skipped = 0;
+        $adminId = Auth::id();
+        $now = now();
 
         $allSystems = System::where('is_active', true)
             ->get()
@@ -342,6 +352,7 @@ class UserController extends Controller
             $ldapUser = $this->ldap->findUser($username);
             if (! $ldapUser) {
                 $skipped++;
+
                 continue;
             }
 
@@ -349,20 +360,20 @@ class UserController extends Controller
                 ['username' => $ldapUser['username']],
                 [
                     'employee_number' => $ldapUser['employee_number'] ?: null,
-                    'name'            => $ldapUser['name'],
-                    'email'           => $ldapUser['email'],
-                    'department'      => $ldapUser['department'],
-                    'title'           => $ldapUser['title'],
-                    'ldap_dn'         => $ldapUser['dn'],
-                    'ldap_guid'       => $ldapUser['guid'] ?: null,
-                    'is_active'       => true,
+                    'name' => $ldapUser['name'],
+                    'email' => $ldapUser['email'],
+                    'department' => $ldapUser['department'],
+                    'title' => $ldapUser['title'],
+                    'ldap_dn' => $ldapUser['dn'],
+                    'ldap_guid' => $ldapUser['guid'] ?: null,
+                    'is_active' => true,
                 ]
             );
 
             // ดึง permissions จากทุกระบบที่มี adapter แล้ว batch insert
             foreach ($allSystems as $sys) {
                 try {
-                    $adapter     = AdapterFactory::make($sys);
+                    $adapter = AdapterFactory::make($sys);
                     $remotePerms = $adapter->getCurrentPermissions($ucmUser);
 
                     if (! empty($remotePerms)) {
@@ -372,13 +383,13 @@ class UserController extends Controller
                                 ->delete();
 
                             $rows = array_map(fn ($key) => [
-                                'user_id'        => $ucmUser->id,
-                                'system_id'      => $sys->id,
+                                'user_id' => $ucmUser->id,
+                                'system_id' => $sys->id,
                                 'permission_key' => $key,
-                                'granted_by'     => $adminId,
-                                'granted_at'     => $now,
-                                'created_at'     => $now,
-                                'updated_at'     => $now,
+                                'granted_by' => $adminId,
+                                'granted_at' => $now,
+                                'created_at' => $now,
+                                'updated_at' => $now,
                             ], $remotePerms);
 
                             UserSystemPermission::insert($rows);
@@ -408,10 +419,10 @@ class UserController extends Controller
 
         if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json([
-                'success'  => true,
-                'message'  => $msg,
+                'success' => true,
+                'message' => $msg,
                 'imported' => $imported,
-                'skipped'  => $skipped,
+                'skipped' => $skipped,
                 'redirect' => route('users.index'),
             ]);
         }
@@ -446,7 +457,7 @@ class UserController extends Controller
         abort_unless(Auth::user()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบผู้ใช้ได้');
 
         $validated = $request->validate([
-            'user_ids'   => 'required|array|min:1|max:200',
+            'user_ids' => 'required|array|min:1|max:200',
             'user_ids.*' => 'integer|exists:ucm_users,id',
         ]);
 
@@ -468,14 +479,14 @@ class UserController extends Controller
         AuditLogger::log(
             AuditLog::CATEGORY_USERS,
             AuditLog::EVENT_USER_REMOVED,
-            'ลบผู้ใช้ ' . count($ids) . ' คน: ' . $removedUsers->pluck('username')->join(', '),
+            'ลบผู้ใช้ '.count($ids).' คน: '.$removedUsers->pluck('username')->join(', '),
             ['user_ids' => $ids, 'users' => $removedUsers->map(fn ($u) => ['id' => $u->id, 'username' => $u->username, 'name' => $u->name])->toArray()],
             Auth::user(),
         );
 
         return response()->json([
             'success' => true,
-            'message' => 'ลบผู้ใช้ ' . count($ids) . ' คน และเคลียร์สิทธิ์ทั้งหมดเรียบร้อย',
+            'message' => 'ลบผู้ใช้ '.count($ids).' คน และเคลียร์สิทธิ์ทั้งหมดเรียบร้อย',
         ]);
     }
 
@@ -507,12 +518,12 @@ class UserController extends Controller
         $oldLevel = $user->is_admin;
         $user->update(['is_admin' => $level]);
 
-        $levelName = match($level) {
+        $levelName = match ($level) {
             2 => 'Admin ระดับ 2',
             1 => 'Admin ระดับ 1',
             default => 'ผู้ใช้ทั่วไป',
         };
-        $oldLevelName = match($oldLevel) {
+        $oldLevelName = match ($oldLevel) {
             2 => 'Admin ระดับ 2',
             1 => 'Admin ระดับ 1',
             default => 'ผู้ใช้ทั่วไป',
@@ -535,7 +546,7 @@ class UserController extends Controller
         $userIds = array_filter(array_map('intval', (array) $request->input('user_ids', [])));
 
         $query = UcmUser::where('is_active', true)->orderBy('name');
-        if (!empty($userIds)) {
+        if (! empty($userIds)) {
             $query->whereIn('id', $userIds);
         }
         $users = $query->get();
@@ -546,8 +557,8 @@ class UserController extends Controller
         $permRows = UserSystemPermission::whereIn('user_id', $users->pluck('id'))
             ->join('systems', function ($j) {
                 $j->on('user_system_permissions.system_id', '=', 'systems.id')
-                  ->where('systems.is_active', true)
-                  ->whereNull('systems.deleted_at');
+                    ->where('systems.is_active', true)
+                    ->whereNull('systems.deleted_at');
             })
             ->select('user_system_permissions.user_id', 'systems.name as system_name', 'user_system_permissions.permission_key')
             ->get();
@@ -558,7 +569,7 @@ class UserController extends Controller
             $permsMap[$row->user_id][$row->system_name][] = $row->permission_key;
         }
 
-        $filename = 'ucm-users-' . now()->format('Ymd-His') . '.csv';
+        $filename = 'ucm-users-'.now()->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($users, $systems, $permsMap) {
             $handle = fopen('php://output', 'w');
@@ -568,7 +579,7 @@ class UserController extends Controller
             // Header
             $header = ['username', 'employee_number', 'name', 'email', 'department', 'title'];
             foreach ($systems as $sys) {
-                $header[] = $sys->name . '_permissions';
+                $header[] = $sys->name.'_permissions';
             }
             fputcsv($handle, $header);
 
@@ -591,8 +602,8 @@ class UserController extends Controller
 
             fclose($handle);
         }, $filename, [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Cache-Control'       => 'no-store, no-cache',
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Cache-Control' => 'no-store, no-cache',
         ]);
     }
 
@@ -622,13 +633,13 @@ class UserController extends Controller
             ['username' => $ldapUser['username']],
             [
                 'employee_number' => $ldapUser['employee_number'] ?: null,
-                'name'            => $ldapUser['name'],
-                'email'           => $ldapUser['email'],
-                'department'      => $ldapUser['department'],
-                'title'           => $ldapUser['title'],
-                'ldap_dn'         => $ldapUser['dn'],
-                'ldap_guid'       => $ldapUser['guid'] ?: null,
-                'is_active'       => true,
+                'name' => $ldapUser['name'],
+                'email' => $ldapUser['email'],
+                'department' => $ldapUser['department'],
+                'title' => $ldapUser['title'],
+                'ldap_dn' => $ldapUser['dn'],
+                'ldap_guid' => $ldapUser['guid'] ?: null,
+                'is_active' => true,
             ]
         );
 

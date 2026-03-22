@@ -305,4 +305,133 @@
     </div>
 </div>
 
+{{-- ── Charts ───────────────────────────────────────────────────────── --}}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+
+    {{-- Audit Activity 7 วัน --}}
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+            <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 bg-violet-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-slate-800 text-sm">Audit Activity</h2>
+                    <p class="text-xs text-slate-400 font-medium">7 วันที่ผ่านมา</p>
+                </div>
+            </div>
+            <a href="{{ route('audit.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">ดูทั้งหมด</a>
+        </div>
+        <div class="px-6 py-5">
+            <canvas id="chart-audit" height="140"></canvas>
+        </div>
+    </div>
+
+    {{-- Permissions per System --}}
+    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+        <div class="flex items-center gap-2.5 px-6 py-4 border-b border-slate-100">
+            <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="font-bold text-slate-800 text-sm">สิทธิ์ต่อระบบ</h2>
+                <p class="text-xs text-slate-400 font-medium">จำนวน user permissions</p>
+            </div>
+        </div>
+        <div class="px-6 py-5">
+            <canvas id="chart-perm" height="220"></canvas>
+        </div>
+    </div>
+
+    {{-- Sync Success/Failed 7 วัน --}}
+    <div class="lg:col-span-3 bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+        <div class="flex items-center gap-2.5 px-6 py-4 border-b border-slate-100">
+            <div class="w-7 h-7 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="font-bold text-slate-800 text-sm">Sync Activity</h2>
+                <p class="text-xs text-slate-400 font-medium">สำเร็จ / ล้มเหลว 7 วันที่ผ่านมา</p>
+            </div>
+        </div>
+        <div class="px-6 py-5">
+            <canvas id="chart-sync" height="70"></canvas>
+        </div>
+    </div>
+
+</div>
+
+@push('scripts')
+<script>
+(function () {
+    const chartData = @json($chartData);
+    const defaults = {
+        plugins: {
+            legend: { labels: { font: { family: 'Inter', size: 11 }, boxWidth: 10, boxHeight: 10, padding: 12 } },
+            tooltip: { titleFont: { family: 'Inter', size: 12 }, bodyFont: { family: 'Inter', size: 11 } },
+        },
+        scales: {
+            x: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#94a3b8' } },
+            y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'Inter', size: 11 }, color: '#94a3b8' }, beginAtZero: true, precision: 0 },
+        },
+    };
+
+    // Audit Activity
+    new Chart(document.getElementById('chart-audit'), {
+        type: 'bar',
+        data: { labels: chartData.labels, datasets: chartData.auditDatasets },
+        options: {
+            ...defaults,
+            responsive: true,
+            plugins: { ...defaults.plugins },
+            scales: { ...defaults.scales, x: { ...defaults.scales.x, stacked: true }, y: { ...defaults.scales.y, stacked: true } },
+        },
+    });
+
+    // Sync
+    new Chart(document.getElementById('chart-sync'), {
+        type: 'bar',
+        data: { labels: chartData.labels, datasets: chartData.syncDatasets },
+        options: {
+            ...defaults,
+            responsive: true,
+            plugins: { ...defaults.plugins },
+            scales: { ...defaults.scales, x: { ...defaults.scales.x, stacked: true }, y: { ...defaults.scales.y, stacked: true } },
+        },
+    });
+
+    // Permissions per System
+    new Chart(document.getElementById('chart-perm'), {
+        type: 'bar',
+        data: {
+            labels: chartData.permLabels,
+            datasets: [{
+                label: 'จำนวนสิทธิ์',
+                data: chartData.permData,
+                backgroundColor: chartData.permColors.map(c => (c || '#6366f1') + 'cc'),
+                borderColor: chartData.permColors.map(c => c || '#6366f1'),
+                borderWidth: 1,
+                borderRadius: 4,
+            }],
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: defaults.plugins.tooltip },
+            scales: {
+                x: { ...defaults.scales.x, beginAtZero: true, precision: 0 },
+                y: { grid: { display: false }, ticks: { font: { family: 'Inter', size: 11 }, color: '#475569' } },
+            },
+        },
+    });
+})();
+</script>
+@endpush
+
 @endsection

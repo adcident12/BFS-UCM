@@ -26,8 +26,10 @@ $sections = [
     ['id' => 'ad-check',          'label' => 'ตรวจสอบ AD'],
     ['id' => 'sync',              'label' => 'การ Sync สิทธิ์'],
     ['id' => 'connector-wizard',  'label' => 'Connector Wizard'],
-    ['id' => 'queue-monitor',     'label' => 'Queue Monitor'],
-    ['id' => 'audit-log',         'label' => 'Audit Log'],
+    ['id' => 'queue-monitor',         'label' => 'Queue Monitor'],
+    ['id' => 'audit-log',             'label' => 'Audit Log'],
+    ['id' => 'notification-channels', 'label' => 'Notification Channels'],
+    ['id' => 'permission-matrix',     'label' => 'Permission Matrix'],
 ];
 @endphp
 
@@ -162,13 +164,20 @@ $sections = [
                 <h2 class="font-bold text-slate-800">Dashboard</h2>
             </div>
             <div class="px-6 py-5 space-y-4 text-sm text-slate-700 leading-relaxed">
-                <p>หน้า Dashboard แสดงภาพรวมของระบบ UCM ทั้งหมด แบ่งเป็น 3 ส่วน:</p>
+                <p>หน้า Dashboard แสดงภาพรวมของระบบ UCM ทั้งหมด แบ่งเป็น 5 ส่วน:</p>
                 <div class="space-y-3">
                     <div class="flex gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
                         <div class="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></div>
                         <div>
                             <div class="font-semibold text-slate-900 mb-0.5">Stat Cards (4 การ์ด)</div>
                             <p class="text-slate-600 text-xs">แสดงจำนวนระบบที่เชื่อมต่อ, ผู้ใช้งานทั้งหมด, จำนวน Sync สำเร็จและล้มเหลวในวันนี้</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div class="w-2 h-2 rounded-full bg-violet-500 mt-1.5 flex-shrink-0"></div>
+                        <div>
+                            <div class="font-semibold text-slate-900 mb-0.5">Activity Charts (กราฟ 3 ชุด)</div>
+                            <p class="text-slate-600 text-xs">กราฟ Audit Activity 7 วันล่าสุด (แยกตามหมวด), Sync Activity 7 วันล่าสุด (สำเร็จ/ล้มเหลว), และ Permissions per System (Top 8 ระบบ) — ขับเคลื่อนด้วย Chart.js</p>
                         </div>
                     </div>
                     <div class="flex gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
@@ -179,7 +188,7 @@ $sections = [
                         </div>
                     </div>
                     <div class="flex gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <div class="w-2 h-2 rounded-full bg-violet-500 mt-1.5 flex-shrink-0"></div>
+                        <div class="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 flex-shrink-0"></div>
                         <div>
                             <div class="font-semibold text-slate-900 mb-0.5">กิจกรรมล่าสุด</div>
                             <p class="text-slate-600 text-xs">Timeline แสดงการ Sync สิทธิ์ 10 รายการล่าสุด พร้อมสถานะและข้อผิดพลาด (ถ้ามี)</p>
@@ -1254,6 +1263,186 @@ $sections = [
                 <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-800">
                     <svg class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                     <span>Audit Log เป็น <strong>Read-Only</strong> — ไม่มีการแก้ไขหรือลบข้อมูล ทุกรายการถูกบันทึกอย่างถาวรเพื่อวัตถุประสงค์ตรวจสอบ (Compliance)</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Notification Channels ── --}}
+        <div id="notification-channels" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-emerald-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">Notification Channels</h2>
+                <span class="ml-auto text-xs font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">Admin Only</span>
+            </div>
+            <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+                <p>ระบบ Notification ช่วยให้ Admin รับการแจ้งเตือนอัตโนมัติเมื่อเกิด event สำคัญในระบบ UCM เช่น การเปลี่ยนสิทธิ์ผู้ใช้ รองรับ 2 ช่องทาง:</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="p-4 bg-sky-50 rounded-xl border border-sky-100">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-6 h-6 bg-sky-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            </div>
+                            <span class="font-semibold text-sky-900 text-xs">Email</span>
+                        </div>
+                        <p class="text-xs text-sky-800">ส่งอีเมลหาผู้รับหลายคน (คั่นด้วย comma) พร้อม subject <code class="font-mono bg-sky-100 px-1 rounded">[UCM] {คำอธิบาย}</code> และรายละเอียด event ในเนื้อหา</p>
+                    </div>
+                    <div class="p-4 bg-violet-50 rounded-xl border border-violet-100">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-6 h-6 bg-violet-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                            </div>
+                            <span class="font-semibold text-violet-900 text-xs">Webhook</span>
+                        </div>
+                        <p class="text-xs text-violet-800">ส่ง HTTP POST พร้อม JSON payload ไปยัง URL ที่กำหนด รองรับ HMAC-SHA256 signature ผ่าน header <code class="font-mono bg-violet-100 px-1 rounded">X-UCM-Signature</code></p>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">การสร้าง Notification Channel</h3>
+                    <div class="space-y-2">
+                        @foreach ([
+                            'เมนู <strong>Notifications</strong> ใน Sidebar (หมวด Admin)',
+                            'กด <strong>+ เพิ่ม Channel</strong> มุมขวาบน',
+                            'กรอกชื่อ Channel และเลือกประเภท (Email / Webhook)',
+                            'เลือก <strong>Events</strong> ที่ต้องการรับแจ้งเตือน (สามารถเลือก <code class="font-mono bg-slate-100 px-1 rounded text-xs">*</code> เพื่อรับทุก event)',
+                            'กรอกข้อมูลการส่ง (อีเมลผู้รับ หรือ Webhook URL + Secret)',
+                            'กด <strong>บันทึก</strong>',
+                        ] as $i => $text)
+                            <div class="flex items-start gap-3">
+                                <span class="w-5 h-5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">{{ $i+1 }}</span>
+                                <p class="text-slate-700">{!! $text !!}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">Events ที่รองรับ</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50">
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">Event Key</th>
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">เมื่อไหร่</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ([
+                                    ['event' => 'permissions_updated', 'desc' => 'เมื่อมีการเปลี่ยนแปลงสิทธิ์ผู้ใช้ (ผ่านหน้า Manage Permissions)'],
+                                    ['event' => '*', 'desc' => 'Wildcard — รับแจ้งเตือนทุก event'],
+                                ] as $row)
+                                <tr class="border border-slate-100">
+                                    <td class="px-3 py-2 font-mono font-semibold text-indigo-700 bg-slate-50/50 whitespace-nowrap">{{ $row['event'] }}</td>
+                                    <td class="px-3 py-2 text-slate-600">{{ $row['desc'] }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">Webhook Payload Format</h3>
+                    <div class="bg-slate-900 rounded-xl p-4 font-mono text-xs text-slate-300 overflow-x-auto">
+<pre>{
+  "event": "permissions_updated",
+  "payload": {
+    "user_id": 42,
+    "username": "john.doe",
+    "description": "อัปเดตสิทธิ์ john.doe",
+    ...
+  },
+  "timestamp": "2026-03-22T10:00:00+07:00",
+  "source": "UCM"
+}</pre>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Header <code class="font-mono bg-slate-100 px-1 rounded">X-UCM-Signature</code> = HMAC-SHA256 ของ JSON body (มีเฉพาะเมื่อตั้งค่า Secret)</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Permission Matrix ── --}}
+        <div id="permission-matrix" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18M10 3v18M14 3v18M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6z"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">Permission Matrix Report</h2>
+                <span class="ml-auto text-xs font-semibold text-indigo-700 bg-indigo-100 px-2.5 py-1 rounded-full">Admin Only</span>
+            </div>
+            <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+                <p>รายงาน Permission Matrix แสดงสิทธิ์ของผู้ใช้ทุกคนในรูปแบบตารางครอสแทบ — แถวคือ User, คอลัมน์คือ Permission แต่ละรายการของแต่ละระบบ ช่วยให้เห็น "ใครมีสิทธิ์อะไรในระบบไหน" ในมุมมองเดียว</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    @foreach ([
+                        ['label' => 'Sticky Headers', 'desc' => 'หัวตาราง (ระบบ + สิทธิ์) และคอลัมน์ Username ยึดอยู่กับที่ขณะ Scroll', 'color' => 'indigo'],
+                        ['label' => 'System Color Bands', 'desc' => 'แต่ละระบบมีสีแยกกัน ทำให้อ่านง่ายและไม่สับสน', 'color' => 'violet'],
+                        ['label' => 'CSV Export', 'desc' => 'ส่งออกตารางทั้งหมดเป็นไฟล์ CSV (UTF-8 BOM) พร้อมใช้ใน Excel', 'color' => 'emerald'],
+                    ] as $feat)
+                        <div class="p-3 bg-{{ $feat['color'] }}-50 rounded-xl border border-{{ $feat['color'] }}-100">
+                            <div class="font-semibold text-{{ $feat['color'] }}-900 text-xs mb-1">{{ $feat['label'] }}</div>
+                            <p class="text-xs text-{{ $feat['color'] }}-800">{{ $feat['desc'] }}</p>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">การใช้งาน</h3>
+                    <div class="space-y-2">
+                        @foreach ([
+                            'เมนู <strong>Permission Matrix</strong> ใน Sidebar (หมวด Admin)',
+                            'เลือก <strong>ระบบ</strong> ที่ต้องการดู (หรือเว้นว่างเพื่อดูทุกระบบ)',
+                            'พิมพ์ในช่อง <strong>ค้นหา</strong> เพื่อกรองตามชื่อหรือ Username',
+                            'ตารางแสดง ✓ ในช่องที่ผู้ใช้มีสิทธิ์ ส่วนช่องว่างหมายถึงไม่มีสิทธิ์',
+                            'กด <strong>Export CSV</strong> เพื่อดาวน์โหลดตารางทั้งหมดเป็นไฟล์ CSV',
+                        ] as $i => $text)
+                            <div class="flex items-start gap-3">
+                                <span class="w-5 h-5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">{{ $i+1 }}</span>
+                                <p class="text-slate-700">{!! $text !!}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">คอลัมน์ในตาราง</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50">
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">คอลัมน์</th>
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">ความหมาย</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ([
+                                    ['col' => 'Username', 'desc' => 'ชื่อผู้ใช้ใน AD'],
+                                    ['col' => 'ชื่อ-นามสกุล', 'desc' => 'ชื่อเต็มของผู้ใช้'],
+                                    ['col' => 'แผนก', 'desc' => 'แผนกที่สังกัด (จาก AD)'],
+                                    ['col' => 'ตำแหน่ง', 'desc' => 'ตำแหน่งงาน (จาก AD)'],
+                                    ['col' => '{ระบบ} — {สิทธิ์}', 'desc' => '✓ = มีสิทธิ์, ว่าง = ไม่มีสิทธิ์'],
+                                    ['col' => 'Total', 'desc' => 'จำนวนสิทธิ์รวมทุกระบบของผู้ใช้คนนั้น'],
+                                ] as $row)
+                                <tr class="border border-slate-100">
+                                    <td class="px-3 py-2 font-mono font-semibold text-slate-700 bg-slate-50/50 whitespace-nowrap">{{ $row['col'] }}</td>
+                                    <td class="px-3 py-2 text-slate-600">{{ $row['desc'] }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3.5 bg-sky-50 border border-sky-100 rounded-xl text-xs text-sky-800">
+                    <svg class="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>ตารางรองรับผู้ใช้จำนวนมาก (Pagination 50 คน/หน้า) — ใช้ตัวกรองระบบและค้นหาเพื่อจำกัดผลลัพธ์ก่อน Export</span>
                 </div>
             </div>
         </div>
