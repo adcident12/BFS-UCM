@@ -594,6 +594,14 @@ X-UCM-Signature: <HMAC-SHA256(json_body, secret)>
 | Event Key | เกิดขึ้นเมื่อ |
 |-----------|--------------|
 | `permissions_updated` | Admin บันทึกการเปลี่ยนแปลงสิทธิ์ผู้ใช้ |
+| `user_imported` | นำเข้าผู้ใช้รายคนจาก Active Directory |
+| `user_bulk_imported` | นำเข้าผู้ใช้แบบ Bulk จาก Active Directory |
+| `user_removed` | ลบผู้ใช้ออกจากระบบ UCM |
+| `admin_level_updated` | เปลี่ยนระดับ Admin ของผู้ใช้ |
+| `system_created` | เพิ่มระบบที่เชื่อมต่อใหม่ |
+| `system_updated` | แก้ไขข้อมูลระบบที่เชื่อมต่อ |
+| `system_deleted` | ลบระบบที่เชื่อมต่อ |
+| `login_failed` | Login ล้มเหลว (รหัสผ่านผิด หรือแผนกไม่มีสิทธิ์) |
 | `*` | Wildcard — รับแจ้งเตือนทุก event |
 
 ### การจัดการ Channel
@@ -765,7 +773,7 @@ DynamicAdapter.syncPermissions()
     └─ Manual mode:   return true (ไม่ sync ไปยัง DB ปลายทาง)
 ```
 
-> **Security:** identifier ชื่อตาราง/คอลัมน์ทุกตัวผ่าน `quoteIdentifier()` ที่มี whitelist regex `[\w.]+` ก่อน execute
+> **Security:** identifier ชื่อตาราง/คอลัมน์ทุกตัวผ่าน `qi()` helper ที่มี whitelist regex `[\w.]+` + backtick/double-quote quoting ตาม driver ก่อน execute — รองรับ schema-qualified names (`schema.table`) อย่างถูกต้อง
 
 ---
 
@@ -855,10 +863,11 @@ UCM_AUDIT_DEPARTMENTS="Safety,Quality Assurance"
 
 - รหัสผ่านฐานข้อมูลปลายทางใน `connector_configs.db_password` ถูกเก็บใน plaintext — แนะนำให้ใช้ DB user ที่มีสิทธิ์ขั้นต่ำ (SELECT บน users table, INSERT/DELETE บน permissions table เท่านั้น)
 - CSRF protection เปิดใช้งานบนทุก POST/PUT/DELETE route
-- SQL Injection prevention: identifier ชื่อตาราง/คอลัมน์ผ่าน `quoteIdentifier()` + whitelist regex; ค่า parameter ทุกตัวผ่าน PDO prepared statement
+- SQL Injection prevention: identifier ชื่อตาราง/คอลัมน์ผ่าน `qi()` helper + whitelist regex `[\w.]+`; ค่า parameter ทุกตัวผ่าน PDO prepared statement / `$pdo->quote()`
 - Session timeout 120 นาที (ปรับได้ใน `.env SESSION_LIFETIME`)
 - ข้อมูล `db_password` และ `api_token` ถูก hidden ใน Model `$hidden` — ไม่ถูกส่งออกใน JSON response
-- Authorization ทุก mutation route ใช้ `abort_unless($user->isAdmin(), 403)`
+- Authorization ทุก mutation route ใช้ `abort_unless()` ตามระดับที่เหมาะสม: `isAdmin()` สำหรับ L1 ขึ้นไป, `isSuperAdmin()` สำหรับ L2 (เช่น CRUD System, Notification Channels, Connector Wizard, จัดการ Admin)
+- UUID ของ Failed Job ถูก validate ด้วย `Str::isUuid()` ก่อนส่งให้ Artisan command
 - Webhook Secret ใช้ HMAC-SHA256 — ระบบปลายทางควรตรวจสอบ `X-UCM-Signature` header ก่อนประมวลผล payload
 
 ---

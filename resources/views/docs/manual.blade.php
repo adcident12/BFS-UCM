@@ -744,6 +744,8 @@ $sections = [
                             <li>✅ Toggle 2-way ON/OFF ได้</li>
                             <li>✅ เปิด / ปิด Account ในระบบภายนอกได้</li>
                             <li>✅ <strong>จัดการสิทธิ์ Admin</strong> ของผู้ใช้อื่นได้</li>
+                            <li>✅ <strong>สร้าง / แก้ไข / ลบ Notification Channel</strong> ได้</li>
+                            <li>✅ <strong>Retry / Flush Failed Jobs</strong> ใน Queue Monitor ได้</li>
                             <li>⚠️ ไม่สามารถลดระดับตัวเองได้</li>
                         </ul>
                     </div>
@@ -1276,7 +1278,7 @@ $sections = [
                     </svg>
                 </div>
                 <h2 class="font-bold text-slate-800">Notification Channels</h2>
-                <span class="ml-auto text-xs font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">Admin Only</span>
+                <span class="ml-auto text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Admin L2 เท่านั้น</span>
             </div>
             <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
                 <p>ระบบ Notification ช่วยให้ Admin รับการแจ้งเตือนอัตโนมัติเมื่อเกิด event สำคัญในระบบ UCM เช่น การเปลี่ยนสิทธิ์ผู้ใช้ รองรับ 2 ช่องทาง:</p>
@@ -1333,8 +1335,16 @@ $sections = [
                             </thead>
                             <tbody>
                                 @foreach ([
-                                    ['event' => 'permissions_updated', 'desc' => 'เมื่อมีการเปลี่ยนแปลงสิทธิ์ผู้ใช้ (ผ่านหน้า Manage Permissions)'],
-                                    ['event' => '*', 'desc' => 'Wildcard — รับแจ้งเตือนทุก event'],
+                                    ['event' => 'permissions_updated',  'desc' => 'เมื่อมีการเปลี่ยนแปลงสิทธิ์ผู้ใช้ (ผ่านหน้า Manage Permissions)'],
+                                    ['event' => 'user_imported',        'desc' => 'เมื่อนำเข้าผู้ใช้รายคนจาก Active Directory'],
+                                    ['event' => 'user_bulk_imported',   'desc' => 'เมื่อนำเข้าผู้ใช้แบบ Bulk จาก Active Directory'],
+                                    ['event' => 'user_removed',         'desc' => 'เมื่อลบผู้ใช้ออกจากระบบ UCM'],
+                                    ['event' => 'admin_level_updated',  'desc' => 'เมื่อเปลี่ยนระดับ Admin ของผู้ใช้'],
+                                    ['event' => 'system_created',       'desc' => 'เมื่อเพิ่มระบบที่เชื่อมต่อใหม่'],
+                                    ['event' => 'system_updated',       'desc' => 'เมื่อแก้ไขข้อมูลระบบที่เชื่อมต่อ'],
+                                    ['event' => 'system_deleted',       'desc' => 'เมื่อลบระบบที่เชื่อมต่อ'],
+                                    ['event' => 'login_failed',         'desc' => 'เมื่อมีการ Login ล้มเหลว (รหัสผ่านผิด หรือแผนกไม่มีสิทธิ์)'],
+                                    ['event' => '*',                    'desc' => 'Wildcard — รับแจ้งเตือนทุก event'],
                                 ] as $row)
                                 <tr class="border border-slate-100">
                                     <td class="px-3 py-2 font-mono font-semibold text-indigo-700 bg-slate-50/50 whitespace-nowrap">{{ $row['event'] }}</td>
