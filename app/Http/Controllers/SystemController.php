@@ -8,6 +8,7 @@ use App\Models\System;
 use App\Models\SystemPermission;
 use App\Models\UcmUser;
 use App\Services\AuditLogger;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -64,6 +65,13 @@ class SystemController extends Controller
             $this->authUser(),
             'system', $system->id, $system->name,
         );
+
+        app(NotificationService::class)->dispatch('system_created', [
+            'system' => $system->name,
+            'slug' => $system->slug,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "สร้างระบบใหม่: {$system->name}",
+        ]);
 
         return redirect()->route('systems.show', $system)
             ->with('success', "เพิ่มระบบ {$system->name} เรียบร้อย");
@@ -138,6 +146,12 @@ class SystemController extends Controller
             'system', $system->id, $system->name,
         );
 
+        app(NotificationService::class)->dispatch('system_updated', [
+            'system' => $system->name,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "อัปเดตระบบ: {$system->name}",
+        ]);
+
         return redirect()->route('systems.show', $system)
             ->with('success', "อัปเดตระบบ {$system->name} เรียบร้อย");
     }
@@ -158,6 +172,12 @@ class SystemController extends Controller
             $this->authUser(),
             'system', $systemId, $systemName,
         );
+
+        app(NotificationService::class)->dispatch('system_deleted', [
+            'system' => $systemName,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "ลบระบบ: {$systemName}",
+        ]);
 
         return redirect()->route('systems.index')
             ->with('success', "ลบระบบ {$systemName} เรียบร้อย");

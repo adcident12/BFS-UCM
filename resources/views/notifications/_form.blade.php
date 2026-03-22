@@ -7,35 +7,47 @@
     <div>
         <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชื่อ Channel</label>
         <input type="text" name="name" value="{{ old('name', $channel?->name) }}" required
-               class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
+               class="w-full px-3 py-2.5 text-sm border {{ $errors->has('name') ? 'border-rose-400' : 'border-slate-200' }} rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
+        @error('name')
+            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+        @enderror
     </div>
 
     <div>
         <label class="block text-xs font-semibold text-slate-600 mb-1.5">ประเภท</label>
         <select name="type" id="add-type" onchange="toggleConfig(this.value)"
-                class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
+                class="w-full px-3 py-2.5 text-sm border {{ $errors->has('type') ? 'border-rose-400' : 'border-slate-200' }} rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
             <option value="webhook">Webhook</option>
             <option value="email">Email</option>
         </select>
+        @error('type')
+            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+        @enderror
     </div>
 
     <div id="webhook-config" class="space-y-3">
         <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1.5">Webhook URL</label>
-            <input type="url" name="config[url]" placeholder="https://..."
-                   class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
+            <input type="url" name="config[url]" value="{{ old('config.url') }}" placeholder="https://..."
+                   class="w-full px-3 py-2.5 text-sm border {{ $errors->has('config.url') ? 'border-rose-400' : 'border-slate-200' }} rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
+            @error('config.url')
+                <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+            @enderror
         </div>
         <div>
             <label class="block text-xs font-semibold text-slate-600 mb-1.5">Secret (ถ้ามี)</label>
-            <input type="text" name="config[secret]" placeholder="ไม่บังคับ"
+            <input type="text" name="config[secret]" value="{{ old('config.secret') }}" placeholder="ไม่บังคับ"
                    class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
         </div>
     </div>
 
     <div id="email-config" style="display:none">
         <label class="block text-xs font-semibold text-slate-600 mb-1.5">อีเมลผู้รับ (คั่นด้วย ,)</label>
-        <input type="text" name="config[to]" placeholder="admin@example.com, it@example.com"
-               class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
+        <input type="text" name="config[to]" value="{{ old('config.to') }}" placeholder="admin@example.com, it@example.com"
+               class="w-full px-3 py-2.5 text-sm border {{ $errors->has('config.to') ? 'border-rose-400' : 'border-slate-200' }} rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
+        @error('config.to')
+            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+        @enderror
     </div>
 
     <div>
@@ -50,6 +62,9 @@
                 </label>
             @endforeach
         </div>
+        @error('events')
+            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+        @enderror
     </div>
 
     <div class="flex items-center gap-2">

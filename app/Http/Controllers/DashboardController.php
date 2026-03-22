@@ -6,10 +6,11 @@ use App\Models\AuditLog;
 use App\Models\SyncLog;
 use App\Models\System;
 use App\Models\UcmUser;
+use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(): View
     {
         $stats = [
             'systems' => System::where('is_active', true)->count(),

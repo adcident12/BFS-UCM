@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\UcmUser;
 use App\Services\AuditLogger;
+use App\Services\NotificationService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class LoginController extends Controller
 {
-    public function showLoginForm()
+    public function showLoginForm(): View|RedirectResponse
     {
         if (Auth::check()) {
             return redirect()->route('dashboard');
@@ -20,7 +23,7 @@ class LoginController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request)
+    public function login(Request $request): RedirectResponse
     {
         $request->validate([
             'username' => 'required|string',
@@ -47,6 +50,13 @@ class LoginController extends Controller
                     null, null, null,
                     $request,
                 );
+
+                app(NotificationService::class)->dispatch('login_failed', [
+                    'username' => $request->username,
+                    'reason' => 'department_not_allowed',
+                    'department' => $user->department,
+                    'description' => "เข้าสู่ระบบล้มเหลว: {$request->username} — แผนกไม่มีสิทธิ์เข้าใช้งาน",
+                ]);
 
                 return back()->withErrors([
                     'username' => 'คุณไม่มีสิทธิ์เข้าใช้งานระบบนี้',
@@ -80,12 +90,18 @@ class LoginController extends Controller
             $request,
         );
 
+        app(NotificationService::class)->dispatch('login_failed', [
+            'username' => $request->username,
+            'reason' => 'invalid_credentials',
+            'description' => "เข้าสู่ระบบล้มเหลว: {$request->username} — รหัสผ่านไม่ถูกต้อง",
+        ]);
+
         return back()->withErrors([
             'username' => 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
         ])->onlyInput('username');
     }
 
-    public function logout(Request $request)
+    public function logout(Request $request): RedirectResponse
     {
         $user = Auth::user();
 

@@ -9,9 +9,10 @@ use App\Models\System;
 use App\Models\UcmUser;
 use App\Services\AuditLogger;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use Illuminate\View\View;
 use PDO;
 use PDOException;
 
@@ -30,7 +31,7 @@ class ConnectorWizardController extends Controller
 
     // ── Pages ──────────────────────────────────────────────────────────────
 
-    public function index()
+    public function index(): View
     {
         $this->requireSuperAdmin();
 
@@ -39,21 +40,21 @@ class ConnectorWizardController extends Controller
         return view('connectors.index', compact('configs'));
     }
 
-    public function create()
+    public function create(): View
     {
         $this->requireSuperAdmin();
 
         return view('connectors.wizard');
     }
 
-    public function edit(ConnectorConfig $connectorConfig)
+    public function edit(ConnectorConfig $connectorConfig): View
     {
         $this->requireSuperAdmin();
 
         return view('connectors.wizard', ['editConfig' => $connectorConfig->load('system')]);
     }
 
-    public function destroy(ConnectorConfig $connectorConfig)
+    public function destroy(ConnectorConfig $connectorConfig): RedirectResponse
     {
         $this->requireSuperAdmin();
 
@@ -164,7 +165,7 @@ class ConnectorWizardController extends Controller
                     'COLUMN_NAME'
                 ),
                 default  => array_column(
-                    $pdo->query("DESCRIBE `{$table}`")->fetchAll(),
+                    $pdo->query('DESCRIBE '.$this->qi($table, 'mysql'))->fetchAll(),
                     'Field'
                 ),
             };

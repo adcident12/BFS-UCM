@@ -77,8 +77,6 @@ class ReportController extends Controller
 
         $rows = [];
         foreach ($users as $user) {
-            $granted = $user->systemPermissions->pluck('permission_key', 'system_id')->groupBy(fn ($key, $sysId) => $sysId);
-            // Rebuild as system_id => [key => true]
             $grantedMap = [];
             foreach ($user->systemPermissions as $up) {
                 $grantedMap[$up->system_id][$up->permission_key] = true;

@@ -51,6 +51,26 @@
     </div>
 @endif
 
+@if ($errors->any())
+    @php
+        $editChannelId = old('_edit_channel_id');
+        $editingChannel = $editChannelId ? $channels->firstWhere('id', (int) $editChannelId) : null;
+    @endphp
+    @if ($editingChannel)
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                openEditModal(@json($editingChannel), @json($availableEvents));
+            });
+        </script>
+    @else
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                openModal('modal-add');
+            });
+        </script>
+    @endif
+@endif
+
 {{-- Channel List --}}
 @php
 $availableEvents = [
@@ -171,6 +191,7 @@ $availableEvents = [
 @push('scripts')
 <script>
 const availableEvents = @json($availableEvents);
+const updateRouteTemplate = "{{ route('notifications.update', ['notificationChannel' => '__ID__']) }}";
 
 function openModal(id) {
     document.getElementById(id).style.display = 'flex';
@@ -199,9 +220,10 @@ function openEditModal(channel, events) {
     const configTo = (channel.config?.to || []).join(', ');
 
     document.getElementById('modal-edit-body').innerHTML = `
-        <form method="POST" action="/notifications/${channel.id}" class="space-y-4">
+        <form method="POST" action="${updateRouteTemplate.replace('__ID__', channel.id)}" class="space-y-4">
             <input type="hidden" name="_method" value="PUT">
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="_edit_channel_id" value="${channel.id}">
 
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชื่อ Channel</label>

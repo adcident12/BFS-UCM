@@ -417,6 +417,13 @@ class UserController extends Controller
             Auth::user(),
         );
 
+        app(NotificationService::class)->dispatch('user_bulk_imported', [
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'performed_by' => Auth::user()?->username,
+            'description' => "Bulk import {$imported} คนจาก LDAP (ข้าม {$skipped} คน)",
+        ]);
+
         if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
             return response()->json([
                 'success' => true,
@@ -484,6 +491,13 @@ class UserController extends Controller
             Auth::user(),
         );
 
+        app(NotificationService::class)->dispatch('user_removed', [
+            'count' => count($ids),
+            'users' => $removedUsers->pluck('username')->join(', '),
+            'performed_by' => Auth::user()?->username,
+            'description' => 'ลบผู้ใช้ '.count($ids).' คน: '.$removedUsers->pluck('username')->join(', '),
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'ลบผู้ใช้ '.count($ids).' คน และเคลียร์สิทธิ์ทั้งหมดเรียบร้อย',
@@ -537,6 +551,15 @@ class UserController extends Controller
             Auth::user(),
             'user', $user->id, $user->username,
         );
+
+        app(NotificationService::class)->dispatch('admin_level_updated', [
+            'username' => $user->username,
+            'name' => $user->name,
+            'old_level' => $oldLevelName,
+            'new_level' => $levelName,
+            'performed_by' => Auth::user()?->username,
+            'description' => "เปลี่ยนระดับสิทธิ์ {$user->name} ({$user->username}): {$oldLevelName} → {$levelName}",
+        ]);
 
         return back()->with('success', "อัปเดตสิทธิ์ {$user->name} เป็น {$levelName} เรียบร้อย");
     }
@@ -651,6 +674,14 @@ class UserController extends Controller
             Auth::user(),
             'user', $user->id, $user->username,
         );
+
+        app(NotificationService::class)->dispatch('user_imported', [
+            'username' => $user->username,
+            'name' => $user->name,
+            'department' => $user->department,
+            'performed_by' => Auth::user()?->username,
+            'description' => "นำเข้าผู้ใช้ {$user->name} ({$user->username}) จาก LDAP",
+        ]);
 
         return redirect()->route('users.show', $user)->with('success', "นำเข้าผู้ใช้ {$user->name} เรียบร้อย");
     }

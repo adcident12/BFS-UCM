@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\SyncLog;
 use App\Models\UcmUser;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class QueueMonitorController extends Controller
 {
@@ -16,7 +19,7 @@ class QueueMonitorController extends Controller
         return Auth::user();
     }
 
-    public function index()
+    public function index(): View
     {
         abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin เท่านั้น');
 
@@ -44,16 +47,17 @@ class QueueMonitorController extends Controller
         ));
     }
 
-    public function retryFailed(string $uuid)
+    public function retryFailed(string $uuid): RedirectResponse
     {
         abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
+        abort_unless(Str::isUuid($uuid), 422, 'Job ID ไม่ถูกต้อง');
 
         Artisan::call('queue:retry', ['id' => [$uuid]]);
 
         return back()->with('success', "ส่ง retry job สำเร็จ");
     }
 
-    public function retryAll()
+    public function retryAll(): RedirectResponse
     {
         abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
 
@@ -63,16 +67,17 @@ class QueueMonitorController extends Controller
         return back()->with('success', "ส่ง retry {$count} jobs สำเร็จ");
     }
 
-    public function destroyFailed(string $uuid)
+    public function destroyFailed(string $uuid): RedirectResponse
     {
         abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
+        abort_unless(Str::isUuid($uuid), 422, 'Job ID ไม่ถูกต้อง');
 
         Artisan::call('queue:forget', ['id' => $uuid]);
 
         return back()->with('success', "ลบ failed job เรียบร้อย");
     }
 
-    public function flushFailed()
+    public function flushFailed(): RedirectResponse
     {
         abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
 

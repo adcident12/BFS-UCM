@@ -4,11 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreNotificationChannelRequest;
 use App\Models\NotificationChannel;
+use App\Models\UcmUser;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
+    private function authUser(): ?UcmUser
+    {
+        return Auth::user();
+    }
+
     public function index(): View
     {
         $channels = NotificationChannel::latest()->get();
@@ -18,6 +25,8 @@ class NotificationController extends Controller
 
     public function store(StoreNotificationChannelRequest $request): RedirectResponse
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่ม Notification Channel ได้');
+
         $data = $request->validated();
 
         // Normalize config
@@ -40,6 +49,8 @@ class NotificationController extends Controller
 
     public function update(StoreNotificationChannelRequest $request, NotificationChannel $notificationChannel): RedirectResponse
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไข Notification Channel ได้');
+
         $data = $request->validated();
 
         if ($data['type'] === 'email') {
@@ -61,6 +72,8 @@ class NotificationController extends Controller
 
     public function destroy(NotificationChannel $notificationChannel): RedirectResponse
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบ Notification Channel ได้');
+
         $notificationChannel->delete();
 
         return redirect()->route('notifications.index')->with('success', 'ลบ Notification Channel สำเร็จ');

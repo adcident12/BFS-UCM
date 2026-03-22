@@ -6,10 +6,11 @@ use App\Models\AuditLog;
 use App\Models\UcmUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class AuditLogController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         /** @var UcmUser $user */
         $user = Auth::user();

@@ -369,7 +369,7 @@
 
 @push('scripts')
 <script>
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
     const chartData = @json($chartData);
     const defaults = {
         plugins: {
@@ -430,7 +430,7 @@
             },
         },
     });
-})();
+});
 </script>
 @endpush
 
