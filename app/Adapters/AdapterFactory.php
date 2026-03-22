@@ -87,4 +87,21 @@ class AdapterFactory
             return false;
         }
     }
+
+    /**
+     * คืน PermissionDeleteMode ของ adapter ที่ใช้กับระบบนี้
+     * ใช้ใน UI เพื่อแสดง warning ก่อน admin ลบ permission
+     */
+    public static function getPermissionDeleteMode(System $system): \App\Enums\PermissionDeleteMode
+    {
+        if (! static::hasAdapter($system)) {
+            return \App\Enums\PermissionDeleteMode::DetachOnly;
+        }
+
+        try {
+            return static::make($system)->getPermissionDeleteMode();
+        } catch (\Throwable) {
+            return \App\Enums\PermissionDeleteMode::DetachOnly;
+        }
+    }
 }

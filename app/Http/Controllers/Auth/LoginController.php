@@ -78,7 +78,7 @@ class LoginController extends Controller
                 $request,
             );
 
-            return redirect()->intended(route('dashboard'));
+            return redirect()->route('dashboard');
         }
 
         $ucmUser = UcmUser::where('username', $request->username)->first();

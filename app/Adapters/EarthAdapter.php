@@ -2,6 +2,7 @@
 
 namespace App\Adapters;
 
+use App\Enums\PermissionDeleteMode;
 use App\Models\SystemPermission;
 use App\Models\UcmUser;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +51,7 @@ class EarthAdapter extends BaseAdapter
 
         try {
             $rows = $this->getConnection()
-                ->query("SELECT pg_id, group_name FROM UserMgnt_PageGroup ORDER BY priority, pg_id")
+                ->query('SELECT pg_id, group_name FROM UserMgnt_PageGroup ORDER BY priority, pg_id')
                 ->fetchAll();
 
             $this->pgIdMap = [];
@@ -58,7 +59,7 @@ class EarthAdapter extends BaseAdapter
                 $this->pgIdMap[trim($row['group_name'])] = (int) $row['pg_id'];
             }
         } catch (PDOException $e) {
-            Log::error("[earth] getPgIdMap failed: " . $e->getMessage());
+            Log::error('[earth] getPgIdMap failed: '.$e->getMessage());
             $this->pgIdMap = [];
         }
 
@@ -114,7 +115,7 @@ class EarthAdapter extends BaseAdapter
                 continue;
             }
             $groupName = $keyToGroup[$key]['group'];
-            $sId       = $keyToGroup[$key]['s_id'];
+            $sId = $keyToGroup[$key]['s_id'];
 
             if (! isset($result[$groupName]) || $sId < $result[$groupName]) {
                 $result[$groupName] = $sId; // เลือก s_id ต่ำสุดต่อ group (edge case: ปกติ exclusive อยู่แล้ว)
@@ -136,10 +137,11 @@ class EarthAdapter extends BaseAdapter
     private function getUserId(string $username): ?int
     {
         $stmt = $this->getConnection()->prepare(
-            "SELECT user_id FROM UserMgnt_VerifyUser WHERE username = ?"
+            'SELECT user_id FROM UserMgnt_VerifyUser WHERE username = ?'
         );
         $stmt->execute([strtolower($username)]);
         $row = $stmt->fetch();
+
         return $row ? (int) $row['user_id'] : null;
     }
 
@@ -148,10 +150,11 @@ class EarthAdapter extends BaseAdapter
     public function getAvailablePermissions(): array
     {
         $this->system->loadMissing('permissions');
+
         return $this->system->permissions
             ->sortBy('sort_order')
-            ->map(fn($p) => [
-                'key'   => $p->key,
+            ->map(fn ($p) => [
+                'key' => $p->key,
                 'label' => $p->label,
                 'group' => $p->group,
             ])
@@ -164,7 +167,7 @@ class EarthAdapter extends BaseAdapter
         $username = strtolower($user->username);
 
         try {
-            $pdo     = $this->getConnection();
+            $pdo = $this->getConnection();
             $pgIdMap = $this->getPgIdMap();
             $permMap = $this->buildPermMap();
 
@@ -176,25 +179,38 @@ class EarthAdapter extends BaseAdapter
                     return false;
                 }
                 Log::info("[earth] สร้าง user {$username} สำเร็จ");
+
                 return true;
             }
 
             // คำนวณ s_id ที่ต้องการสำหรับแต่ละ group
             $grantMap = $this->resolveGrantMap($permissions, $permMap);
 
+            // Batch-fetch existing grants for this user in one query (avoid N+1)
+            $pgIds = array_values(array_filter(
+                array_map(fn ($groupName) => $pgIdMap[$groupName] ?? null, array_keys($grantMap))
+            ));
+            $existingGrants = [];
+            if ($pgIds) {
+                $placeholders = implode(',', array_fill(0, count($pgIds), '?'));
+                $batchCheck = $pdo->prepare(
+                    "SELECT pg_id, grant_id FROM UserMgnt_UserGrant WHERE user_id = ? AND pg_id IN ({$placeholders})"
+                );
+                $batchCheck->execute([$userId, ...$pgIds]);
+                foreach ($batchCheck->fetchAll() as $row) {
+                    $existingGrants[(int) $row['pg_id']] = (int) $row['grant_id'];
+                }
+            }
+
             foreach ($grantMap as $groupName => $sId) {
                 $pgId = $pgIdMap[$groupName] ?? null;
                 if ($pgId === null) {
                     Log::warning("[earth] ไม่พบ pg_id สำหรับ group '{$groupName}'");
+
                     continue;
                 }
 
-                // ตรวจสอบว่ามี grant row อยู่แล้วไหม
-                $check = $pdo->prepare(
-                    "SELECT grant_id FROM UserMgnt_UserGrant WHERE user_id = ? AND pg_id = ?"
-                );
-                $check->execute([$userId, $pgId]);
-                $existing = $check->fetchColumn();
+                $existing = $existingGrants[$pgId] ?? null;
 
                 if ($existing) {
                     $pdo->prepare(
@@ -208,10 +224,12 @@ class EarthAdapter extends BaseAdapter
                 }
             }
 
-            Log::info("[earth] syncPermissions {$username} — " . count($grantMap) . " groups updated");
+            Log::info("[earth] syncPermissions {$username} — ".count($grantMap).' groups updated');
+
             return true;
         } catch (PDOException $e) {
-            Log::error("[earth] syncPermissions failed for {$user->username}: " . $e->getMessage() . " | file:" . $e->getFile() . ":" . $e->getLine());
+            Log::error("[earth] syncPermissions failed for {$user->username}: ".$e->getMessage().' | file:'.$e->getFile().':'.$e->getLine());
+
             return false;
         }
     }
@@ -221,7 +239,7 @@ class EarthAdapter extends BaseAdapter
         $username = strtolower($user->username);
 
         try {
-            $pdo    = $this->getConnection();
+            $pdo = $this->getConnection();
             $permMap = $this->buildPermMap();
 
             // กลับ map: group_name+s_id → ucm_key
@@ -233,11 +251,11 @@ class EarthAdapter extends BaseAdapter
             }
 
             $stmt = $pdo->prepare(
-                "SELECT pg.group_name, ug.s_id
+                'SELECT pg.group_name, ug.s_id
                  FROM UserMgnt_UserGrant ug
                  JOIN UserMgnt_PageGroup pg ON pg.pg_id = ug.pg_id
                  JOIN UserMgnt_VerifyUser uv ON uv.user_id = ug.user_id
-                 WHERE uv.username = ?"
+                 WHERE uv.username = ?'
             );
             $stmt->execute([$username]);
             $rows = $stmt->fetchAll();
@@ -245,15 +263,17 @@ class EarthAdapter extends BaseAdapter
             $result = [];
             foreach ($rows as $row) {
                 $groupName = trim($row['group_name']);
-                $sId       = (int) $row['s_id'];
-                $key       = $reverse[$groupName][$sId] ?? null;
+                $sId = (int) $row['s_id'];
+                $key = $reverse[$groupName][$sId] ?? null;
                 if ($key) {
                     $result[] = $key;
                 }
             }
+
             return $result;
         } catch (PDOException $e) {
-            Log::error("[earth] getCurrentPermissions failed for {$user->username}: " . $e->getMessage());
+            Log::error("[earth] getCurrentPermissions failed for {$user->username}: ".$e->getMessage());
+
             return [];
         }
     }
@@ -263,7 +283,7 @@ class EarthAdapter extends BaseAdapter
         $username = strtolower($user->username);
 
         try {
-            $pdo  = $this->getConnection();
+            $pdo = $this->getConnection();
 
             // ตรวจซ้ำ
             if ($this->getUserId($username)) {
@@ -280,11 +300,11 @@ class EarthAdapter extends BaseAdapter
             $stmt->execute([
                 $username,
                 $user->employee_number ?? '',
-                $user->department      ?? '',
-                $user->title           ?? '',
+                $user->department ?? '',
+                $user->title ?? '',
             ]);
             $stmt->nextRowset();
-            $row    = $stmt->fetch();
+            $row = $stmt->fetch();
             $userId = $row ? (int) $row['user_id'] : 0;
 
             // fallback: query โดยตรงถ้า SCOPE_IDENTITY คืน null
@@ -293,12 +313,13 @@ class EarthAdapter extends BaseAdapter
             }
             if (! $userId) {
                 Log::error("[earth] createUser: ไม่สามารถดึง user_id หลัง INSERT สำหรับ {$username}");
+
                 return false;
             }
 
             // สร้าง grant rows สำหรับทุก group
-            $pgIdMap  = $this->getPgIdMap();
-            $permMap  = $this->buildPermMap();
+            $pgIdMap = $this->getPgIdMap();
+            $permMap = $this->buildPermMap();
             $grantMap = $this->resolveGrantMap($permissions, $permMap);
 
             foreach ($grantMap as $groupName => $sId) {
@@ -312,10 +333,12 @@ class EarthAdapter extends BaseAdapter
                 )->execute([$userId, $pgId, $sId]);
             }
 
-            Log::info("[earth] Created user {$username} with " . count($grantMap) . " grants");
+            Log::info("[earth] Created user {$username} with ".count($grantMap).' grants');
+
             return true;
         } catch (PDOException $e) {
-            Log::error("[earth] createUser failed for {$user->username}: " . $e->getMessage());
+            Log::error("[earth] createUser failed for {$user->username}: ".$e->getMessage());
+
             return false;
         }
     }
@@ -325,7 +348,7 @@ class EarthAdapter extends BaseAdapter
         $username = strtolower($user->username);
 
         try {
-            $pdo    = $this->getConnection();
+            $pdo = $this->getConnection();
             $userId = $this->getUserId($username);
             if (! $userId) {
                 return true; // ไม่มี user = ไม่มีอะไรต้อง revoke
@@ -337,9 +360,11 @@ class EarthAdapter extends BaseAdapter
             )->execute([$userId]);
 
             Log::info("[earth] revokeAll {$username} — all grants set to Denied");
+
             return true;
         } catch (PDOException $e) {
-            Log::error("[earth] revokeAll failed for {$user->username}: " . $e->getMessage());
+            Log::error("[earth] revokeAll failed for {$user->username}: ".$e->getMessage());
+
             return false;
         }
     }
@@ -370,17 +395,19 @@ class EarthAdapter extends BaseAdapter
                     continue;
                 }
                 $result[] = [
-                    'username'   => $username,
-                    'name'       => $username,
-                    'email'      => '',
+                    'username' => $username,
+                    'name' => $username,
+                    'email' => '',
                     'department' => $row['department'] ?? '',
-                    'status'     => (bool) ($row['status'] ?? 0),
-                    'in_ucm'     => isset($ucmUsernames[$username]),
+                    'status' => (bool) ($row['status'] ?? 0),
+                    'in_ucm' => isset($ucmUsernames[$username]),
                 ];
             }
+
             return $result;
         } catch (PDOException $e) {
-            Log::error("[earth] getSystemUsers failed: " . $e->getMessage());
+            Log::error('[earth] getSystemUsers failed: '.$e->getMessage());
+
             return [];
         }
     }
@@ -389,13 +416,15 @@ class EarthAdapter extends BaseAdapter
     {
         try {
             $stmt = $this->getConnection()->prepare(
-                "SELECT status FROM UserMgnt_VerifyUser WHERE username = ?"
+                'SELECT status FROM UserMgnt_VerifyUser WHERE username = ?'
             );
             $stmt->execute([strtolower($user->username)]);
             $row = $stmt->fetch();
+
             return $row ? (bool) $row['status'] : null;
         } catch (PDOException $e) {
-            Log::error("[earth] getAccountStatus failed: " . $e->getMessage());
+            Log::error('[earth] getAccountStatus failed: '.$e->getMessage());
+
             return null;
         }
     }
@@ -407,10 +436,12 @@ class EarthAdapter extends BaseAdapter
                 "UPDATE UserMgnt_VerifyUser SET status = ?, modifyDate = GETDATE(), modifyBy = 'UCM' WHERE username = ?"
             )->execute([$active ? 1 : 0, strtolower($user->username)]);
 
-            Log::info("[earth] setAccountStatus {$user->username} → " . ($active ? 'active' : 'disabled'));
+            Log::info("[earth] setAccountStatus {$user->username} → ".($active ? 'active' : 'disabled'));
+
             return true;
         } catch (PDOException $e) {
-            Log::error("[earth] setAccountStatus failed: " . $e->getMessage());
+            Log::error('[earth] setAccountStatus failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -435,7 +466,7 @@ class EarthAdapter extends BaseAdapter
             $pdo = $this->getConnection();
 
             // ตรวจว่า group นี้มีอยู่แล้วหรือไม่
-            $check = $pdo->prepare("SELECT pg_id FROM UserMgnt_PageGroup WHERE group_name = ?");
+            $check = $pdo->prepare('SELECT pg_id FROM UserMgnt_PageGroup WHERE group_name = ?');
             $check->execute([$group]);
             if ($check->fetchColumn()) {
                 // มีแล้ว — ไม่ต้องสร้างใหม่ remote_value ยังเป็น "GroupName:s_id" ตามเดิม
@@ -443,10 +474,10 @@ class EarthAdapter extends BaseAdapter
             }
 
             // หา priority ถัดไป (ต่อท้ายรายการ)
-            $maxPriority = (int) $pdo->query("SELECT ISNULL(MAX(priority), 0) FROM UserMgnt_PageGroup")->fetchColumn();
+            $maxPriority = (int) $pdo->query('SELECT ISNULL(MAX(priority), 0) FROM UserMgnt_PageGroup')->fetchColumn();
 
             $pdo->prepare(
-                "INSERT INTO UserMgnt_PageGroup (group_name, priority) VALUES (?, ?)"
+                'INSERT INTO UserMgnt_PageGroup (group_name, priority) VALUES (?, ?)'
             )->execute([$group, $maxPriority + 10]);
 
             // clear pg_id cache เพื่อให้ getPgIdMap() โหลดค่าใหม่
@@ -454,7 +485,7 @@ class EarthAdapter extends BaseAdapter
 
             Log::info("[earth] provisionPermission: สร้าง PageGroup '{$group}' สำเร็จ");
         } catch (PDOException $e) {
-            Log::error("[earth] provisionPermission failed for group '{$group}': " . $e->getMessage());
+            Log::error("[earth] provisionPermission failed for group '{$group}': ".$e->getMessage());
         }
 
         // remote_value ของ earth ไม่ใช่ pg_id — Controller ยังคงใช้ค่าที่ admin กรอก ("GroupName:s_id")
@@ -476,7 +507,7 @@ class EarthAdapter extends BaseAdapter
         try {
             // นับ permission ที่ยังใช้ group นี้อยู่ (รวม permission ที่กำลังจะถูกลบ)
             $remaining = $this->system->permissions()
-                ->where('remote_value', 'like', $groupName . ':%')
+                ->where('remote_value', 'like', $groupName.':%')
                 ->count();
 
             if ($remaining > 1) {
@@ -486,15 +517,17 @@ class EarthAdapter extends BaseAdapter
 
             // เป็น permission สุดท้ายของกลุ่มนี้ — ลบ PageGroup จาก Earth DB
             $pdo = $this->getConnection();
-            $pdo->prepare("DELETE FROM UserMgnt_PageGroup WHERE group_name = ?")
+            $pdo->prepare('DELETE FROM UserMgnt_PageGroup WHERE group_name = ?')
                 ->execute([$groupName]);
 
             $this->pgIdMap = null; // clear cache
 
             Log::info("[earth] deletePermission: ลบ PageGroup '{$groupName}' สำเร็จ");
+
             return true;
         } catch (PDOException $e) {
-            Log::error("[earth] deletePermission failed for '{$groupName}': " . $e->getMessage());
+            Log::error("[earth] deletePermission failed for '{$groupName}': ".$e->getMessage());
+
             return false;
         }
     }
@@ -503,6 +536,12 @@ class EarthAdapter extends BaseAdapter
     public function supports2WayPermissions(): bool
     {
         return true;
+    }
+
+    /** Earth ลบ PageGroup แบบ hard delete เมื่อ admin ลบ permission ใน UCM */
+    public function getPermissionDeleteMode(): PermissionDeleteMode
+    {
+        return PermissionDeleteMode::Hard;
     }
 
     // ── Managed Group CRUD (UserMgnt_PageGroup) ───────────────────────
@@ -514,7 +553,9 @@ class EarthAdapter extends BaseAdapter
 
     public function getGroupSchema(string $group): array
     {
-        if ($group !== 'PageGroup') return [];
+        if ($group !== 'PageGroup') {
+            return [];
+        }
 
         return [
             'priority' => ['label' => 'Priority', 'type' => 'number', 'required' => true,  'min' => 1, 'placeholder' => 'เช่น 10, 20, 30'],
@@ -524,98 +565,113 @@ class EarthAdapter extends BaseAdapter
 
     public function getGroupRecords(string $group): array
     {
-        if ($group !== 'PageGroup') return [];
+        if ($group !== 'PageGroup') {
+            return [];
+        }
 
         try {
             return $this->getConnection()
-                ->query("SELECT pg_id AS id, group_name AS name, priority, filename FROM UserMgnt_PageGroup ORDER BY priority, pg_id")
+                ->query('SELECT pg_id AS id, group_name AS name, priority, filename FROM UserMgnt_PageGroup ORDER BY priority, pg_id')
                 ->fetchAll();
         } catch (PDOException $e) {
-            Log::error("[earth] getGroupRecords failed: " . $e->getMessage());
+            Log::error('[earth] getGroupRecords failed: '.$e->getMessage());
+
             return [];
         }
     }
 
     public function addGroupRecord(string $group, string $name, array $extra = []): array|false
     {
-        if ($group !== 'PageGroup') return false;
+        if ($group !== 'PageGroup') {
+            return false;
+        }
 
         try {
             $pdo = $this->getConnection();
 
             // ตรวจว่ามีอยู่แล้ว
-            $check = $pdo->prepare("SELECT pg_id, group_name, priority, filename FROM UserMgnt_PageGroup WHERE group_name = ?");
+            $check = $pdo->prepare('SELECT pg_id, group_name, priority, filename FROM UserMgnt_PageGroup WHERE group_name = ?');
             $check->execute([$name]);
             if ($row = $check->fetch()) {
                 return ['id' => (int) $row['pg_id'], 'name' => $row['group_name'], 'priority' => $row['priority'], 'filename' => $row['filename']];
             }
 
-            $maxPriority = (int) $pdo->query("SELECT ISNULL(MAX(priority), 0) FROM UserMgnt_PageGroup")->fetchColumn();
-            $priority    = isset($extra['priority']) ? (int) $extra['priority'] : $maxPriority + 10;
-            $filename    = $extra['filename'] ?? null;
+            $maxPriority = (int) $pdo->query('SELECT ISNULL(MAX(priority), 0) FROM UserMgnt_PageGroup')->fetchColumn();
+            $priority = isset($extra['priority']) ? (int) $extra['priority'] : $maxPriority + 10;
+            $filename = $extra['filename'] ?? null;
 
-            $pdo->prepare("INSERT INTO UserMgnt_PageGroup (group_name, priority, filename) VALUES (?, ?, ?)")
+            $pdo->prepare('INSERT INTO UserMgnt_PageGroup (group_name, priority, filename) VALUES (?, ?, ?)')
                 ->execute([$name, $priority, $filename]);
 
             $id = (int) $pdo->lastInsertId();
             $this->pgIdMap = null;
 
             Log::info("[earth] addGroupRecord: เพิ่ม PageGroup '{$name}' priority={$priority} pg_id={$id}");
+
             return ['id' => $id, 'name' => $name, 'priority' => $priority, 'filename' => $filename];
 
         } catch (PDOException $e) {
-            Log::error("[earth] addGroupRecord('{$name}') failed: " . $e->getMessage());
+            Log::error("[earth] addGroupRecord('{$name}') failed: ".$e->getMessage());
+
             return false;
         }
     }
 
     public function updateGroupRecord(string $group, int $id, string $name, array $extra = []): bool
     {
-        if ($group !== 'PageGroup') return false;
+        if ($group !== 'PageGroup') {
+            return false;
+        }
 
         try {
-            $sets  = ['group_name = ?'];
+            $sets = ['group_name = ?'];
             $binds = [$name];
 
             if (array_key_exists('priority', $extra) && $extra['priority'] !== null) {
-                $sets[]  = 'priority = ?';
+                $sets[] = 'priority = ?';
                 $binds[] = (int) $extra['priority'];
             }
             if (array_key_exists('filename', $extra)) {
-                $sets[]  = 'filename = ?';
+                $sets[] = 'filename = ?';
                 $binds[] = $extra['filename'] ?: null;
             }
 
             $binds[] = $id;
             $this->getConnection()
-                ->prepare("UPDATE UserMgnt_PageGroup SET " . implode(', ', $sets) . " WHERE pg_id = ?")
+                ->prepare('UPDATE UserMgnt_PageGroup SET '.implode(', ', $sets).' WHERE pg_id = ?')
                 ->execute($binds);
 
             $this->pgIdMap = null;
 
             Log::info("[earth] updateGroupRecord: pg_id={$id} → '{$name}'");
+
             return true;
         } catch (PDOException $e) {
-            Log::error("[earth] updateGroupRecord(pg_id={$id}) failed: " . $e->getMessage());
+            Log::error("[earth] updateGroupRecord(pg_id={$id}) failed: ".$e->getMessage());
+
             return false;
         }
     }
 
     public function deleteGroupRecord(string $group, int $id): bool
     {
-        if ($group !== 'PageGroup') return false;
+        if ($group !== 'PageGroup') {
+            return false;
+        }
 
         try {
             $this->getConnection()
-                ->prepare("DELETE FROM UserMgnt_PageGroup WHERE pg_id = ?")
+                ->prepare('DELETE FROM UserMgnt_PageGroup WHERE pg_id = ?')
                 ->execute([$id]);
 
             $this->pgIdMap = null; // clear cache
 
             Log::info("[earth] deleteGroupRecord: pg_id={$id} ลบแล้ว");
+
             return true;
         } catch (PDOException $e) {
-            Log::error("[earth] deleteGroupRecord(pg_id={$id}) failed: " . $e->getMessage());
+            Log::error("[earth] deleteGroupRecord(pg_id={$id}) failed: ".$e->getMessage());
+
             return false;
         }
     }
@@ -630,7 +686,7 @@ class EarthAdapter extends BaseAdapter
 
         try {
             $rows = $this->getConnection()
-                ->query("SELECT group_name FROM UserMgnt_PageGroup ORDER BY priority, pg_id")
+                ->query('SELECT group_name FROM UserMgnt_PageGroup ORDER BY priority, pg_id')
                 ->fetchAll();
 
             $this->system->loadMissing('permissions');
@@ -647,12 +703,12 @@ class EarthAdapter extends BaseAdapter
                     continue;
                 }
 
-                $slug    = preg_replace('/[^a-z0-9]/', '_', strtolower($groupName));
-                $base    = $sortBase + ($i * 10);
+                $slug = preg_replace('/[^a-z0-9]/', '_', strtolower($groupName));
+                $base = $sortBase + ($i * 10);
 
-                $editKey = $slug . '_edit';
-                $readKey = $slug . '_read';
-                $denyKey = $slug . '_deny';
+                $editKey = $slug.'_edit';
+                $readKey = $slug.'_read';
+                $denyKey = $slug.'_deny';
 
                 SystemPermission::firstOrCreate(
                     ['system_id' => $this->system->id, 'key' => $editKey],
@@ -673,7 +729,7 @@ class EarthAdapter extends BaseAdapter
                 Log::info("[earth] Discovered group: {$groupName} → {$editKey}, {$readKey}, {$denyKey}");
             }
         } catch (PDOException $e) {
-            Log::error("[earth] discoverPermissions failed: " . $e->getMessage());
+            Log::error('[earth] discoverPermissions failed: '.$e->getMessage());
         }
 
         return $created;

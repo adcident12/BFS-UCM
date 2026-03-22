@@ -117,6 +117,15 @@ interface SystemAdapterInterface
      */
     public function supports2WayPermissions(): bool;
 
+    /**
+     * วิธีลบ permission definition ในระบบภายนอกเมื่อ admin ลบ permission ใน UCM
+     *
+     * Hard       = DELETE FROM definition table
+     * Soft       = UPDATE definition table SET deleted_col = val
+     * DetachOnly = ไม่แตะ definition table เลย (ลบเฉพาะใน UCM)
+     */
+    public function getPermissionDeleteMode(): \App\Enums\PermissionDeleteMode;
+
     // ── Managed Group CRUD ─────────────────────────────────────────────────
     // Adapter ที่มีตาราง reference (เช่น departments, document_categories) สามารถ
     // expose ตารางเหล่านั้นให้ UCM จัดการ CRUD ได้โดยตรง

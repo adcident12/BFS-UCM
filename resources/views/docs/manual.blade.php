@@ -654,17 +654,42 @@ $sections = [
                     <h3 class="font-bold text-slate-900 mb-3">ระบบที่รองรับ 2-way</h3>
                     <div class="space-y-2 text-xs">
                         @foreach ([
-                            ['Earth', 'ใช่', 'สร้าง PageGroup เมื่อเพิ่ม / ลบ PageGroup เมื่อลบ Permission สุดท้ายของ group (จัดการ PageGroup ได้ผ่าน Managed Groups ด้วย)', 'bg-emerald-50 border-emerald-200 text-emerald-800'],
-                            ['EFiling', 'ใช่', 'สร้าง Department/Document Category เมื่อเพิ่ม / ลบเมื่อลบ (จัดการผ่าน Managed Groups ด้วย)', 'bg-emerald-50 border-emerald-200 text-emerald-800'],
-                            ['Repair System', 'ไม่', 'ไม่มี permission definition table — Toggle จะไม่ปรากฏ', 'bg-slate-50 border-slate-200 text-slate-600'],
-                            ['ระบบไม่มี Adapter', 'ไม่', 'บันทึกใน UCM เท่านั้น', 'bg-slate-50 border-slate-200 text-slate-600'],
-                        ] as [$sys, $supported, $desc, $cls])
+                            ['Earth', 'ใช่', 'Hard Delete', 'สร้าง PageGroup เมื่อเพิ่ม / ลบ PageGroup เมื่อลบ Permission สุดท้ายของ group (จัดการ PageGroup ได้ผ่าน Managed Groups ด้วย)', 'bg-emerald-50 border-emerald-200 text-emerald-800'],
+                            ['EFiling', 'ใช่', 'Hard Delete', 'สร้าง Department/Document Category เมื่อเพิ่ม / ลบเมื่อลบ (จัดการผ่าน Managed Groups ด้วย)', 'bg-emerald-50 border-emerald-200 text-emerald-800'],
+                            ['DynamicAdapter (Connector Wizard)', 'ทางเลือก', 'ตาม Wizard', 'เปิดใช้ได้ใน Step 5 ของ Wizard — รองรับ Hard Delete, Soft Delete และ Detach Only ตามที่ตั้งค่า', 'bg-orange-50 border-orange-200 text-orange-800'],
+                            ['Repair System', 'ไม่', '—', 'ไม่มี permission definition table — Toggle จะไม่ปรากฏ', 'bg-slate-50 border-slate-200 text-slate-600'],
+                            ['ระบบไม่มี Adapter', 'ไม่', '—', 'บันทึกใน UCM เท่านั้น', 'bg-slate-50 border-slate-200 text-slate-600'],
+                        ] as [$sys, $supported, $deleteMode, $desc, $cls])
                         <div class="flex items-start gap-3 p-3 rounded-xl border {{ $cls }}">
-                            <div class="w-24 font-bold flex-shrink-0">{{ $sys }}</div>
-                            <div class="w-8 flex-shrink-0">{{ $supported === 'ใช่' ? '✅' : '—' }}</div>
+                            <div class="w-40 font-bold flex-shrink-0">{{ $sys }}</div>
+                            <div class="w-16 flex-shrink-0">{{ $supported === 'ใช่' || $supported === 'ทางเลือก' ? '✅ ' . $supported : '—' }}</div>
+                            <div class="w-24 flex-shrink-0 font-mono text-[10px]">{{ $deleteMode }}</div>
                             <div>{{ $desc }}</div>
                         </div>
                         @endforeach
+                    </div>
+                </div>
+
+                {{-- Delete Mode --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">Permission Delete Mode</h3>
+                    <p class="text-xs text-slate-600 mb-3">กำหนดพฤติกรรมเมื่อ Admin ลบ Permission Definition ใน UCM (เฉพาะระบบที่เปิด 2-Way ON)</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">Detach Only</span>
+                                <span class="text-[10px] text-slate-400 font-medium">ค่าเริ่มต้น</span>
+                            </div>
+                            <p class="text-slate-600 leading-relaxed">ลบออกจาก UCM เท่านั้น — ข้อมูลในฐานข้อมูลปลายทางไม่ถูกแตะต้อง</p>
+                        </div>
+                        <div class="p-3.5 bg-red-50 rounded-xl border border-red-200">
+                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 mb-2">Hard Delete</span>
+                            <p class="text-red-800 leading-relaxed">ลบแถวออกจากตาราง Permission Definition ในฐานข้อมูลปลายทางถาวร</p>
+                        </div>
+                        <div class="p-3.5 bg-amber-50 rounded-xl border border-amber-200">
+                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 mb-2">Soft Delete</span>
+                            <p class="text-amber-800 leading-relaxed">อัปเดตคอลัมน์ที่ระบุ (เช่น <code class="font-mono bg-white px-0.5 rounded">is_active = 0</code>) แทนการลบจริง</p>
+                        </div>
                     </div>
                 </div>
 
@@ -870,8 +895,22 @@ $sections = [
             </div>
             <div class="px-6 py-5 space-y-6 text-sm text-slate-700 leading-relaxed">
 
+                {{-- TOC ภายใน --}}
+                <div class="flex flex-wrap gap-2 text-[11px]">
+                    @foreach ([
+                        ['href' => '#wiz-intro',    'label' => 'คืออะไร'],
+                        ['href' => '#wiz-prereq',   'label' => 'ก่อนเริ่ม'],
+                        ['href' => '#wiz-steps',    'label' => '6 ขั้นตอน'],
+                        ['href' => '#wiz-perm-mode','label' => 'เลือก Permission Mode'],
+                        ['href' => '#wiz-2way',     'label' => '2-Way Sync & Delete Mode'],
+                        ['href' => '#wiz-after',    'label' => 'หลังสร้างแล้ว'],
+                    ] as $t)
+                    <a href="{{ $t['href'] }}" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors font-medium">{{ $t['label'] }}</a>
+                    @endforeach
+                </div>
+
                 {{-- คืออะไร --}}
-                <div>
+                <div id="wiz-intro">
                     <p><strong class="text-slate-900">Connector Wizard</strong> คือเครื่องมือที่ช่วยให้ Admin ระดับ 2 สามารถเชื่อมต่อฐานข้อมูลของระบบภายนอก (เช่น ระบบซ่อมบำรุง, ระบบ HR, ระบบจัดการเอกสาร) เข้ากับ UCM ได้ <strong>โดยไม่ต้องเขียนโค้ด PHP</strong> เพียงกรอกข้อมูลผ่านหน้า Wizard แบบ Step-by-Step</p>
 
                     <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -893,9 +932,9 @@ $sections = [
                     </div>
                 </div>
 
-                {{-- วิธีเปิดใช้งาน --}}
-                <div class="border-t border-slate-100 pt-5">
-                    <h3 class="font-bold text-slate-900 mb-3">วิธีเข้าใช้งาน</h3>
+                {{-- ก่อนเริ่ม --}}
+                <div id="wiz-prereq" class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-3">ก่อนเริ่ม: สิ่งที่ต้องเตรียม</h3>
                     <p class="text-slate-600 mb-3">ไปที่เมนู <strong>ผู้ดูแลระบบ → Connector Wizard</strong> ในแถบเมนูด้านซ้าย (ต้องเป็น Admin ระดับ 2 เท่านั้น)</p>
                     <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
                         <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
@@ -903,9 +942,9 @@ $sections = [
                     </div>
                 </div>
 
-                {{-- 5 ขั้นตอน --}}
-                <div class="border-t border-slate-100 pt-5">
-                    <h3 class="font-bold text-slate-900 mb-4">5 ขั้นตอนของ Wizard</h3>
+                {{-- 6 ขั้นตอน --}}
+                <div id="wiz-steps" class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-4">6 ขั้นตอนของ Wizard</h3>
                     <div class="space-y-4">
 
                         {{-- Step 1 --}}
@@ -999,11 +1038,62 @@ $sections = [
                         </div>
 
                         {{-- Step 5 --}}
+                        <div class="flex gap-4 p-4 bg-orange-50 rounded-xl border border-orange-100">
+                            <div class="w-8 h-8 bg-orange-500 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">5</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <p class="font-bold text-slate-900">2-Way Permission Sync</p>
+                                    <span class="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">ทางเลือก</span>
+                                </div>
+                                <p class="text-slate-600 text-xs leading-relaxed mb-3">เปิดใช้ <strong>2-Way Sync</strong> เพื่อให้ UCM สร้าง/ลบ Permission Definition ในฐานข้อมูลปลายทางโดยอัตโนมัติเมื่อ Admin เพิ่มหรือลบ Permission ใน UCM</p>
+
+                                {{-- Enable toggle --}}
+                                <div class="bg-white rounded-xl border border-orange-200 p-3 mb-3 text-xs">
+                                    <p class="font-semibold text-slate-800 mb-2">การเปิดใช้งาน 2-Way Sync</p>
+                                    <div class="space-y-1.5 text-slate-600">
+                                        <div class="flex items-start gap-2">
+                                            <span class="inline-block w-3 h-3 rounded-full bg-orange-400 mt-0.5 flex-shrink-0"></span>
+                                            <p>สลับ Toggle <strong>"เปิด 2-Way Sync"</strong> ให้เป็น ON</p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <span class="inline-block w-3 h-3 rounded-full bg-orange-400 mt-0.5 flex-shrink-0"></span>
+                                            <p>เลือก <strong>ตาราง Permission Definition</strong> — ตารางในระบบปลายทางที่เก็บนิยามของสิทธิ์ เช่น <code class="font-mono bg-slate-100 px-1 rounded">roles</code>, <code class="font-mono bg-slate-100 px-1 rounded">page_groups</code></p>
+                                        </div>
+                                        <div class="flex items-start gap-2">
+                                            <span class="inline-block w-3 h-3 rounded-full bg-orange-400 mt-0.5 flex-shrink-0"></span>
+                                            <p>Map คอลัมน์: <strong>Value (บังคับ)</strong>, Primary Key, Label, Group (ไม่บังคับ)</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Delete Mode --}}
+                                <div class="bg-white rounded-xl border border-orange-200 p-3 text-xs">
+                                    <p class="font-semibold text-slate-800 mb-2">Delete Mode — พฤติกรรมเมื่อลบ Permission</p>
+                                    <div class="space-y-2">
+                                        <div class="flex items-start gap-2 p-2 bg-slate-50 rounded-lg border border-slate-100">
+                                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700 flex-shrink-0 mt-0.5">Detach Only</span>
+                                            <p class="text-slate-600">ลบ Permission จาก UCM เท่านั้น — ไม่แตะข้อมูลในฐานข้อมูลปลายทาง</p>
+                                        </div>
+                                        <div class="flex items-start gap-2 p-2 bg-red-50 rounded-lg border border-red-100">
+                                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 flex-shrink-0 mt-0.5">Hard Delete</span>
+                                            <p class="text-slate-600">ลบแถวออกจากตาราง Permission Definition ในฐานข้อมูลปลายทางถาวร</p>
+                                        </div>
+                                        <div class="flex items-start gap-2 p-2 bg-amber-50 rounded-lg border border-amber-100">
+                                            <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 flex-shrink-0 mt-0.5">Soft Delete</span>
+                                            <p class="text-slate-600">อัปเดตคอลัมน์ flag (เช่น <code class="font-mono bg-white px-1 rounded border border-slate-200">is_active = 0</code>) แทนการลบจริง</p>
+                                        </div>
+                                    </div>
+                                    <p class="mt-2 text-slate-500">→ ดูตัวอย่างแต่ละ mode อย่างละเอียดได้ที่ <a href="#wiz-2way" class="text-indigo-600 underline">2-Way Sync &amp; Delete Mode</a></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Step 6 --}}
                         <div class="flex gap-4 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
-                            <div class="w-8 h-8 bg-emerald-600 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">5</div>
+                            <div class="w-8 h-8 bg-emerald-600 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">6</div>
                             <div class="flex-1">
                                 <p class="font-bold text-slate-900 mb-1">ยืนยันการสร้าง Connector</p>
-                                <p class="text-slate-600 text-xs leading-relaxed">ตรวจสอบข้อมูลสรุปทั้งหมด — ชื่อระบบ, DB Connection, User Table Mapping และ Permission Mode จากนั้นกด <strong>"สร้าง Connector"</strong></p>
+                                <p class="text-slate-600 text-xs leading-relaxed">ตรวจสอบข้อมูลสรุปทั้งหมด — ชื่อระบบ, DB Connection, User Table Mapping, Permission Mode และ 2-Way Sync config จากนั้นกด <strong>"สร้าง Connector"</strong></p>
                                 <div class="mt-2 text-xs text-emerald-700 bg-white border border-emerald-200 px-3 py-2 rounded-lg">
                                     หลังสร้างสำเร็จ ระบบจะสร้าง <strong>System</strong> ใหม่ใน UCM พร้อม <strong>DynamicAdapter</strong> และ redirect ไปยังหน้าจัดการระบบโดยอัตโนมัติ
                                 </div>
@@ -1013,8 +1103,299 @@ $sections = [
                     </div>
                 </div>
 
+                {{-- เลือก Permission Mode --}}
+                <div id="wiz-perm-mode" class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-1">เลือก Permission Mode (Step 4)</h3>
+                    <p class="text-xs text-slate-500 mb-4">เปรียบเทียบ 3 รูปแบบก่อนตัดสินใจ จากนั้นดูตัวอย่างโครงสร้าง DB และการตั้งค่าของแต่ละ Mode</p>
+
+                    {{-- ตารางเปรียบเทียบ --}}
+                    <div class="rounded-2xl border border-slate-200 overflow-hidden mb-6">
+                        <div class="px-5 py-3 bg-slate-50 border-b border-slate-200">
+                            <p class="font-bold text-slate-800 text-sm">สรุปเปรียบเทียบ 3 Permission Mode</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead class="bg-slate-50 border-b border-slate-200">
+                                    <tr>
+                                        <th class="text-left px-4 py-2.5 font-semibold text-slate-700">ประเด็น</th>
+                                        <th class="text-left px-4 py-2.5 font-semibold text-indigo-700">🔗 Junction Table</th>
+                                        <th class="text-left px-4 py-2.5 font-semibold text-violet-700">📋 Single Column</th>
+                                        <th class="text-left px-4 py-2.5 font-semibold text-amber-700">✍️ Manual</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @foreach ([
+                                        ['label' => 'ตาราง permission', 'j' => 'ตารางแยกต่างหาก', 'sc' => 'คอลัมน์บนตาราง users', 'm' => 'ไม่มี'],
+                                        ['label' => 'หลาย role ต่อ user', 'j' => '✅ ได้', 'sc' => '❌ ได้แค่ 1 ค่า', 'm' => '✅ ได้'],
+                                        ['label' => 'UCM sync ไปปลายทาง', 'j' => 'INSERT / DELETE แถว', 'sc' => 'UPDATE คอลัมน์', 'm' => 'ไม่ sync (pull จาก API)'],
+                                        ['label' => 'Discover Permissions', 'j' => '✅ ดึง value อัตโนมัติ', 'sc' => '✅ ดึง value อัตโนมัติ', 'm' => '❌ กรอก JSON เอง'],
+                                        ['label' => 'เหมาะกับ', 'j' => 'ระบบ RBAC / multi-role', 'sc' => 'ระบบ single-role เรียบง่าย', 'm' => 'ระบบที่ตรวจสิทธิ์ผ่าน API'],
+                                    ] as $row)
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="px-4 py-2.5 font-medium text-slate-700">{{ $row['label'] }}</td>
+                                        <td class="px-4 py-2.5 text-slate-600">{{ $row['j'] }}</td>
+                                        <td class="px-4 py-2.5 text-slate-600">{{ $row['sc'] }}</td>
+                                        <td class="px-4 py-2.5 text-slate-600">{{ $row['m'] }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- ── Example 1: Junction Table ── --}}
+                    <div class="mb-4 rounded-2xl border border-indigo-200 overflow-hidden">
+                        <div class="flex items-center gap-3 px-5 py-3 bg-indigo-50 border-b border-indigo-200">
+                            <span class="text-xl">🔗</span>
+                            <div>
+                                <p class="font-bold text-indigo-900 text-sm">Junction Table — ระบบซ่อมบำรุง (MySQL)</p>
+                                <p class="text-xs text-indigo-600">ผู้ใช้มีได้หลาย role พร้อมกัน เก็บในตารางแยกต่างหาก</p>
+                            </div>
+                            <span class="ml-auto text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">แนะนำ</span>
+                        </div>
+                        <div class="px-5 py-4 bg-white text-xs space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 font-mono text-[11px] leading-relaxed">
+                                    <p class="font-bold text-slate-500 mb-1 not-italic font-sans">ตาราง <code>employees</code></p>
+                                    <p><span class="text-sky-600">emp_code</span>    VARCHAR(20) PK</p>
+                                    <p><span class="text-slate-500">full_name</span>  VARCHAR(100)</p>
+                                    <p><span class="text-slate-500">email</span>      VARCHAR(100)</p>
+                                    <p><span class="text-slate-500">department</span> VARCHAR(50)</p>
+                                    <p><span class="text-slate-500">is_active</span>  TINYINT (1=ใช้งาน)</p>
+                                </div>
+                                <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 font-mono text-[11px] leading-relaxed">
+                                    <p class="font-bold text-slate-500 mb-1 not-italic font-sans">ตาราง <code>employee_roles</code></p>
+                                    <p><span class="text-sky-600">emp_code</span>    VARCHAR(20) FK→employees</p>
+                                    <p><span class="text-indigo-600">role_code</span>  VARCHAR(50) <span class="text-slate-400">(ค่าสิทธิ์)</span></p>
+                                    <p><span class="text-slate-500">role_name</span>  VARCHAR(100)</p>
+                                    <p><span class="text-slate-500">role_group</span> VARCHAR(50)</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 p-3 bg-indigo-50 rounded-xl border border-indigo-200">
+                                <div class="w-6 h-6 bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">4</div>
+                                <div>
+                                    <p class="font-semibold text-indigo-900 mb-1">Permission Mode → Junction Table</p>
+                                    <div class="space-y-0.5 text-slate-700">
+                                        <p><span class="text-slate-400">ตาราง Permission:</span> <code class="bg-white border border-indigo-200 px-1 rounded">employee_roles</code></p>
+                                        <p><span class="text-slate-400">FK Column:</span> <code class="bg-white border border-indigo-200 px-1 rounded">emp_code</code></p>
+                                        <p><span class="text-slate-400">Value Column:</span> <code class="bg-white border border-indigo-200 px-1 rounded">role_code</code> <span class="text-slate-400 text-[10px]">— ค่าที่ sync: TECH_LEAD, INSPECTOR</span></p>
+                                        <p><span class="text-slate-400">Label Column:</span> <code class="bg-white border border-indigo-200 px-1 rounded">role_name</code></p>
+                                        <p><span class="text-slate-400">Group Column:</span> <code class="bg-white border border-indigo-200 px-1 rounded">role_group</code></p>
+                                    </div>
+                                    <p class="mt-1.5 text-slate-600">Step 3 → ตาราง Users: <code class="bg-white border border-slate-200 px-1 rounded">employees</code>, Identifier: <code class="bg-white border border-slate-200 px-1 rounded">emp_code</code></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ── Example 2: Single Column ── --}}
+                    <div class="mb-4 rounded-2xl border border-violet-200 overflow-hidden">
+                        <div class="flex items-center gap-3 px-5 py-3 bg-violet-50 border-b border-violet-200">
+                            <span class="text-xl">📋</span>
+                            <div>
+                                <p class="font-bold text-violet-900 text-sm">Single Column — ระบบ HR (PostgreSQL)</p>
+                                <p class="text-xs text-violet-600">ผู้ใช้มีได้เพียง 1 role เก็บเป็นคอลัมน์บนตาราง users โดยตรง</p>
+                            </div>
+                        </div>
+                        <div class="px-5 py-4 bg-white text-xs space-y-3">
+                            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 font-mono text-[11px] leading-relaxed">
+                                <p class="font-bold text-slate-500 mb-1 not-italic font-sans">ตาราง <code>staff</code></p>
+                                <p><span class="text-sky-600">username</span>      VARCHAR(50) UNIQUE</p>
+                                <p><span class="text-slate-500">display_name</span> VARCHAR(100)</p>
+                                <p><span class="text-indigo-600">access_level</span> VARCHAR(20) <span class="text-slate-400">— 'ADMIN' | 'MANAGER' | 'VIEWER'</span></p>
+                                <p><span class="text-slate-500">department</span>   VARCHAR(50)</p>
+                                <p><span class="text-slate-500">active</span>       BOOLEAN (TRUE=ใช้งาน)</p>
+                            </div>
+                            <div class="flex gap-3 p-3 bg-violet-50 rounded-xl border border-violet-200">
+                                <div class="w-6 h-6 bg-violet-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">4</div>
+                                <div>
+                                    <p class="font-semibold text-violet-900 mb-1">Permission Mode → Single Column</p>
+                                    <div class="space-y-0.5 text-slate-700">
+                                        <p><span class="text-slate-400">ตาราง Permission:</span> <code class="bg-white border border-violet-200 px-1 rounded">staff</code> <span class="text-slate-400 text-[10px]">— ตารางเดียวกับ Users</span></p>
+                                        <p><span class="text-slate-400">FK Column:</span> <code class="bg-white border border-violet-200 px-1 rounded">username</code></p>
+                                        <p><span class="text-slate-400">Value Column:</span> <code class="bg-white border border-violet-200 px-1 rounded">access_level</code> <span class="text-slate-400 text-[10px]">— ค่า: ADMIN, MANAGER, VIEWER</span></p>
+                                    </div>
+                                    <div class="mt-2 p-2 bg-white rounded-lg border border-violet-100 text-slate-600">
+                                        <strong>UCM sync:</strong> อัปเดต <code class="bg-violet-50 px-1 rounded">staff.access_level</code> ของผู้ใช้ให้ตรงกับ permission ที่ assigned ใน UCM
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ── Example 3: Manual ── --}}
+                    <div class="rounded-2xl border border-amber-200 overflow-hidden">
+                        <div class="flex items-center gap-3 px-5 py-3 bg-amber-50 border-b border-amber-200">
+                            <span class="text-xl">✍️</span>
+                            <div>
+                                <p class="font-bold text-amber-900 text-sm">Manual — Reporting Portal (MySQL)</p>
+                                <p class="text-xs text-amber-700">ไม่มีตาราง permission ในฐานข้อมูล ตรวจสอบสิทธิ์ผ่าน UCM API โดยตรง</p>
+                            </div>
+                        </div>
+                        <div class="px-5 py-4 bg-white text-xs space-y-3">
+                            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 font-mono text-[11px] leading-relaxed">
+                                <p class="font-bold text-slate-500 mb-1 not-italic font-sans">ตาราง <code>portal_users</code></p>
+                                <p><span class="text-sky-600">login_name</span> VARCHAR(50) UNIQUE</p>
+                                <p><span class="text-slate-500">full_name</span>  VARCHAR(100)</p>
+                                <p><span class="text-slate-500">dept_code</span>  VARCHAR(20)</p>
+                                <p><span class="text-amber-600 text-[10px]">-- ไม่มีตาราง permission -- ระบบดึงสิทธิ์จาก UCM API --</span></p>
+                            </div>
+                            <div class="flex gap-3 p-3 bg-amber-50 rounded-xl border border-amber-200">
+                                <div class="w-6 h-6 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">4</div>
+                                <div class="w-full">
+                                    <p class="font-semibold text-amber-900 mb-2">Permission Mode → Manual (กรอก JSON)</p>
+                                    <div class="bg-slate-900 rounded-xl p-3 font-mono text-[11px] text-emerald-300 leading-relaxed overflow-x-auto">
+                                        <p>[</p>
+                                        <p>&nbsp;&nbsp;{"{"}"key": "VIEW_REPORT",&nbsp;&nbsp;"label": "ดูรายงาน",&nbsp;&nbsp;&nbsp;"group": "รายงาน"{"}"} ,</p>
+                                        <p>&nbsp;&nbsp;{"{"}"key": "EXPORT_DATA",&nbsp;"label": "ส่งออกข้อมูล","group": "รายงาน"{"}"} ,</p>
+                                        <p>&nbsp;&nbsp;{"{"}"key": "MANAGE_DASH",&nbsp;&nbsp;"label": "จัดการ Dashboard","group": "ผู้ดูแล"{"}"}</p>
+                                        <p>]</p>
+                                    </div>
+                                    <div class="mt-2 p-2 bg-amber-100 rounded-lg border border-amber-200 text-amber-800">
+                                        UCM <strong>ไม่ส่ง</strong> ค่าเหล่านี้ไปยังฐานข้อมูลปลายทาง — Reporting Portal ต้อง query UCM API เองเพื่อตรวจสอบสิทธิ์
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+                                <p class="font-semibold text-slate-700 mb-2">ตัวอย่าง API call จาก Reporting Portal</p>
+                                <div class="bg-slate-900 rounded-xl p-3 font-mono text-[11px] text-sky-300 leading-relaxed overflow-x-auto">
+                                    <p>GET /api/users/{"{"}username{"}"}/permissions?system=reporting-portal</p>
+                                    <p>Authorization: Bearer &lt;UCM_API_TOKEN&gt;</p>
+                                    <br/>
+                                    <p><span class="text-slate-400">// Response</span></p>
+                                    <p>{"{"} "permissions": ["VIEW_REPORT", "EXPORT_DATA"] {"}"}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 2-Way Sync & Delete Mode --}}
+                <div id="wiz-2way" class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-1">2-Way Sync &amp; Delete Mode (Step 5)</h3>
+                    <p class="text-xs text-slate-500 mb-4">เปิด 2-Way Sync เมื่อต้องการให้ UCM สร้าง/ลบ Permission Definition ในฐานข้อมูลปลายทางโดยอัตโนมัติ — เลือก Delete Mode ตามนโยบายของระบบ</p>
+
+                    {{-- Enable toggle guide --}}
+                    <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 text-xs mb-4">
+                        <p class="font-semibold text-slate-800 mb-2">การเปิดใช้งาน 2-Way Sync</p>
+                        <div class="space-y-1.5 text-slate-600">
+                            <div class="flex items-start gap-2">
+                                <span class="inline-block w-3 h-3 rounded-full bg-orange-400 mt-0.5 flex-shrink-0"></span>
+                                <p>สลับ Toggle <strong>"เปิด 2-Way Sync"</strong> ให้เป็น ON</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="inline-block w-3 h-3 rounded-full bg-orange-400 mt-0.5 flex-shrink-0"></span>
+                                <p>เลือก <strong>ตาราง Permission Definition</strong> — ตารางในระบบปลายทางที่เก็บนิยามของสิทธิ์ เช่น <code class="font-mono bg-white px-1 rounded border border-slate-200">roles</code></p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="inline-block w-3 h-3 rounded-full bg-orange-400 mt-0.5 flex-shrink-0"></span>
+                                <p>Map คอลัมน์: <strong>Value (บังคับ)</strong>, Primary Key, Label, Group (ไม่บังคับ)</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="inline-block w-3 h-3 rounded-full bg-orange-400 mt-0.5 flex-shrink-0"></span>
+                                <p>เลือก <strong>Delete Mode</strong> — พฤติกรรมเมื่อ Admin ลบ Permission ใน UCM (ดูตัวอย่างด้านล่าง)</p>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-slate-500">หากปิด 2-Way Sync: UCM ลบ permission ออกจากตัวเองเท่านั้น (Detach Only) — ไม่แตะฐานข้อมูลปลายทาง</p>
+                    </div>
+
+                    {{-- Delete Mode Examples --}}
+                    <div class="space-y-4">
+
+                        {{-- Detach Only --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-2 px-4 py-2.5 bg-slate-100 border-b border-slate-200">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700">Detach Only</span>
+                                <span class="text-xs text-slate-500">— ลบเฉพาะใน UCM ไม่แตะ remote DB</span>
+                            </div>
+                            <div class="px-4 py-3 text-xs space-y-2 bg-white">
+                                <p class="text-slate-600"><strong>สถานการณ์:</strong> ทีม DBA จัดการตาราง <code class="bg-slate-100 px-1 rounded">roles</code> โดยตรง UCM แค่ "รู้จัก" permission เหล่านั้นเพื่อ assign ให้ user</p>
+                                <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-200 space-y-1">
+                                    <p class="text-slate-600"><span class="text-slate-400">ตาราง Perm Def:</span> <code class="bg-white border border-slate-200 px-1 rounded">roles</code></p>
+                                    <p class="text-slate-600"><span class="text-slate-400">Value Column:</span> <code class="bg-white border border-slate-200 px-1 rounded">role_code</code></p>
+                                    <p class="text-slate-600"><span class="text-slate-400">Delete Mode:</span> <span class="font-semibold">Detach Only</span></p>
+                                </div>
+                                <div class="flex gap-4 text-[11px]">
+                                    <div class="flex-1 bg-indigo-50 rounded-lg p-2 border border-indigo-100">
+                                        <p class="font-semibold text-indigo-800 mb-1">Admin <span class="text-emerald-700">เพิ่ม</span> permission</p>
+                                        <p class="text-indigo-700">UCM INSERT แถวใหม่ใน <code class="bg-white px-1 rounded">roles</code> ของ remote DB</p>
+                                    </div>
+                                    <div class="flex-1 bg-slate-50 rounded-lg p-2 border border-slate-200">
+                                        <p class="font-semibold text-slate-700 mb-1">Admin <span class="text-red-600">ลบ</span> permission</p>
+                                        <p class="text-slate-600">ลบออกจาก UCM เท่านั้น — <code class="bg-white px-1 rounded">roles</code> ใน remote DB <strong>ยังอยู่ครบ</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Hard Delete --}}
+                        <div class="rounded-2xl border border-red-200 overflow-hidden">
+                            <div class="flex items-center gap-2 px-4 py-2.5 bg-red-50 border-b border-red-200">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700">Hard Delete</span>
+                                <span class="text-xs text-red-600">— ลบถาวรทั้งใน UCM และ remote DB</span>
+                            </div>
+                            <div class="px-4 py-3 text-xs space-y-2 bg-white">
+                                <p class="text-slate-600"><strong>สถานการณ์:</strong> ระบบ Document Management มีตาราง <code class="bg-slate-100 px-1 rounded">document_categories</code> — ต้องการให้ UCM เป็น single source of truth</p>
+                                <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-200 space-y-1">
+                                    <p class="text-slate-600"><span class="text-slate-400">ตาราง Perm Def:</span> <code class="bg-white border border-slate-200 px-1 rounded">document_categories</code></p>
+                                    <p class="text-slate-600"><span class="text-slate-400">Value Column:</span> <code class="bg-white border border-slate-200 px-1 rounded">category_code</code></p>
+                                    <p class="text-slate-600"><span class="text-slate-400">PK Column:</span> <code class="bg-white border border-slate-200 px-1 rounded">id</code></p>
+                                    <p class="text-slate-600"><span class="text-slate-400">Label Column:</span> <code class="bg-white border border-slate-200 px-1 rounded">category_name</code></p>
+                                    <p class="text-slate-600"><span class="text-slate-400">Delete Mode:</span> <span class="font-semibold text-red-700">Hard Delete</span></p>
+                                </div>
+                                <div class="flex gap-4 text-[11px]">
+                                    <div class="flex-1 bg-indigo-50 rounded-lg p-2 border border-indigo-100">
+                                        <p class="font-semibold text-indigo-800 mb-1">Admin <span class="text-emerald-700">เพิ่ม</span> permission</p>
+                                        <p class="text-indigo-700">UCM INSERT แถวใหม่ใน <code class="bg-white px-1 rounded">document_categories</code></p>
+                                    </div>
+                                    <div class="flex-1 bg-red-50 rounded-lg p-2 border border-red-200">
+                                        <p class="font-semibold text-red-800 mb-1">Admin <span class="text-red-600">ลบ</span> permission</p>
+                                        <p class="text-red-700"><code class="bg-white px-1 rounded">DELETE FROM document_categories WHERE category_code = ?</code> — ลบถาวร</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2 p-2 bg-red-50 border border-red-200 rounded-lg text-red-800">
+                                    <svg class="w-3.5 h-3.5 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    <span>ข้อมูลที่ลบด้วย Hard Delete <strong>ไม่สามารถกู้คืนได้</strong> ควรใช้เฉพาะเมื่อไม่มี foreign key ชี้มาที่แถวนั้น</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Soft Delete --}}
+                        <div class="rounded-2xl border border-amber-200 overflow-hidden">
+                            <div class="flex items-center gap-2 px-4 py-2.5 bg-amber-50 border-b border-amber-200">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">Soft Delete</span>
+                                <span class="text-xs text-amber-700">— ซ่อนใน remote DB โดยอัปเดตคอลัมน์ flag</span>
+                            </div>
+                            <div class="px-4 py-3 text-xs space-y-2 bg-white">
+                                <p class="text-slate-600"><strong>สถานการณ์:</strong> ระบบ ERP มีตาราง <code class="bg-slate-100 px-1 rounded">access_rights</code> ที่ต้องการ Audit Trail — แทนที่จะลบแถว จะ set <code class="bg-slate-100 px-1 rounded">is_active = 0</code></p>
+                                <div class="bg-slate-50 rounded-lg p-2.5 border border-slate-200 space-y-1">
+                                    <p class="text-slate-600"><span class="text-slate-400">ตาราง Perm Def:</span> <code class="bg-white border border-slate-200 px-1 rounded">access_rights</code></p>
+                                    <p class="text-slate-600"><span class="text-slate-400">Value Column:</span> <code class="bg-white border border-slate-200 px-1 rounded">right_code</code></p>
+                                    <p class="text-slate-600"><span class="text-slate-400">Delete Mode:</span> <span class="font-semibold text-amber-700">Soft Delete</span></p>
+                                    <p class="text-slate-600"><span class="text-slate-400">Soft Delete Column:</span> <code class="bg-white border border-slate-200 px-1 rounded">is_active</code></p>
+                                    <p class="text-slate-600"><span class="text-slate-400">Soft Delete Value:</span> <code class="bg-white border border-slate-200 px-1 rounded">0</code></p>
+                                </div>
+                                <div class="flex gap-4 text-[11px]">
+                                    <div class="flex-1 bg-indigo-50 rounded-lg p-2 border border-indigo-100">
+                                        <p class="font-semibold text-indigo-800 mb-1">Admin <span class="text-emerald-700">เพิ่ม</span> permission</p>
+                                        <p class="text-indigo-700">INSERT แถวใหม่ใน <code class="bg-white px-1 rounded">access_rights</code> โดยตั้ง <code class="bg-white px-1 rounded">is_active = 1</code></p>
+                                    </div>
+                                    <div class="flex-1 bg-amber-50 rounded-lg p-2 border border-amber-200">
+                                        <p class="font-semibold text-amber-800 mb-1">Admin <span class="text-red-600">ลบ</span> permission</p>
+                                        <p class="text-amber-700"><code class="bg-white px-1 rounded">UPDATE access_rights SET is_active = 0 WHERE right_code = ?</code> — แถวยังอยู่</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2 p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-800">
+                                    <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                                    <span>ระบบปลายทางต้องกรอง <code class="bg-white px-1 rounded">WHERE is_active = 1</code> ในทุก query ที่ดึง permission เอง</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- หลังสร้างแล้วทำอะไรต่อ --}}
-                <div class="border-t border-slate-100 pt-5">
+                <div id="wiz-after" class="border-t border-slate-100 pt-5">
                     <h3 class="font-bold text-slate-900 mb-3">หลังสร้าง Connector แล้ว ทำอะไรต่อ?</h3>
                     <div class="space-y-2">
                         @foreach ([

@@ -30,6 +30,14 @@ class ConnectorConfig extends Model
         'perm_label_col',
         'perm_group_col',
         'manual_permissions',
+        'perm_def_table',
+        'perm_def_value_col',
+        'perm_def_pk_col',
+        'perm_def_label_col',
+        'perm_def_group_col',
+        'perm_delete_mode',
+        'perm_def_soft_delete_col',
+        'perm_def_soft_delete_val',
     ];
 
     protected $hidden = ['db_password'];

@@ -18,6 +18,8 @@ class NotificationController extends Controller
 
     public function index(): View
     {
+        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเข้าถึง Notification Channels ได้');
+
         $channels = NotificationChannel::latest()->get();
 
         return view('notifications.index', compact('channels'));

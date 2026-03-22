@@ -34,6 +34,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         ['label' => 'เชื่อมต่อ DB'],
         ['label' => 'ตาราง Users'],
         ['label' => 'Permissions'],
+        ['label' => '2-Way Sync'],
         ['label' => 'ยืนยัน'],
     ];
     @endphp
@@ -540,7 +541,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 ย้อนกลับ
             </button>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 4 จาก 5</span>
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 4 จาก 6</span>
                 <button class="{{ $btnP }}" onclick="wizNext(4)">
                     ถัดไป
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -550,9 +551,158 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     </div>
 
     {{-- ══════════════════════════════════════════════════
-         STEP 5 — Confirm
+         STEP 5 — 2-Way Sync
     ══════════════════════════════════════════════════ --}}
     <div class="wiz-step hidden" data-step="5">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200/60">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-800">2-Way Sync <span class="text-xs font-normal text-slate-400 ml-1">(ไม่บังคับ)</span></h2>
+                    <p class="text-xs text-slate-400 mt-0.5">เปิดให้ UCM สร้าง/ลบ Permission Definitions ในระบบปลายทางด้วย</p>
+                </div>
+            </div>
+            <div class="px-6 py-6 space-y-6">
+
+                {{-- Enable toggle --}}
+                <div class="flex items-start gap-3 p-4 bg-violet-50 border border-violet-100 rounded-xl">
+                    <input type="checkbox" id="enable_two_way" onchange="wizToggle2Way(this.checked)"
+                           class="mt-0.5 w-4 h-4 text-violet-600 rounded border-slate-300 cursor-pointer">
+                    <div>
+                        <label for="enable_two_way" class="text-sm font-semibold text-slate-800 cursor-pointer">เปิดใช้งาน 2-Way Sync</label>
+                        <p class="text-xs text-slate-500 mt-0.5">เมื่อ Admin เพิ่ม Permission ใน UCM → สร้าง record ใน DB ระบบปลายทาง<br>เมื่อ Admin ลบ Permission ใน UCM → ดำเนินการตาม Delete Mode ที่เลือก</p>
+                    </div>
+                </div>
+
+                {{-- 2-Way fields (hidden until toggle enabled) --}}
+                <div id="two-way-fields" class="hidden space-y-5">
+
+                    {{-- Definition Table --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1.5">ตาราง Permission Definitions <span class="text-rose-500">*</span></label>
+                        <p class="text-xs text-slate-400 mb-2">ตารางที่เก็บนิยาม Permission (ต่างจาก junction table ที่เก็บ user↔permission mapping)</p>
+                        <div class="flex gap-2">
+                            <select id="field_perm_def_table" name="perm_def_table" onchange="wizLoadDefColumns()"
+                                    class="flex-1 px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
+                                <option value="">— เลือกตาราง —</option>
+                            </select>
+                            <button type="button" onclick="wizLoadTables('perm_def_table', 'wizLoadDefColumns')"
+                                    class="px-3 py-2 text-xs font-semibold text-violet-600 bg-violet-50 border border-violet-200 rounded-xl hover:bg-violet-100 transition whitespace-nowrap">
+                                โหลดตาราง
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Columns --}}
+                    <div id="def-columns-wrap" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">คอลัมน์ Key/Value <span class="text-rose-500">*</span></label>
+                            <select id="field_perm_def_value_col" name="perm_def_value_col"
+                                    class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
+                                <option value="">— เลือกคอลัมน์ —</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">คอลัมน์ Primary Key</label>
+                            <select id="field_perm_def_pk_col" name="perm_def_pk_col"
+                                    class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
+                                <option value="">id (default)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">คอลัมน์ Label <span class="text-slate-400 font-normal">(ไม่บังคับ)</span></label>
+                            <select id="field_perm_def_label_col" name="perm_def_label_col"
+                                    class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
+                                <option value="">(ไม่ระบุ)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-1.5">คอลัมน์ Group <span class="text-slate-400 font-normal">(ไม่บังคับ)</span></label>
+                            <select id="field_perm_def_group_col" name="perm_def_group_col"
+                                    class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
+                                <option value="">(ไม่ระบุ)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Delete Mode --}}
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-3">Delete Mode — พฤติกรรมเมื่อ Admin ลบ Permission ใน UCM</label>
+                        <div class="space-y-2">
+                            <label class="flex items-start gap-3 p-3.5 border rounded-xl cursor-pointer transition hover:bg-slate-50 border-slate-200" id="dmode-card-detach_only">
+                                <input type="radio" name="perm_delete_mode" value="detach_only" checked
+                                       onchange="wizToggleDeleteMode('detach_only')"
+                                       class="mt-0.5 w-4 h-4 text-violet-600">
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-800">Detach Only</div>
+                                    <div class="text-xs text-slate-500 mt-0.5">ลบเฉพาะใน UCM — ไม่แตะ record ในระบบปลายทาง (ปลอดภัยที่สุด)</div>
+                                </div>
+                            </label>
+                            <label class="flex items-start gap-3 p-3.5 border rounded-xl cursor-pointer transition hover:bg-red-50 border-slate-200" id="dmode-card-hard">
+                                <input type="radio" name="perm_delete_mode" value="hard"
+                                       onchange="wizToggleDeleteMode('hard')"
+                                       class="mt-0.5 w-4 h-4 text-violet-600">
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-800">Hard Delete</div>
+                                    <div class="text-xs text-slate-500 mt-0.5">DELETE FROM definition table — ลบถาวร ไม่สามารถกู้คืนได้</div>
+                                </div>
+                            </label>
+                            <label class="flex items-start gap-3 p-3.5 border rounded-xl cursor-pointer transition hover:bg-amber-50 border-slate-200" id="dmode-card-soft">
+                                <input type="radio" name="perm_delete_mode" value="soft"
+                                       onchange="wizToggleDeleteMode('soft')"
+                                       class="mt-0.5 w-4 h-4 text-violet-600">
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-800">Soft Delete</div>
+                                    <div class="text-xs text-slate-500 mt-0.5">UPDATE ด้วยค่า "ลบแล้ว" — record ยังอยู่ใน DB แต่ถูก mark ว่าลบ</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    {{-- Soft delete fields --}}
+                    <div id="soft-delete-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                        <div>
+                            <label class="block text-xs font-bold text-amber-700 mb-1.5">คอลัมน์ Soft Delete <span class="text-rose-500">*</span></label>
+                            <p class="text-xs text-amber-600 mb-1.5">คอลัมน์ที่จะ UPDATE เช่น <code class="font-mono bg-amber-100 px-1 rounded">is_deleted</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted_at</code></p>
+                            <input type="text" id="field_perm_def_soft_delete_col" name="perm_def_soft_delete_col"
+                                   placeholder="เช่น is_deleted"
+                                   class="w-full px-3 py-2 text-sm font-mono text-slate-800 bg-white border border-amber-200 rounded-xl focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-amber-700 mb-1.5">ค่าที่หมายถึง "ลบแล้ว" <span class="text-rose-500">*</span></label>
+                            <p class="text-xs text-amber-600 mb-1.5">ค่าที่จะ SET เช่น <code class="font-mono bg-amber-100 px-1 rounded">1</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted</code></p>
+                            <input type="text" id="field_perm_def_soft_delete_val" name="perm_def_soft_delete_val"
+                                   value="1" placeholder="เช่น 1 หรือ deleted"
+                                   class="w-full px-3 py-2 text-sm font-mono text-slate-800 bg-white border border-amber-200 rounded-xl focus:outline-none focus:border-amber-500 transition">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center justify-between mt-5">
+            <button class="{{ $btnG }}" onclick="wizPrev(5)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                ย้อนกลับ
+            </button>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 5 จาก 6</span>
+                <button class="{{ $btnP }}" onclick="wizNext(5)">
+                    ถัดไป
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════════════
+         STEP 6 — Confirm
+    ══════════════════════════════════════════════════ --}}
+    <div class="wiz-step hidden" data-step="6">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-200/60">
@@ -570,12 +720,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             </div>
         </div>
         <div class="flex items-center justify-between mt-5">
-            <button class="{{ $btnG }}" onclick="wizPrev(5)">
+            <button class="{{ $btnG }}" onclick="wizPrev(6)">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 ย้อนกลับ
             </button>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 5 จาก 5</span>
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 6 จาก 6</span>
                 <button class="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-md shadow-emerald-200 hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all" id="submit-btn" onclick="wizSubmit()">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     {{ isset($editConfig) ? 'บันทึกการเปลี่ยนแปลง' : 'สร้าง Connector' }}
@@ -664,7 +814,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     window.wizNext = function (from) {
         if (! wizValidate(from)) return;
         showStep(from + 1);
-        if (from + 1 === 5) wizBuildSummary();
+        if (from + 1 === 6) wizBuildSummary();
     };
 
     window.wizPrev = function (from) {
@@ -676,7 +826,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         document.querySelectorAll('.wiz-step').forEach(function (el) {
             el.classList.toggle('hidden', parseInt(el.dataset.step) !== n);
         });
-        for (var i = 1; i <= 5; i++) {
+        for (var i = 1; i <= 6; i++) {
             var circle = document.querySelector('[data-step-circle="' + i + '"]');
             var label  = document.querySelector('[data-step-label="' + i + '"]');
             var line   = document.querySelector('[data-step-line="' + i + '"]');
@@ -932,6 +1082,42 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             : 'ตาราง junction ที่เก็บความสัมพันธ์ user ↔ permission';
     };
 
+    // ── 2-Way Sync Toggle ──────────────────────────────────────────────────
+
+    window.wizToggle2Way = function (enabled) {
+        document.getElementById('two-way-fields').classList.toggle('hidden', ! enabled);
+        if (enabled && val('perm_def_table') === '') {
+            wizLoadTables('perm_def_table', 'wizLoadDefColumns');
+        }
+    };
+
+    window.wizLoadDefColumns = function () {
+        var table = val('perm_def_table');
+        if (! table) return;
+        document.getElementById('def-columns-wrap').classList.remove('hidden');
+        loadColumnsFor(table, [
+            { id: 'field_perm_def_value_col',   preselect: EDIT_CONFIG?.perm_def_value_col },
+            { id: 'field_perm_def_pk_col',      nullable: true, preselect: EDIT_CONFIG?.perm_def_pk_col },
+            { id: 'field_perm_def_label_col',   nullable: true, preselect: EDIT_CONFIG?.perm_def_label_col },
+            { id: 'field_perm_def_group_col',   nullable: true, preselect: EDIT_CONFIG?.perm_def_group_col },
+        ]);
+    };
+
+    window.wizToggleDeleteMode = function (mode) {
+        ['detach_only', 'hard', 'soft'].forEach(function (m) {
+            var card = document.getElementById('dmode-card-' + m);
+            if (! card) return;
+            if (m === mode) {
+                card.classList.remove('border-slate-200');
+                card.classList.add(m === 'hard' ? 'border-red-300' : m === 'soft' ? 'border-amber-300' : 'border-violet-300');
+            } else {
+                card.classList.remove('border-red-300', 'border-amber-300', 'border-violet-300');
+                card.classList.add('border-slate-200');
+            }
+        });
+        document.getElementById('soft-delete-fields').classList.toggle('hidden', mode !== 'soft');
+    };
+
     // ── System fields visibility ───────────────────────────────────────────
 
     if (! IS_EDIT) {
@@ -1107,6 +1293,25 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                     ? [['Mode', modeLabels[mode] || mode], ['ตาราง', val('perm_table')], ['Value Column', val('perm_value_col')]]
                     : [['Mode', 'Manual'], ['จำนวน', getManualPerms().length + ' permissions']],
             },
+            {
+                title: '2-Way Sync',
+                rows: (function() {
+                    var enabled = document.getElementById('enable_two_way')?.checked;
+                    if (! enabled) return [['สถานะ', 'ปิดใช้งาน']];
+                    var modeLabels2 = { hard: 'Hard Delete', soft: 'Soft Delete', detach_only: 'Detach Only' };
+                    var rows = [
+                        ['สถานะ', 'เปิดใช้งาน'],
+                        ['Definition Table', val('perm_def_table') || '-'],
+                        ['Key Column', val('perm_def_value_col') || '-'],
+                        ['Delete Mode', modeLabels2[radioVal('perm_delete_mode')] || 'Detach Only'],
+                    ];
+                    if (radioVal('perm_delete_mode') === 'soft') {
+                        rows.push(['Soft Delete Column', val('perm_def_soft_delete_col') || '-']);
+                        rows.push(['Soft Delete Value', val('perm_def_soft_delete_val') || '1']);
+                    }
+                    return rows;
+                })(),
+            },
         ];
 
         var html = sections.map(function (sec) {
@@ -1133,6 +1338,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         btn.innerHTML = '<svg style="width:1rem;height:1rem;animation:spin 1s linear infinite" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> กำลังบันทึก...';
 
         var mode = getPermMode();
+        var twoWayEnabled = document.getElementById('enable_two_way')?.checked;
         var payload = Object.assign(connData(), {
             system_id:              IS_EDIT ? EDIT_CONFIG.system_id : (val('system_id') || null),
             system_name:            val('system_name'),
@@ -1155,6 +1361,14 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             perm_label_col:         mode !== 'manual' ? (val('perm_label_col') || null) : null,
             perm_group_col:         mode !== 'manual' ? (val('perm_group_col') || null) : null,
             manual_permissions:     mode === 'manual' ? JSON.stringify(getManualPerms()) : null,
+            perm_def_table:           twoWayEnabled ? val('perm_def_table') || null : null,
+            perm_def_value_col:       twoWayEnabled ? val('perm_def_value_col') || null : null,
+            perm_def_pk_col:          twoWayEnabled ? val('perm_def_pk_col') || null : null,
+            perm_def_label_col:       twoWayEnabled ? val('perm_def_label_col') || null : null,
+            perm_def_group_col:       twoWayEnabled ? val('perm_def_group_col') || null : null,
+            perm_delete_mode:         twoWayEnabled ? radioVal('perm_delete_mode') || 'detach_only' : null,
+            perm_def_soft_delete_col: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? val('perm_def_soft_delete_col') || null : null,
+            perm_def_soft_delete_val: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? val('perm_def_soft_delete_val') || null : null,
         });
 
         if (IS_EDIT) { payload._method = 'PUT'; }
@@ -1227,6 +1441,19 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             wizLoadUserColumns();
             wizLoadPermColumns();
         });
+    }
+
+    // ── Init 2-Way for edit mode ───────────────────────────────────────────
+    if (IS_EDIT && EDIT_CONFIG && EDIT_CONFIG.perm_def_table) {
+        var cb = document.getElementById('enable_two_way');
+        if (cb) {
+            cb.checked = true;
+            wizToggle2Way(true);
+            if (EDIT_CONFIG.perm_delete_mode) {
+                var radio = document.querySelector('input[name="perm_delete_mode"][value="' + EDIT_CONFIG.perm_delete_mode + '"]');
+                if (radio) { radio.checked = true; wizToggleDeleteMode(EDIT_CONFIG.perm_delete_mode); }
+            }
+        }
     }
 
 })();

@@ -129,6 +129,12 @@ abstract class BaseAdapter implements SystemAdapterInterface
         return false;
     }
 
+    /** Default: ไม่ลบ definition ในระบบภายนอก */
+    public function getPermissionDeleteMode(): \App\Enums\PermissionDeleteMode
+    {
+        return \App\Enums\PermissionDeleteMode::DetachOnly;
+    }
+
     public function getManagedGroups(): array
     {
         return [];

@@ -445,6 +445,10 @@ $sections = [
                     <svg class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
                     <span>Migration รวมคอลัมน์ <code class="font-mono bg-emerald-100 px-1 rounded">last_login_at</code> ใน <code class="font-mono bg-emerald-100 px-1 rounded">ucm_users</code> (ใช้โดย Inactive User Detection feature) — บันทึกเวลา Login ล่าสุดอัตโนมัติทุกครั้งที่ผู้ใช้เข้าสู่ระบบ</span>
                 </div>
+                <div class="flex items-start gap-3 p-3.5 bg-emerald-50 border border-emerald-100 rounded-xl text-xs text-emerald-800">
+                    <svg class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                    <span>Migration รวม 8 คอลัมน์ใหม่ใน <code class="font-mono bg-emerald-100 px-1 rounded">connector_configs</code> สำหรับ 2-Way Sync ของ DynamicAdapter (<code class="font-mono bg-emerald-100 px-1 rounded">perm_def_table</code>, <code class="font-mono bg-emerald-100 px-1 rounded">perm_delete_mode</code> ฯลฯ) — <code class="font-mono bg-emerald-100 px-1 rounded">php artisan migrate</code> จัดการให้ครบอัตโนมัติ</span>
+                </div>
                 <div class="flex items-start gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800">
                     <svg class="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                     <span><strong>ห้ามรัน</strong> <code class="font-mono bg-red-100 px-1 rounded">php artisan route:cache</code> — เนื่องจาก UCM รันอยู่ภายใต้ sub-path (<code class="font-mono bg-red-100 px-1 rounded">/user-centralized-managment/</code>) route cache จะทำให้ homepage ตอบกลับ HTTP 405 แทนที่จะเป็น 302 เนื่องจาก Symfony routing คำนวณ base path ผิดพลาดเมื่อ trailing slash ถูกตัดออก ใช้ <code class="font-mono bg-red-100 px-1 rounded">php artisan route:clear</code> เพื่อล้าง cache แทน</span>
@@ -614,12 +618,21 @@ $sections = [
                 </div>
 
                 <div class="border-t border-slate-100 pt-3">
-                    <h3 class="font-bold text-slate-900 mb-2">ข้อจำกัด</h3>
-                    <ul class="space-y-1 text-slate-600 text-xs list-disc list-inside">
-                        <li>รองรับ <strong>1-Way Sync เท่านั้น</strong> — UCM อ่านสิทธิ์จากระบบปลายทาง แต่ไม่สามารถ Push กลับได้</li>
-                        <li>ไม่รองรับ 2-Way Sync — ต้องพัฒนา Custom Adapter (PHP) เพื่อรองรับ</li>
-                        <li>ระบบปลายทางต้องเปิด network port ให้ container <code class="font-mono bg-slate-100 px-1 rounded">php83</code> เข้าถึงได้</li>
-                    </ul>
+                    <h3 class="font-bold text-slate-900 mb-2">ความสามารถของ DynamicAdapter</h3>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex items-start gap-2 p-2.5 bg-emerald-50 rounded-xl border border-emerald-100">
+                            <svg class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            <p class="text-emerald-800"><strong>1-Way Sync</strong> — ส่ง Permission ของผู้ใช้ไปยังฐานข้อมูลปลายทาง (Junction Table, Single Column, Manual) ผ่าน Queue Worker</p>
+                        </div>
+                        <div class="flex items-start gap-2 p-2.5 bg-orange-50 rounded-xl border border-orange-100">
+                            <svg class="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            <p class="text-orange-800"><strong>2-Way Sync (ทางเลือก)</strong> — เปิดใช้ได้ใน Step 5 ของ Wizard รองรับ Hard Delete, Soft Delete และ Detach Only เพื่อจัดการ Permission Definition ในระบบปลายทางอัตโนมัติ</p>
+                        </div>
+                        <div class="flex items-start gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                            <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                            <p class="text-slate-700">ระบบปลายทางต้องเปิด network port ให้ container <code class="font-mono bg-slate-100 px-1 rounded">php83</code> เข้าถึงได้</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800">

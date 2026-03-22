@@ -2,6 +2,7 @@
 
 namespace App\Adapters;
 
+use App\Enums\PermissionDeleteMode;
 use App\Models\ConnectorConfig;
 use App\Models\System;
 use App\Models\UcmUser;
@@ -246,6 +247,128 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         } catch (PDOException $e) {
             Log::error("[DynamicAdapter:{$this->system->slug}] getSystemUsers: " . $e->getMessage());
             return [];
+        }
+    }
+
+    // ── 2-Way Sync ─────────────────────────────────────────────────────────
+
+    /** รองรับ 2-way เมื่อมีการกำหนด perm_def_table ใน ConnectorConfig */
+    public function supports2WayPermissions(): bool
+    {
+        return filled($this->config->perm_def_table);
+    }
+
+    public function getPermissionDeleteMode(): PermissionDeleteMode
+    {
+        return PermissionDeleteMode::tryFrom($this->config->perm_delete_mode ?? '')
+            ?? PermissionDeleteMode::DetachOnly;
+    }
+
+    /**
+     * สร้าง permission definition ใน remote DB
+     * INSERT ลง perm_def_table แล้วคืน PK หรือ key เป็น remote_value
+     */
+    public function provisionPermission(string $key, string $label, string $group): string|int|null
+    {
+        $cfg = $this->config;
+
+        if (! $cfg->perm_def_table || ! $cfg->perm_def_value_col) {
+            return null;
+        }
+
+        try {
+            $pdo      = $this->getConnection();
+            $defTable = $this->quoteIdentifier($cfg->perm_def_table);
+            $valCol   = $this->quoteIdentifier($cfg->perm_def_value_col);
+            $pkCol    = $cfg->perm_def_pk_col ?: 'id';
+            $quotedPk = $this->quoteIdentifier($pkCol);
+
+            // ถ้ามีอยู่แล้วให้คืน PK ที่มีอยู่ (idempotent)
+            $check = $pdo->prepare("SELECT {$quotedPk} FROM {$defTable} WHERE {$valCol} = ?");
+            $check->execute([$key]);
+            if ($existing = $check->fetchColumn()) {
+                return $existing;
+            }
+
+            // Build dynamic INSERT
+            $cols = [$valCol];
+            $vals = [$key];
+
+            if ($cfg->perm_def_label_col && ! blank($label)) {
+                $cols[] = $this->quoteIdentifier($cfg->perm_def_label_col);
+                $vals[] = $label;
+            }
+
+            if ($cfg->perm_def_group_col && ! blank($group)) {
+                $cols[] = $this->quoteIdentifier($cfg->perm_def_group_col);
+                $vals[] = $group;
+            }
+
+            $placeholders = implode(', ', array_fill(0, count($cols), '?'));
+            $pdo->prepare(
+                'INSERT INTO '.$defTable.' ('.implode(', ', $cols).') VALUES ('.$placeholders.')'
+            )->execute($vals);
+
+            $insertId = $pdo->lastInsertId();
+
+            Log::info("[DynamicAdapter:{$this->system->slug}] provisionPermission: สร้าง '{$key}' สำเร็จ");
+
+            return $insertId ?: $key;
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] provisionPermission: ".$e->getMessage());
+
+            return null;
+        }
+    }
+
+    /**
+     * ลบ permission definition จาก remote DB ตาม delete mode ที่ตั้งค่าไว้
+     *
+     * Hard:       DELETE FROM def_table WHERE pk = remoteValue
+     * Soft:       UPDATE def_table SET soft_col = soft_val WHERE pk = remoteValue
+     * DetachOnly: ไม่ทำอะไร — ลบเฉพาะใน UCM
+     */
+    public function deletePermission(string $remoteValue): bool
+    {
+        $cfg  = $this->config;
+        $mode = $this->getPermissionDeleteMode();
+
+        if ($mode === PermissionDeleteMode::DetachOnly || ! $cfg->perm_def_table) {
+            return true;
+        }
+
+        $pkCol    = $cfg->perm_def_pk_col ?: 'id';
+        $defTable = $this->quoteIdentifier($cfg->perm_def_table);
+        $quotedPk = $this->quoteIdentifier($pkCol);
+
+        try {
+            $pdo = $this->getConnection();
+
+            if ($mode === PermissionDeleteMode::Hard) {
+                $pdo->prepare("DELETE FROM {$defTable} WHERE {$quotedPk} = ?")
+                    ->execute([$remoteValue]);
+
+                Log::info("[DynamicAdapter:{$this->system->slug}] deletePermission (hard): ลบ '{$remoteValue}' สำเร็จ");
+            } elseif ($mode === PermissionDeleteMode::Soft) {
+                $softCol = $cfg->perm_def_soft_delete_col;
+                $softVal = $cfg->perm_def_soft_delete_val ?? '1';
+
+                if (! $softCol) {
+                    return true;
+                }
+
+                $quotedSoftCol = $this->quoteIdentifier($softCol);
+                $pdo->prepare("UPDATE {$defTable} SET {$quotedSoftCol} = ? WHERE {$quotedPk} = ?")
+                    ->execute([$softVal, $remoteValue]);
+
+                Log::info("[DynamicAdapter:{$this->system->slug}] deletePermission (soft): soft-deleted '{$remoteValue}' สำเร็จ");
+            }
+
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] deletePermission: ".$e->getMessage());
+
+            return false;
         }
     }
 

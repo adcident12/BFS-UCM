@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use PDO;
 use PDOException;
@@ -70,7 +71,7 @@ class ConnectorWizardController extends Controller
         AuditLogger::log(
             AuditLog::CATEGORY_CONNECTORS,
             AuditLog::EVENT_CONNECTOR_DELETED,
-            'ลบ Connector ของระบบ ' . ($system?->name ?? 'ไม่ทราบ'),
+            'ลบ Connector ของระบบ '.($system?->name ?? 'ไม่ทราบ'),
             ['system_id' => $system?->id, 'system_name' => $system?->name],
             $this->authUser(),
             'system', $system?->id, $system?->name,
@@ -88,10 +89,10 @@ class ConnectorWizardController extends Controller
 
         $data = $request->validate([
             'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host'   => 'required|string|max:255',
-            'db_port'   => 'required|integer|min:1|max:65535',
-            'db_name'   => 'required|string|max:100',
-            'db_user'   => 'required|string|max:100',
+            'db_host' => 'required|string|max:255',
+            'db_port' => 'required|integer|min:1|max:65535',
+            'db_name' => 'required|string|max:100',
+            'db_user' => 'required|string|max:100',
             'db_password' => 'nullable|string|max:255',
         ]);
 
@@ -112,11 +113,11 @@ class ConnectorWizardController extends Controller
         $this->requireSuperAdmin();
 
         $data = $request->validate([
-            'db_driver'   => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host'     => 'required|string|max:255',
-            'db_port'     => 'required|integer|min:1|max:65535',
-            'db_name'     => 'required|string|max:100',
-            'db_user'     => 'required|string|max:100',
+            'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
+            'db_host' => 'required|string|max:255',
+            'db_port' => 'required|integer|min:1|max:65535',
+            'db_name' => 'required|string|max:100',
+            'db_user' => 'required|string|max:100',
             'db_password' => 'nullable|string|max:255',
         ]);
 
@@ -124,9 +125,9 @@ class ConnectorWizardController extends Controller
             $pdo = $this->makePdo($data);
 
             $tables = match ($data['db_driver']) {
-                'pgsql'  => array_column($pdo->query("SELECT tablename FROM pg_tables WHERE schemaname='public'")->fetchAll(), 'tablename'),
+                'pgsql' => array_column($pdo->query("SELECT tablename FROM pg_tables WHERE schemaname='public'")->fetchAll(), 'tablename'),
                 'sqlsrv' => array_column($pdo->query("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'")->fetchAll(), 'TABLE_NAME'),
-                default  => array_column($pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_NUM), 0),
+                default => array_column($pdo->query('SHOW TABLES')->fetchAll(PDO::FETCH_NUM), 0),
             };
 
             return response()->json(['ok' => true, 'tables' => $tables]);
@@ -142,29 +143,29 @@ class ConnectorWizardController extends Controller
         $this->requireSuperAdmin();
 
         $data = $request->validate([
-            'db_driver'   => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host'     => 'required|string|max:255',
-            'db_port'     => 'required|integer|min:1|max:65535',
-            'db_name'     => 'required|string|max:100',
-            'db_user'     => 'required|string|max:100',
+            'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
+            'db_host' => 'required|string|max:255',
+            'db_port' => 'required|integer|min:1|max:65535',
+            'db_name' => 'required|string|max:100',
+            'db_user' => 'required|string|max:100',
             'db_password' => 'nullable|string|max:255',
-            'table'       => 'required|string|regex:/^[\w.]+$/',
+            'table' => 'required|string|regex:/^[\w.]+$/',
         ]);
 
         try {
-            $pdo   = $this->makePdo($data);
+            $pdo = $this->makePdo($data);
             $table = $data['table'];
 
             $columns = match ($data['db_driver']) {
-                'pgsql'  => array_column(
-                    $pdo->query("SELECT column_name FROM information_schema.columns WHERE table_name = " . $pdo->quote($table) . " AND table_schema = 'public' ORDER BY ordinal_position")->fetchAll(),
+                'pgsql' => array_column(
+                    $pdo->query('SELECT column_name FROM information_schema.columns WHERE table_name = '.$pdo->quote($table)." AND table_schema = 'public' ORDER BY ordinal_position")->fetchAll(),
                     'column_name'
                 ),
                 'sqlsrv' => array_column(
-                    $pdo->query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = " . $pdo->quote($table) . " ORDER BY ORDINAL_POSITION")->fetchAll(),
+                    $pdo->query('SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '.$pdo->quote($table).' ORDER BY ORDINAL_POSITION')->fetchAll(),
                     'COLUMN_NAME'
                 ),
-                default  => array_column(
+                default => array_column(
                     $pdo->query('DESCRIBE '.$this->qi($table, 'mysql'))->fetchAll(),
                     'Field'
                 ),
@@ -183,22 +184,22 @@ class ConnectorWizardController extends Controller
         $this->requireSuperAdmin();
 
         $data = $request->validate([
-            'db_driver'          => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host'            => 'required|string|max:255',
-            'db_port'            => 'required|integer|min:1|max:65535',
-            'db_name'            => 'required|string|max:100',
-            'db_user'            => 'required|string|max:100',
-            'db_password'        => 'nullable|string|max:255',
-            'user_table'         => 'required|string|regex:/^[\w.]+$/',
+            'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
+            'db_host' => 'required|string|max:255',
+            'db_port' => 'required|integer|min:1|max:65535',
+            'db_name' => 'required|string|max:100',
+            'db_user' => 'required|string|max:100',
+            'db_password' => 'nullable|string|max:255',
+            'user_table' => 'required|string|regex:/^[\w.]+$/',
             'user_identifier_col' => 'required|string|regex:/^[\w.]+$/',
-            'user_name_col'      => 'nullable|string|regex:/^[\w.]+$/',
+            'user_name_col' => 'nullable|string|regex:/^[\w.]+$/',
         ]);
 
         try {
-            $pdo    = $this->makePdo($data);
+            $pdo = $this->makePdo($data);
             $driver = $data['db_driver'];
-            $table  = $this->qi($data['user_table'], $driver);
-            $idCol  = $this->qi($data['user_identifier_col'], $driver);
+            $table = $this->qi($data['user_table'], $driver);
+            $idCol = $this->qi($data['user_identifier_col'], $driver);
 
             $cols = [$idCol];
             if (! empty($data['user_name_col'])) {
@@ -206,7 +207,7 @@ class ConnectorWizardController extends Controller
             }
 
             $colSql = implode(', ', $cols);
-            $sql    = $driver === 'sqlsrv'
+            $sql = $driver === 'sqlsrv'
                 ? "SELECT TOP 10 {$colSql} FROM {$table}"
                 : "SELECT {$colSql} FROM {$table} LIMIT 10";
             $rows = $pdo->query($sql)->fetchAll();
@@ -224,22 +225,22 @@ class ConnectorWizardController extends Controller
         $this->requireSuperAdmin();
 
         $data = $request->validate([
-            'db_driver'      => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host'        => 'required|string|max:255',
-            'db_port'        => 'required|integer|min:1|max:65535',
-            'db_name'        => 'required|string|max:100',
-            'db_user'        => 'required|string|max:100',
-            'db_password'    => 'nullable|string|max:255',
-            'perm_table'     => 'required|string|regex:/^[\w.]+$/',
+            'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
+            'db_host' => 'required|string|max:255',
+            'db_port' => 'required|integer|min:1|max:65535',
+            'db_name' => 'required|string|max:100',
+            'db_user' => 'required|string|max:100',
+            'db_password' => 'nullable|string|max:255',
+            'perm_table' => 'required|string|regex:/^[\w.]+$/',
             'perm_value_col' => 'required|string|regex:/^[\w.]+$/',
             'perm_label_col' => 'nullable|string|regex:/^[\w.]+$/',
             'perm_group_col' => 'nullable|string|regex:/^[\w.]+$/',
         ]);
 
         try {
-            $pdo    = $this->makePdo($data);
+            $pdo = $this->makePdo($data);
             $driver = $data['db_driver'];
-            $table  = $this->qi($data['perm_table'], $driver);
+            $table = $this->qi($data['perm_table'], $driver);
             $valCol = $this->qi($data['perm_value_col'], $driver);
 
             $cols = [$valCol];
@@ -251,7 +252,7 @@ class ConnectorWizardController extends Controller
             }
 
             $colSql = implode(', ', $cols);
-            $sql    = $driver === 'sqlsrv'
+            $sql = $driver === 'sqlsrv'
                 ? "SELECT DISTINCT TOP 20 {$colSql} FROM {$table}"
                 : "SELECT DISTINCT {$colSql} FROM {$table} LIMIT 20";
             $rows = $pdo->query($sql)->fetchAll();
@@ -270,122 +271,144 @@ class ConnectorWizardController extends Controller
 
         $data = $request->validate([
             // System info
-            'system_id'              => 'nullable|exists:systems,id',
-            'system_name'            => 'required_without:system_id|string|max:100',
-            'system_slug'            => 'required_without:system_id|string|max:50|alpha_dash',
-            'system_description'     => 'nullable|string|max:500',
-            'system_color'           => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'system_icon'            => 'nullable|string|max:10',
+            'system_id' => 'nullable|exists:systems,id',
+            'system_name' => 'required_without:system_id|string|max:100',
+            'system_slug' => 'required_without:system_id|string|max:50|alpha_dash',
+            'system_description' => 'nullable|string|max:500',
+            'system_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'system_icon' => 'nullable|string|max:10',
 
             // DB Connection
-            'db_driver'              => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host'                => 'required|string|max:255',
-            'db_port'                => 'required|integer|min:1|max:65535',
-            'db_name'                => 'required|string|max:100',
-            'db_user'                => 'required|string|max:100',
-            'db_password'            => 'nullable|string|max:255',
+            'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
+            'db_host' => 'required|string|max:255',
+            'db_port' => 'required|integer|min:1|max:65535',
+            'db_name' => 'required|string|max:100',
+            'db_user' => 'required|string|max:100',
+            'db_password' => 'nullable|string|max:255',
 
             // User Table
-            'user_table'             => 'required|string|max:100|regex:/^[\w.]+$/',
-            'user_ucm_identifier'    => 'required|in:username,employee_number',
-            'user_identifier_col'    => 'required|string|max:100|regex:/^[\w.]+$/',
-            'user_name_col'          => 'nullable|string|max:100|regex:/^[\w.]+$/',
-            'user_email_col'         => 'nullable|string|max:100|regex:/^[\w.]+$/',
-            'user_dept_col'          => 'nullable|string|max:100|regex:/^[\w.]+$/',
-            'user_status_col'        => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'user_table' => 'required|string|max:100|regex:/^[\w.]+$/',
+            'user_ucm_identifier' => 'required|in:username,employee_number',
+            'user_identifier_col' => 'required|string|max:100|regex:/^[\w.]+$/',
+            'user_name_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'user_email_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'user_dept_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'user_status_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'user_status_active_val' => 'nullable|string|max:100',
 
             // Permission
-            'permission_mode'        => 'required|in:junction,column,manual',
-            'perm_table'             => 'nullable|string|max:100|regex:/^[\w.]+$/',
-            'perm_user_fk_col'       => 'nullable|string|max:100|regex:/^[\w.]+$/',
-            'perm_value_col'         => 'nullable|string|max:100|regex:/^[\w.]+$/',
-            'perm_label_col'         => 'nullable|string|max:100|regex:/^[\w.]+$/',
-            'perm_group_col'         => 'nullable|string|max:100|regex:/^[\w.]+$/',
-            'manual_permissions'     => 'nullable|json',
+            'permission_mode' => 'required|in:junction,column,manual',
+            'perm_table' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_user_fk_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_value_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_label_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_group_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'manual_permissions' => 'nullable|json',
+
+            // 2-Way Sync
+            'perm_def_table' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_def_value_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_def_pk_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_def_label_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_def_group_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_delete_mode' => 'nullable|in:hard,soft,detach_only',
+            'perm_def_soft_delete_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_def_soft_delete_val' => 'nullable|string|max:100',
         ]);
 
-        // สร้างหรือใช้ System ที่มีอยู่
-        if (! empty($data['system_id'])) {
-            $system = System::findOrFail($data['system_id']);
-        } else {
-            $slug = $data['system_slug'];
-            abort_if(
-                System::where('slug', $slug)->exists(),
-                422,
-                "Slug '{$slug}' มีอยู่แล้วในระบบ"
+        $isNew = ! isset($data['system_id']);
+
+        $system = DB::transaction(function () use ($data) {
+            // สร้างหรือใช้ System ที่มีอยู่
+            if (! empty($data['system_id'])) {
+                $system = System::findOrFail($data['system_id']);
+            } else {
+                $slug = $data['system_slug'];
+                abort_if(
+                    System::where('slug', $slug)->exists(),
+                    422,
+                    "Slug '{$slug}' มีอยู่แล้วในระบบ"
+                );
+
+                $system = System::create([
+                    'name' => $data['system_name'],
+                    'slug' => $slug,
+                    'description' => $data['system_description'] ?? null,
+                    'color' => $data['system_color'] ?? '#6366f1',
+                    'icon' => $data['system_icon'] ?? null,
+                    'adapter_class' => DynamicAdapter::class,
+                    'db_host' => $data['db_host'],
+                    'db_port' => $data['db_port'],
+                    'db_name' => $data['db_name'],
+                    'db_user' => $data['db_user'],
+                    'db_password' => $data['db_password'] ?? null,
+                    'is_active' => true,
+                ]);
+            }
+
+            // สร้างหรืออัปเดต ConnectorConfig
+            $configData = [
+                'system_id' => $system->id,
+                'db_driver' => $data['db_driver'],
+                'db_host' => $data['db_host'],
+                'db_port' => $data['db_port'],
+                'db_name' => $data['db_name'],
+                'db_user' => $data['db_user'],
+                'db_password' => $data['db_password'] ?? '',
+                'user_table' => $data['user_table'],
+                'user_ucm_identifier' => $data['user_ucm_identifier'],
+                'user_identifier_col' => $data['user_identifier_col'],
+                'user_name_col' => $data['user_name_col'] ?? null,
+                'user_email_col' => $data['user_email_col'] ?? null,
+                'user_dept_col' => $data['user_dept_col'] ?? null,
+                'user_status_col' => $data['user_status_col'] ?? null,
+                'user_status_active_val' => $data['user_status_active_val'] ?? null,
+                'permission_mode' => $data['permission_mode'],
+                'perm_table' => $data['perm_table'] ?? null,
+                'perm_user_fk_col' => $data['perm_user_fk_col'] ?? null,
+                'perm_value_col' => $data['perm_value_col'] ?? null,
+                'perm_label_col' => $data['perm_label_col'] ?? null,
+                'perm_group_col' => $data['perm_group_col'] ?? null,
+                'manual_permissions' => isset($data['manual_permissions'])
+                    ? json_decode($data['manual_permissions'], true)
+                    : null,
+                'perm_def_table' => $data['perm_def_table'] ?? null,
+                'perm_def_value_col' => $data['perm_def_value_col'] ?? null,
+                'perm_def_pk_col' => $data['perm_def_pk_col'] ?? null,
+                'perm_def_label_col' => $data['perm_def_label_col'] ?? null,
+                'perm_def_group_col' => $data['perm_def_group_col'] ?? null,
+                'perm_delete_mode' => $data['perm_delete_mode'] ?? null,
+                'perm_def_soft_delete_col' => $data['perm_def_soft_delete_col'] ?? null,
+                'perm_def_soft_delete_val' => $data['perm_def_soft_delete_val'] ?? null,
+            ];
+
+            ConnectorConfig::updateOrCreate(
+                ['system_id' => $system->id],
+                $configData
             );
 
-            $system = System::create([
-                'name'          => $data['system_name'],
-                'slug'          => $slug,
-                'description'   => $data['system_description'] ?? null,
-                'color'         => $data['system_color'] ?? '#6366f1',
-                'icon'          => $data['system_icon'] ?? null,
-                'adapter_class' => DynamicAdapter::class,
-                'db_host'       => $data['db_host'],
-                'db_port'       => $data['db_port'],
-                'db_name'       => $data['db_name'],
-                'db_user'       => $data['db_user'],
-                'db_password'   => $data['db_password'] ?? null,
-                'is_active'     => true,
-            ]);
-        }
+            // ตั้งค่า adapter_class ให้ system ถ้ายังไม่ได้เซ็ต
+            if ($system->adapter_class !== DynamicAdapter::class) {
+                $system->update(['adapter_class' => DynamicAdapter::class]);
+            }
 
-        // สร้างหรืออัปเดต ConnectorConfig
-        $configData = [
-            'system_id'              => $system->id,
-            'db_driver'              => $data['db_driver'],
-            'db_host'                => $data['db_host'],
-            'db_port'                => $data['db_port'],
-            'db_name'                => $data['db_name'],
-            'db_user'                => $data['db_user'],
-            'db_password'            => $data['db_password'] ?? '',
-            'user_table'             => $data['user_table'],
-            'user_ucm_identifier'    => $data['user_ucm_identifier'],
-            'user_identifier_col'    => $data['user_identifier_col'],
-            'user_name_col'          => $data['user_name_col'] ?? null,
-            'user_email_col'         => $data['user_email_col'] ?? null,
-            'user_dept_col'          => $data['user_dept_col'] ?? null,
-            'user_status_col'        => $data['user_status_col'] ?? null,
-            'user_status_active_val' => $data['user_status_active_val'] ?? null,
-            'permission_mode'        => $data['permission_mode'],
-            'perm_table'             => $data['perm_table'] ?? null,
-            'perm_user_fk_col'       => $data['perm_user_fk_col'] ?? null,
-            'perm_value_col'         => $data['perm_value_col'] ?? null,
-            'perm_label_col'         => $data['perm_label_col'] ?? null,
-            'perm_group_col'         => $data['perm_group_col'] ?? null,
-            'manual_permissions'     => isset($data['manual_permissions'])
-                ? json_decode($data['manual_permissions'], true)
-                : null,
-        ];
-
-        ConnectorConfig::updateOrCreate(
-            ['system_id' => $system->id],
-            $configData
-        );
-
-        // ตั้งค่า adapter_class ให้ system ถ้ายังไม่ได้เซ็ต
-        if ($system->adapter_class !== DynamicAdapter::class) {
-            $system->update(['adapter_class' => DynamicAdapter::class]);
-        }
-
-        $isNew = ! isset($data['system_id']);
+            return $system;
+        });
 
         AuditLogger::log(
             AuditLog::CATEGORY_CONNECTORS,
             $isNew ? AuditLog::EVENT_CONNECTOR_CREATED : AuditLog::EVENT_CONNECTOR_UPDATED,
-            ($isNew ? 'สร้าง' : 'อัปเดต') . " Connector สำหรับระบบ {$system->name} ({$data['db_driver']}://{$data['db_host']}/{$data['db_name']})",
+            ($isNew ? 'สร้าง' : 'อัปเดต')." Connector สำหรับระบบ {$system->name} ({$data['db_driver']}://{$data['db_host']}/{$data['db_name']})",
             ['system_id' => $system->id, 'system_name' => $system->name, 'db_driver' => $data['db_driver'], 'db_host' => $data['db_host'], 'db_name' => $data['db_name'], 'permission_mode' => $data['permission_mode']],
             $this->authUser(),
             'system', $system->id, $system->name,
         );
 
         return response()->json([
-            'ok'         => true,
-            'message'    => 'สร้าง Connector สำเร็จ',
-            'system_id'  => $system->id,
-            'redirect'   => route('systems.show', $system),
+            'ok' => true,
+            'message' => 'สร้าง Connector สำเร็จ',
+            'system_id' => $system->id,
+            'redirect' => route('systems.show', $system),
         ]);
     }
 
@@ -404,21 +427,21 @@ class ConnectorWizardController extends Controller
 
     private function makePdo(array $data): PDO
     {
-        $driver   = $data['db_driver'];
-        $host     = $data['db_host'];
-        $port     = $data['db_port'];
-        $dbname   = $data['db_name'];
-        $user     = $data['db_user'];
+        $driver = $data['db_driver'];
+        $host = $data['db_host'];
+        $port = $data['db_port'];
+        $dbname = $data['db_name'];
+        $user = $data['db_user'];
         $password = $data['db_password'] ?? '';
 
         $dsn = match ($driver) {
             'sqlsrv' => "sqlsrv:Server={$host},{$port};Database={$dbname};TrustServerCertificate=1;Encrypt=0",
-            'pgsql'  => "pgsql:host={$host};port={$port};dbname={$dbname}",
-            default  => "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4",
+            'pgsql' => "pgsql:host={$host};port={$port};dbname={$dbname}",
+            default => "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4",
         };
 
         $options = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ];
 
@@ -437,8 +460,9 @@ class ConnectorWizardController extends Controller
         }
         // MySQL → backtick  |  PostgreSQL + SQL Server → double-quote
         $q = $driver === 'mysql' ? '`' : '"';
+
         return implode('.', array_map(
-            fn ($p) => $q . str_replace($q, '', $p) . $q,
+            fn ($p) => $q.str_replace($q, '', $p).$q,
             explode('.', $name)
         ));
     }

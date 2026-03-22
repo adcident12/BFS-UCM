@@ -354,6 +354,12 @@ class EFilingAdapter extends BaseAdapter
         return true;
     }
 
+    /** EFiling ลบ department/document_category แบบ hard delete เมื่อ admin ลบ permission ใน UCM */
+    public function getPermissionDeleteMode(): \App\Enums\PermissionDeleteMode
+    {
+        return \App\Enums\PermissionDeleteMode::Hard;
+    }
+
     /**
      * Scan efiling DB → ค้นหา dep/cat ที่ยังไม่มีใน UCM → สร้างอัตโนมัติ
      * scan จาก definition tables (departments, document_categories) เป็นหลัก
