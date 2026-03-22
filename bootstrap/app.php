@@ -19,6 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
                      \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
                      \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO,
         );
+
+        $middleware->web(append: [
+            \App\Http\Middleware\MinifyHtml::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
