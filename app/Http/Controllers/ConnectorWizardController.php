@@ -12,6 +12,7 @@ use App\Services\Connector\AISchemaAnalyzer;
 use App\Services\Connector\RuleBasedSuggester;
 use App\Services\Connector\SchemaIntrospector;
 use App\Services\Connector\ZipAnalyzer;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,7 +62,7 @@ class ConnectorWizardController extends Controller
         $aiAvailable = ! empty(config('services.anthropic.api_key'));
 
         return view('connectors.wizard', [
-            'editConfig'  => $connectorConfig->load('system'),
+            'editConfig' => $connectorConfig->load('system'),
             'aiAvailable' => $aiAvailable,
         ]);
     }
@@ -87,6 +88,12 @@ class ConnectorWizardController extends Controller
             $this->authUser(),
             'system', $system?->id, $system?->name,
         );
+
+        app(NotificationService::class)->dispatch('connector_deleted', [
+            'system_id' => $system?->id,
+            'system_name' => $system?->name ?? 'ไม่ทราบ',
+            'description' => 'ลบ Connector ของระบบ '.($system?->name ?? 'ไม่ทราบ'),
+        ]);
 
         return redirect()->route('connectors.index')
             ->with('success', 'ลบ Connector สำเร็จ');
@@ -281,20 +288,20 @@ class ConnectorWizardController extends Controller
         $this->requireSuperAdmin();
 
         $data = $request->validate([
-            'db_driver'   => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host'     => 'required|string|max:255',
-            'db_port'     => 'required|integer|min:1|max:65535',
-            'db_name'     => 'required|string|max:100',
-            'db_user'     => 'required|string|max:100',
+            'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
+            'db_host' => 'required|string|max:255',
+            'db_port' => 'required|integer|min:1|max:65535',
+            'db_name' => 'required|string|max:100',
+            'db_user' => 'required|string|max:100',
             'db_password' => 'nullable|string|max:255',
-            'use_ai'      => 'nullable|boolean',
+            'use_ai' => 'nullable|boolean',
         ]);
 
         try {
             $introspector = new SchemaIntrospector($data['db_driver'], $data);
-            $schema       = $introspector->introspect();
+            $schema = $introspector->introspect();
 
-            $suggester  = new RuleBasedSuggester($schema);
+            $suggester = new RuleBasedSuggester($schema);
             $ruleSuggest = $suggester->suggest();
 
             $aiSuggest = null;
@@ -309,9 +316,9 @@ class ConnectorWizardController extends Controller
             }
 
             return response()->json([
-                'ok'          => true,
-                'rule'        => $ruleSuggest,
-                'ai'          => $aiSuggest,
+                'ok' => true,
+                'rule' => $ruleSuggest,
+                'ai' => $aiSuggest,
                 'schema_keys' => array_keys($schema),
             ]);
         } catch (\Throwable $e) {
@@ -326,21 +333,21 @@ class ConnectorWizardController extends Controller
         $this->requireSuperAdmin();
 
         $data = $request->validate([
-            'db_driver'   => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host'     => 'required|string|max:255',
-            'db_port'     => 'required|integer|min:1|max:65535',
-            'db_name'     => 'required|string|max:100',
-            'db_user'     => 'required|string|max:100',
+            'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
+            'db_host' => 'required|string|max:255',
+            'db_port' => 'required|integer|min:1|max:65535',
+            'db_name' => 'required|string|max:100',
+            'db_user' => 'required|string|max:100',
             'db_password' => 'nullable|string|max:255',
-            'source_zip'  => 'required|file|mimes:zip|max:51200',
+            'source_zip' => 'required|file|mimes:zip|max:51200',
         ]);
 
         try {
             $introspector = new SchemaIntrospector($data['db_driver'], $data);
-            $schema       = $introspector->introspect();
+            $schema = $introspector->introspect();
 
-            $zipResult   = (new ZipAnalyzer())->analyze($request->file('source_zip'));
-            $suggester   = new RuleBasedSuggester($schema);
+            $zipResult = (new ZipAnalyzer)->analyze($request->file('source_zip'));
+            $suggester = new RuleBasedSuggester($schema);
             $ruleSuggest = $suggester->suggest();
 
             $analyzer = new AISchemaAnalyzer(
@@ -355,9 +362,9 @@ class ConnectorWizardController extends Controller
             $aiSuggest = $analyzer->analyze($schema, $zipResult['files'], $ruleSuggest);
 
             return response()->json([
-                'ok'        => true,
-                'rule'      => $ruleSuggest,
-                'ai'        => $aiSuggest,
+                'ok' => true,
+                'rule' => $ruleSuggest,
+                'ai' => $aiSuggest,
                 'framework' => $zipResult['framework'],
             ]);
         } catch (\Throwable $e) {
@@ -473,10 +480,10 @@ class ConnectorWizardController extends Controller
                 'perm_label_col' => $data['perm_label_col'] ?? null,
                 'perm_group_col' => $data['perm_group_col'] ?? null,
                 'perm_composite_cols' => isset($data['perm_composite_cols'])
-                    ? json_decode($data['perm_composite_cols'], true)
+                    ? (is_array($decoded = json_decode($data['perm_composite_cols'], true)) ? $decoded : null)
                     : null,
                 'manual_permissions' => isset($data['manual_permissions'])
-                    ? json_decode($data['manual_permissions'], true)
+                    ? (is_array($decoded = json_decode($data['manual_permissions'], true)) ? $decoded : null)
                     : null,
                 'perm_def_table' => $data['perm_def_table'] ?? null,
                 'perm_def_value_col' => $data['perm_def_value_col'] ?? null,
@@ -509,6 +516,16 @@ class ConnectorWizardController extends Controller
             $this->authUser(),
             'system', $system->id, $system->name,
         );
+
+        app(NotificationService::class)->dispatch($isNew ? 'connector_created' : 'connector_updated', [
+            'system_id' => $system->id,
+            'system_name' => $system->name,
+            'db_driver' => $data['db_driver'],
+            'db_host' => $data['db_host'],
+            'db_name' => $data['db_name'],
+            'permission_mode' => $data['permission_mode'],
+            'description' => ($isNew ? 'สร้าง' : 'อัปเดต')." Connector สำหรับระบบ {$system->name}",
+        ]);
 
         return response()->json([
             'ok' => true,

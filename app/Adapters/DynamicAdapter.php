@@ -59,7 +59,12 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             $options[PDO::ATTR_TIMEOUT] = 10;
         }
 
-        $this->pdo = new PDO($dsn, $cfg->db_user, $cfg->db_password, $options);
+        try {
+            $this->pdo = new PDO($dsn, $cfg->db_user, $cfg->db_password, $options);
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] Connection failed: " . $e->getMessage());
+            throw $e;
+        }
 
         return $this->pdo;
     }

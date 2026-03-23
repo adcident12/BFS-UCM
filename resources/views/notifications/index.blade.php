@@ -74,15 +74,25 @@
 {{-- Channel List --}}
 @php
 $availableEvents = [
+    // Users
     'permissions_updated'  => 'สิทธิ์เปลี่ยนแปลง',
+    'account_status_changed' => 'เปลี่ยน Status ผู้ใช้ในระบบ',
     'user_imported'        => 'Import ผู้ใช้',
     'user_bulk_imported'   => 'Import ผู้ใช้ Bulk',
     'user_removed'         => 'ลบผู้ใช้',
     'admin_level_updated'  => 'เปลี่ยน Admin Level',
+    // Systems
     'system_created'       => 'เพิ่ม System',
     'system_updated'       => 'แก้ไข System',
     'system_deleted'       => 'ลบ System',
+    'system_2way_toggled'  => 'Toggle 2-Way Sync',
+    // Connectors
+    'connector_created'    => 'สร้าง Connector',
+    'connector_updated'    => 'แก้ไข Connector',
+    'connector_deleted'    => 'ลบ Connector',
+    // Security / API
     'login_failed'         => 'Login ล้มเหลว',
+    'api_token_issued'     => 'ออก API Token',
 ];
 @endphp
 

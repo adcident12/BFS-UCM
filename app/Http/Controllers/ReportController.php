@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\System;
 use App\Models\UcmUser;
+use App\Services\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class ReportController extends Controller
@@ -99,6 +102,19 @@ class ReportController extends Controller
         foreach ($rows as $row) {
             $csv .= implode(',', array_map(fn ($v) => '"'.str_replace('"', '""', (string) $v).'"', $row))."\n";
         }
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_REPORT_EXPORTED,
+            'Export Permission Matrix CSV: '.$users->count().' users, '.count($headers).' columns',
+            [
+                'filename'    => $filename,
+                'user_count'  => $users->count(),
+                'system_id'   => $request->system_id,
+                'search'      => $request->search,
+            ],
+            Auth::user(),
+        );
 
         return response("\xEF\xBB\xBF".$csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',

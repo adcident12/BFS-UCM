@@ -69,10 +69,26 @@ class AuditLog extends Model
     const EVENT_CONNECTOR_UPDATED = 'connector_updated';
     const EVENT_CONNECTOR_DELETED = 'connector_deleted';
 
+    // Event types — Group Records (Reference Data via Adapter)
+    const EVENT_GROUP_RECORD_CREATED = 'group_record_created';
+    const EVENT_GROUP_RECORD_UPDATED = 'group_record_updated';
+    const EVENT_GROUP_RECORD_DELETED = 'group_record_deleted';
+
     // Event types — API
     const EVENT_API_TOKEN_ISSUED = 'api_token_issued';
     const EVENT_API_TOKEN_REVOKED = 'api_token_revoked';
     const EVENT_API_USER_LOGIN = 'api_user_login';
+
+    // Categories — Notifications
+    const CATEGORY_NOTIFICATIONS = 'notifications';
+
+    // Event types — Notifications
+    const EVENT_NOTIFICATION_CHANNEL_CREATED = 'notification_channel_created';
+    const EVENT_NOTIFICATION_CHANNEL_UPDATED = 'notification_channel_updated';
+    const EVENT_NOTIFICATION_CHANNEL_DELETED = 'notification_channel_deleted';
+
+    // Event types — Reports
+    const EVENT_REPORT_EXPORTED = 'report_exported';
 
     public function actor(): BelongsTo
     {

@@ -73,7 +73,9 @@ class NotificationService
         $lines = ["**Event:** `{$event}`", ''];
 
         foreach ($payload as $key => $value) {
-            if (is_scalar($value)) {
+            if (is_bool($value)) {
+                $lines[] = "**{$key}:** ".($value ? 'เปิด' : 'ปิด');
+            } elseif (is_scalar($value)) {
                 $lines[] = "**{$key}:** {$value}";
             }
         }

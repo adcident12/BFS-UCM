@@ -57,20 +57,20 @@ class SystemController extends Controller
         abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่มระบบได้');
 
         $data = $request->validate([
-            'name'          => 'required|string|max:100',
-            'slug'          => 'required|string|max:50|unique:systems,slug|alpha_dash',
-            'description'   => 'nullable|string|max:500',
+            'name' => 'required|string|max:100',
+            'slug' => 'required|string|max:50|unique:systems,slug|alpha_dash',
+            'description' => 'nullable|string|max:500',
             'adapter_class' => 'nullable|string|max:200',
-            'db_host'       => 'nullable|string|max:255',
-            'db_port'       => 'nullable|integer|min:1|max:65535',
-            'db_name'       => 'nullable|string|max:100',
-            'db_user'       => 'nullable|string|max:100',
-            'db_password'   => 'nullable|string|max:255',
-            'api_url'       => 'nullable|url|max:500',
-            'api_token'     => 'nullable|string|max:500',
-            'color'         => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'icon'          => 'nullable|string|max:50',
-            'is_active'     => 'boolean',
+            'db_host' => 'nullable|string|max:255',
+            'db_port' => 'nullable|integer|min:1|max:65535',
+            'db_name' => 'nullable|string|max:100',
+            'db_user' => 'nullable|string|max:100',
+            'db_password' => 'nullable|string|max:255',
+            'api_url' => 'nullable|url|max:500',
+            'api_token' => 'nullable|string|max:500',
+            'color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'icon' => 'nullable|string|max:50',
+            'is_active' => 'boolean',
         ]);
 
         $system = System::create($data);
@@ -99,11 +99,11 @@ class SystemController extends Controller
     {
         $system->load(['permissions' => fn ($q) => $q->orderBy('group')->orderBy('sort_order')]);
 
-        $managedGroups  = [];
-        $groupSchemas   = [];
+        $managedGroups = [];
+        $groupSchemas = [];
 
         if (AdapterFactory::hasAdapter($system)) {
-            $adapter       = AdapterFactory::make($system);
+            $adapter = AdapterFactory::make($system);
             $managedGroups = $adapter->getManagedGroups();
 
             foreach ($managedGroups as $g) {
@@ -129,20 +129,20 @@ class SystemController extends Controller
         abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขระบบได้');
 
         $data = $request->validate([
-            'name'          => 'required|string|max:100',
-            'slug'          => "required|string|max:50|alpha_dash|unique:systems,slug,{$system->id}",
-            'description'   => 'nullable|string|max:500',
+            'name' => 'required|string|max:100',
+            'slug' => "required|string|max:50|alpha_dash|unique:systems,slug,{$system->id}",
+            'description' => 'nullable|string|max:500',
             'adapter_class' => 'nullable|string|max:200',
-            'db_host'       => 'nullable|string|max:255',
-            'db_port'       => 'nullable|integer|min:1|max:65535',
-            'db_name'       => 'nullable|string|max:100',
-            'db_user'       => 'nullable|string|max:100',
-            'db_password'   => 'nullable|string|max:255',
-            'api_url'       => 'nullable|url|max:500',
-            'api_token'     => 'nullable|string|max:500',
-            'color'         => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'icon'          => 'nullable|string|max:50',
-            'is_active'     => 'boolean',
+            'db_host' => 'nullable|string|max:255',
+            'db_port' => 'nullable|integer|min:1|max:65535',
+            'db_name' => 'nullable|string|max:100',
+            'db_user' => 'nullable|string|max:100',
+            'db_password' => 'nullable|string|max:255',
+            'api_url' => 'nullable|url|max:500',
+            'api_token' => 'nullable|string|max:500',
+            'color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'icon' => 'nullable|string|max:50',
+            'is_active' => 'boolean',
         ]);
 
         // ไม่ update password/token ถ้าไม่ได้กรอกใหม่
@@ -219,6 +219,13 @@ class SystemController extends Controller
             'system', $system->id, $system->name,
         );
 
+        app(NotificationService::class)->dispatch('system_2way_toggled', [
+            'system_id' => $system->id,
+            'system_name' => $system->name,
+            'two_way_permissions' => $system->two_way_permissions,
+            'description' => "{$state} 2-way permission sync สำหรับระบบ {$system->name}",
+        ]);
+
         return back()->with('success', "{$state} 2-way permission sync สำหรับ {$system->name} เรียบร้อย");
     }
 
@@ -227,12 +234,12 @@ class SystemController extends Controller
         abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่ม Permission ได้');
 
         $data = $request->validate([
-            'key'          => "required|string|max:100|unique:system_permissions,key,NULL,id,system_id,{$system->id}",
-            'label'        => 'required|string|max:100',
+            'key' => "required|string|max:100|unique:system_permissions,key,NULL,id,system_id,{$system->id}",
+            'label' => 'required|string|max:100',
             'remote_value' => 'nullable|string|max:255',
-            'group'        => 'nullable|string|max:50',
-            'description'  => 'nullable|string|max:500',
-            'sort_order'   => 'nullable|integer|min:0',
+            'group' => 'nullable|string|max:50',
+            'description' => 'nullable|string|max:500',
+            'sort_order' => 'nullable|integer|min:0',
             'is_exclusive' => 'boolean',
         ]);
 
@@ -268,11 +275,11 @@ class SystemController extends Controller
         abort_if($permission->system_id !== $system->id, 404);
 
         $data = $request->validate([
-            'label'        => 'required|string|max:100',
+            'label' => 'required|string|max:100',
             'remote_value' => 'nullable|string|max:255',
-            'group'        => 'nullable|string|max:50',
-            'description'  => 'nullable|string|max:500',
-            'sort_order'   => 'nullable|integer|min:0',
+            'group' => 'nullable|string|max:50',
+            'description' => 'nullable|string|max:500',
+            'sort_order' => 'nullable|integer|min:0',
             'is_exclusive' => 'boolean',
         ]);
 
@@ -308,26 +315,26 @@ class SystemController extends Controller
         abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถ Discover Permissions ได้');
 
         if (! AdapterFactory::hasAdapter($system)) {
-            return back()->withErrors(['ระบบ ' . $system->name . ' ไม่มี adapter รองรับ discoverPermissions']);
+            return back()->withErrors(['ระบบ '.$system->name.' ไม่มี adapter รองรับ discoverPermissions']);
         }
 
         $adapter = AdapterFactory::make($system);
         $created = $adapter->discoverPermissions();
 
         if (empty($created)) {
-            return back()->with('success', 'ไม่พบ permission ใหม่จาก ' . $system->name . ' (ครบถ้วนแล้ว)');
+            return back()->with('success', 'ไม่พบ permission ใหม่จาก '.$system->name.' (ครบถ้วนแล้ว)');
         }
 
         AuditLogger::log(
             AuditLog::CATEGORY_SYSTEMS,
             AuditLog::EVENT_PERM_DEF_DISCOVERED,
-            'Discover permission definitions จากระบบ ' . $system->name . ': ' . count($created) . ' รายการ',
+            'Discover permission definitions จากระบบ '.$system->name.': '.count($created).' รายการ',
             ['system_id' => $system->id, 'system_name' => $system->name, 'created' => $created],
             $this->authUser(),
             'system', $system->id, $system->name,
         );
 
-        return back()->with('success', 'พบ ' . count($created) . ' permission ใหม่จาก ' . $system->name . ': ' . implode(', ', $created));
+        return back()->with('success', 'พบ '.count($created).' permission ใหม่จาก '.$system->name.': '.implode(', ', $created));
     }
 
     public function destroyPermission(System $system, SystemPermission $permission)
@@ -377,8 +384,8 @@ class SystemController extends Controller
         abort_unless(AdapterFactory::hasAdapter($system), 400);
 
         $data = $request->validate([
-            'group'    => 'required|string|max:100',
-            'name'     => 'required|string|max:255',
+            'group' => 'required|string|max:100',
+            'name' => 'required|string|max:255',
             'priority' => 'nullable|integer|min:1',
             'filename' => 'nullable|string|max:255',
         ]);
@@ -391,8 +398,17 @@ class SystemController extends Controller
         $result = AdapterFactory::make($system)->addGroupRecord($data['group'], $data['name'], $extra);
 
         if ($result === false) {
-            return back()->withErrors(['เพิ่ม ' . $data['group'] . ' ล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ']);
+            return back()->withErrors(['เพิ่ม '.$data['group'].' ล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ']);
         }
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_GROUP_RECORD_CREATED,
+            "เพิ่ม {$data['group']} '{$data['name']}' ในระบบ {$system->name}",
+            ['system_id' => $system->id, 'group' => $data['group'], 'name' => $data['name']],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
 
         return back()->with('success', "เพิ่ม {$data['group']} '{$data['name']}' เรียบร้อย");
     }
@@ -406,7 +422,7 @@ class SystemController extends Controller
         abort_unless(in_array($group, $adapter->getManagedGroups(), true), 404);
 
         $data = $request->validate([
-            'name'     => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'priority' => 'nullable|integer|min:1',
             'filename' => 'nullable|string|max:255',
         ]);
@@ -419,8 +435,17 @@ class SystemController extends Controller
         $ok = $adapter->updateGroupRecord($group, $recordId, $data['name'], $extra);
 
         if (! $ok) {
-            return back()->withErrors(['อัปเดต ' . $group . ' ล้มเหลว']);
+            return back()->withErrors(['อัปเดต '.$group.' ล้มเหลว']);
         }
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_GROUP_RECORD_UPDATED,
+            "อัปเดต {$group} #{$recordId} '{$data['name']}' ในระบบ {$system->name}",
+            ['system_id' => $system->id, 'group' => $group, 'record_id' => $recordId, 'name' => $data['name']],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
 
         return back()->with('success', "อัปเดต {$group} เรียบร้อย");
     }
@@ -436,8 +461,17 @@ class SystemController extends Controller
         $ok = $adapter->deleteGroupRecord($group, $recordId);
 
         if (! $ok) {
-            return back()->withErrors(['ลบ ' . $group . ' ล้มเหลว']);
+            return back()->withErrors(['ลบ '.$group.' ล้มเหลว']);
         }
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_GROUP_RECORD_DELETED,
+            "ลบ {$group} #{$recordId} ในระบบ {$system->name}",
+            ['system_id' => $system->id, 'group' => $group, 'record_id' => $recordId],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
 
         return back()->with('success', "ลบ {$group} เรียบร้อย");
     }

@@ -8,6 +8,7 @@ use App\Models\System;
 use App\Models\UcmUser;
 use App\Services\AuditLogger;
 use App\Services\LdapService;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -28,8 +29,8 @@ class AuthController extends Controller
     public function issueToken(Request $request): JsonResponse
     {
         $request->validate([
-            'username'   => 'required|string',
-            'password'   => 'required|string',
+            'username' => 'required|string',
+            'password' => 'required|string',
             'token_name' => 'required|string|max:100',
         ]);
 
@@ -43,6 +44,7 @@ class AuthController extends Controller
 
         if (! $user->isAdmin()) {
             auth()->logout();
+
             return response()->json(['message' => 'Forbidden: admin account required'], 403);
         }
 
@@ -61,11 +63,19 @@ class AuthController extends Controller
             $request,
         );
 
+        app(NotificationService::class)->dispatch('api_token_issued', [
+            'username' => $user->username,
+            'name' => $user->name,
+            'token_name' => $request->token_name,
+            'ip_address' => $request->ip(),
+            'description' => "ออก API Token '{$request->token_name}' สำหรับ {$user->username} ({$user->name})",
+        ]);
+
         auth()->logout();
 
         return response()->json([
             'token' => $token->plainTextToken,
-            'type'  => 'Bearer',
+            'type' => 'Bearer',
         ]);
     }
 
@@ -77,8 +87,14 @@ class AuthController extends Controller
     public function revokeToken(Request $request): JsonResponse
     {
         $user = $request->user();
-        $tokenName = $user->currentAccessToken()->name;
-        $user->currentAccessToken()->delete();
+        $currentToken = $user->currentAccessToken();
+
+        if (! $currentToken) {
+            return response()->json(['message' => 'No active token'], 400);
+        }
+
+        $tokenName = $currentToken->name;
+        $currentToken->delete();
 
         AuditLogger::log(
             AuditLog::CATEGORY_API,
@@ -122,7 +138,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'username' => 'required|string|max:100',
             'password' => 'required|string|max:200',
-            'system'   => 'nullable|string|max:100|exists:systems,slug',
+            'system' => 'nullable|string|max:100|exists:systems,slug',
         ]);
 
         // ตรวจสอบ credentials ผ่าน LDAP
@@ -164,7 +180,7 @@ class AuthController extends Controller
         AuditLogger::log(
             AuditLog::CATEGORY_API,
             AuditLog::EVENT_API_USER_LOGIN,
-            "User login ผ่าน API: {$user->username} ({$user->name}) ระบบ: " . ($validated['system'] ?? 'ไม่ระบุ'),
+            "User login ผ่าน API: {$user->username} ({$user->name}) ระบบ: ".($validated['system'] ?? 'ไม่ระบุ'),
             ['username' => $user->username, 'system' => $validated['system'] ?? null],
             $user,
             null, null, null,
@@ -173,13 +189,13 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token->plainTextToken,
-            'type'  => 'Bearer',
-            'user'  => [
-                'username'   => $user->username,
-                'name'       => $user->name,
-                'email'      => $user->email,
+            'type' => 'Bearer',
+            'user' => [
+                'username' => $user->username,
+                'name' => $user->name,
+                'email' => $user->email,
                 'department' => $user->department,
-                'title'      => $user->title,
+                'title' => $user->title,
             ],
             'permissions' => $permissions,
         ]);

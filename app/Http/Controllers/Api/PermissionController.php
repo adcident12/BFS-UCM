@@ -22,6 +22,13 @@ class PermissionController extends Controller
             'system' => 'required|string|exists:systems,slug',
         ]);
 
+        /** @var UcmUser $caller */
+        $caller = $request->user();
+
+        if (! $caller->isAdmin() && $caller->username !== $username) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
         $user = UcmUser::where('username', $username)
             ->where('is_active', true)
             ->first();
@@ -37,8 +44,8 @@ class PermissionController extends Controller
         $permissions = $user->getPermissionsForSystem($system->id);
 
         return response()->json([
-            'username'    => $user->username,
-            'system'      => $system->slug,
+            'username' => $user->username,
+            'system' => $system->slug,
             'permissions' => $permissions,
         ]);
     }
@@ -51,10 +58,17 @@ class PermissionController extends Controller
     public function check(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'username'   => 'required|string|max:100',
-            'system'     => 'required|string|max:100',
+            'username' => 'required|string|max:100',
+            'system' => 'required|string|max:100',
             'permission' => 'required|string|max:100',
         ]);
+
+        /** @var UcmUser $caller */
+        $caller = $request->user();
+
+        if (! $caller->isAdmin() && $caller->username !== $validated['username']) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
 
         $user = UcmUser::where('username', $validated['username'])
             ->where('is_active', true)
@@ -75,8 +89,15 @@ class PermissionController extends Controller
      * Returns permissions for a user across ALL active systems.
      * Uses a single query + grouping to avoid N+1.
      */
-    public function allSystems(string $username): JsonResponse
+    public function allSystems(Request $request, string $username): JsonResponse
     {
+        /** @var UcmUser $caller */
+        $caller = $request->user();
+
+        if (! $caller->isAdmin() && $caller->username !== $username) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
         $user = UcmUser::where('username', $username)
             ->where('is_active', true)
             ->first();
@@ -89,8 +110,8 @@ class PermissionController extends Controller
         $permissions = UserSystemPermission::where('user_id', $user->id)
             ->join('systems', function ($join) {
                 $join->on('user_system_permissions.system_id', '=', 'systems.id')
-                     ->where('systems.is_active', true)
-                     ->whereNull('systems.deleted_at');
+                    ->where('systems.is_active', true)
+                    ->whereNull('systems.deleted_at');
             })
             ->select('systems.slug', 'user_system_permissions.permission_key')
             ->get();
@@ -103,7 +124,7 @@ class PermissionController extends Controller
 
         return response()->json([
             'username' => $user->username,
-            'systems'  => $result,
+            'systems' => $result,
         ]);
     }
 }
