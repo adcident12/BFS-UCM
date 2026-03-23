@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Adapters\AdapterFactory;
 use App\Adapters\DynamicAdapter;
 use App\Models\AuditLog;
 use App\Models\ConnectorConfig;
 use App\Models\System;
+use App\Models\SystemPermission;
 use App\Models\UcmUser;
 use App\Services\AuditLogger;
 use App\Services\Connector\AISchemaAnalyzer;
@@ -18,6 +20,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use PDO;
 use PDOException;
@@ -112,7 +115,10 @@ class ConnectorWizardController extends Controller
             'db_name' => 'required|string|max:100',
             'db_user' => 'required|string|max:100',
             'db_password' => 'nullable|string|max:255',
+            'connector_config_id' => 'nullable|integer',
         ]);
+
+        $data = $this->fillPasswordIfEmpty($data);
 
         try {
             $pdo = $this->makePdo($data);
@@ -137,7 +143,10 @@ class ConnectorWizardController extends Controller
             'db_name' => 'required|string|max:100',
             'db_user' => 'required|string|max:100',
             'db_password' => 'nullable|string|max:255',
+            'connector_config_id' => 'nullable|integer',
         ]);
+
+        $data = $this->fillPasswordIfEmpty($data);
 
         try {
             $pdo = $this->makePdo($data);
@@ -168,7 +177,10 @@ class ConnectorWizardController extends Controller
             'db_user' => 'required|string|max:100',
             'db_password' => 'nullable|string|max:255',
             'table' => 'required|string|regex:/^[\w.]+$/',
+            'connector_config_id' => 'nullable|integer',
         ]);
+
+        $data = $this->fillPasswordIfEmpty($data);
 
         try {
             $pdo = $this->makePdo($data);
@@ -211,7 +223,10 @@ class ConnectorWizardController extends Controller
             'user_table' => 'required|string|regex:/^[\w.]+$/',
             'user_identifier_col' => 'required|string|regex:/^[\w.]+$/',
             'user_name_col' => 'nullable|string|regex:/^[\w.]+$/',
+            'connector_config_id' => 'nullable|integer',
         ]);
+
+        $data = $this->fillPasswordIfEmpty($data);
 
         try {
             $pdo = $this->makePdo($data);
@@ -253,7 +268,10 @@ class ConnectorWizardController extends Controller
             'perm_value_col' => 'required|string|regex:/^[\w.]+$/',
             'perm_label_col' => 'nullable|string|regex:/^[\w.]+$/',
             'perm_group_col' => 'nullable|string|regex:/^[\w.]+$/',
+            'connector_config_id' => 'nullable|integer',
         ]);
+
+        $data = $this->fillPasswordIfEmpty($data);
 
         try {
             $pdo = $this->makePdo($data);
@@ -295,7 +313,10 @@ class ConnectorWizardController extends Controller
             'db_user' => 'required|string|max:100',
             'db_password' => 'nullable|string|max:255',
             'use_ai' => 'nullable|boolean',
+            'connector_config_id' => 'nullable|integer',
         ]);
+
+        $data = $this->fillPasswordIfEmpty($data);
 
         try {
             $introspector = new SchemaIntrospector($data['db_driver'], $data);
@@ -340,7 +361,10 @@ class ConnectorWizardController extends Controller
             'db_user' => 'required|string|max:100',
             'db_password' => 'nullable|string|max:255',
             'source_zip' => 'required|file|mimes:zip|max:51200',
+            'connector_config_id' => 'nullable|integer',
         ]);
+
+        $data = $this->fillPasswordIfEmpty($data);
 
         try {
             $introspector = new SchemaIntrospector($data['db_driver'], $data);
@@ -381,8 +405,8 @@ class ConnectorWizardController extends Controller
         $data = $request->validate([
             // System info
             'system_id' => 'nullable|exists:systems,id',
-            'system_name' => 'required_without:system_id|string|max:100',
-            'system_slug' => 'required_without:system_id|string|max:50|alpha_dash',
+            'system_name' => 'required_without:system_id|nullable|string|max:100',
+            'system_slug' => 'required_without:system_id|nullable|string|max:50|alpha_dash',
             'system_description' => 'nullable|string|max:500',
             'system_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'system_icon' => 'nullable|string|max:10',
@@ -399,6 +423,7 @@ class ConnectorWizardController extends Controller
             'user_table' => 'required|string|max:100|regex:/^[\w.]+$/',
             'user_ucm_identifier' => 'required|in:username,employee_number',
             'user_identifier_col' => 'required|string|max:100|regex:/^[\w.]+$/',
+            'user_pk_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'user_name_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'user_email_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'user_dept_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
@@ -428,7 +453,16 @@ class ConnectorWizardController extends Controller
 
         $isNew = ! isset($data['system_id']);
 
-        $system = DB::transaction(function () use ($data) {
+        // Edit mode: ถ้าไม่ได้กรอก password ใหม่ ให้ใช้ password เดิมจาก ConnectorConfig
+        if (! $isNew && empty($data['db_password'])) {
+            $existing = ConnectorConfig::where('system_id', $data['system_id'])->first();
+            if ($existing && ! empty($existing->db_password)) {
+                $data['db_password'] = $existing->db_password;
+            }
+        }
+
+        try {
+            $system = DB::transaction(function () use ($data) {
             // สร้างหรือใช้ System ที่มีอยู่
             if (! empty($data['system_id'])) {
                 $system = System::findOrFail($data['system_id']);
@@ -445,7 +479,7 @@ class ConnectorWizardController extends Controller
                     'slug' => $slug,
                     'description' => $data['system_description'] ?? null,
                     'color' => $data['system_color'] ?? '#6366f1',
-                    'icon' => $data['system_icon'] ?? null,
+                    'icon' => $data['system_icon'] ?: 'server',
                     'adapter_class' => DynamicAdapter::class,
                     'db_host' => $data['db_host'],
                     'db_port' => $data['db_port'],
@@ -468,6 +502,7 @@ class ConnectorWizardController extends Controller
                 'user_table' => $data['user_table'],
                 'user_ucm_identifier' => $data['user_ucm_identifier'],
                 'user_identifier_col' => $data['user_identifier_col'],
+                'user_pk_col' => $data['user_pk_col'] ?? null,
                 'user_name_col' => $data['user_name_col'] ?? null,
                 'user_email_col' => $data['user_email_col'] ?? null,
                 'user_dept_col' => $data['user_dept_col'] ?? null,
@@ -505,8 +540,37 @@ class ConnectorWizardController extends Controller
                 $system->update(['adapter_class' => DynamicAdapter::class]);
             }
 
+            // Manual mode: sync manual_permissions → system_permissions
+            if ($configData['permission_mode'] === 'manual' && ! empty($configData['manual_permissions'])) {
+                foreach ($configData['manual_permissions'] as $perm) {
+                    if (empty($perm['key'])) {
+                        continue;
+                    }
+
+                    SystemPermission::updateOrCreate(
+                        ['system_id' => $system->id, 'key' => $perm['key']],
+                        ['label' => $perm['label'] ?? $perm['key'], 'group' => $perm['group'] ?? null]
+                    );
+                }
+            }
+
             return $system;
         });
+
+        // Sync two_way_permissions บน System ตามที่ wizard ตั้งค่า
+        $hasTwoWay = ! empty($data['perm_def_table']);
+        if ($system->two_way_permissions !== $hasTwoWay) {
+            $system->update(['two_way_permissions' => $hasTwoWay]);
+        }
+
+        // Auto-discover permissions หลังสร้างใหม่ (ยกเว้น manual mode ที่ sync ในตัว)
+        if ($isNew && $data['permission_mode'] !== 'manual') {
+            try {
+                AdapterFactory::make($system->fresh())->discoverPermissions();
+            } catch (\Throwable $e) {
+                Log::warning("[ConnectorWizard] Auto-discover skipped for {$system->slug}: ".$e->getMessage());
+            }
+        }
 
         AuditLogger::log(
             AuditLog::CATEGORY_CONNECTORS,
@@ -533,6 +597,9 @@ class ConnectorWizardController extends Controller
             'system_id' => $system->id,
             'redirect' => route('systems.show', $system),
         ]);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'message' => $e->getMessage()], 422);
+        }
     }
 
     // ── Update (Edit Existing) ─────────────────────────────────────────────
@@ -573,6 +640,24 @@ class ConnectorWizardController extends Controller
         }
 
         return new PDO($dsn, $user, $password, $options);
+    }
+
+    /**
+     * ถ้า db_password ว่างเปล่าและมี connector_config_id ให้ดึง password จาก DB
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function fillPasswordIfEmpty(array $data): array
+    {
+        if (empty($data['db_password']) && ! empty($data['connector_config_id'])) {
+            $config = ConnectorConfig::find((int) $data['connector_config_id']);
+            if ($config) {
+                $data['db_password'] = $config->db_password;
+            }
+        }
+
+        return $data;
     }
 
     /** Quote Identifier */

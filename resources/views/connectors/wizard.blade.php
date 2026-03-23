@@ -338,6 +338,9 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         <div class="relative flex-1">
                             <select id="field_user_table" class="{{ $sel }}" onchange="wizLoadUserColumns()">
                                 <option value="">— เลือกตาราง —</option>
+                                @if(isset($editConfig) && $editConfig->user_table)
+                                    <option value="{{ $editConfig->user_table }}" selected>{{ $editConfig->user_table }}</option>
+                                @endif
                             </select>
                             {!! $arr !!}
                         </div>
@@ -380,36 +383,74 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                     <div>
                         <label class="{{ $lbl }}">คอลัมน์ Identifier <span class="text-rose-500">*</span></label>
                         <div class="relative">
-                            <select id="field_user_identifier_col" class="{{ $sel }}"><option value="">— เลือกคอลัมน์ —</option></select>
+                            <select id="field_user_identifier_col" class="{{ $sel }}">
+                                <option value="">— เลือกคอลัมน์ —</option>
+                                @if(isset($editConfig) && $editConfig->user_identifier_col)
+                                    <option value="{{ $editConfig->user_identifier_col }}" selected>{{ $editConfig->user_identifier_col }}</option>
+                                @endif
+                            </select>
                             {!! $arr !!}
                         </div>
                         <p class="{{ $hint }}">ตรงกับ UCM username / employee_number</p>
                     </div>
                     <div>
+                        <label class="{{ $lbl }}">คอลัมน์ PK ของ User Table <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
+                        <div class="relative">
+                            <select id="field_user_pk_col" class="{{ $sel }}">
+                                <option value="">(ไม่ระบุ — ใช้ Identifier โดยตรง)</option>
+                                @if(isset($editConfig) && $editConfig->user_pk_col)
+                                    <option value="{{ $editConfig->user_pk_col }}" selected>{{ $editConfig->user_pk_col }}</option>
+                                @endif
+                            </select>
+                            {!! $arr !!}
+                        </div>
+                        <p class="{{ $hint }}">ระบุเมื่อ FK ใน junction table อ้างอิง PK (INT) ไม่ใช่ username โดยตรง</p>
+                    </div>
+                    <div>
                         <label class="{{ $lbl }}">ชื่อ-นามสกุล <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                         <div class="relative">
-                            <select id="field_user_name_col" class="{{ $sel }}"><option value="">(ไม่ระบุ)</option></select>
+                            <select id="field_user_name_col" class="{{ $sel }}">
+                                <option value="">(ไม่ระบุ)</option>
+                                @if(isset($editConfig) && $editConfig->user_name_col)
+                                    <option value="{{ $editConfig->user_name_col }}" selected>{{ $editConfig->user_name_col }}</option>
+                                @endif
+                            </select>
                             {!! $arr !!}
                         </div>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">อีเมล <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                         <div class="relative">
-                            <select id="field_user_email_col" class="{{ $sel }}"><option value="">(ไม่ระบุ)</option></select>
+                            <select id="field_user_email_col" class="{{ $sel }}">
+                                <option value="">(ไม่ระบุ)</option>
+                                @if(isset($editConfig) && $editConfig->user_email_col)
+                                    <option value="{{ $editConfig->user_email_col }}" selected>{{ $editConfig->user_email_col }}</option>
+                                @endif
+                            </select>
                             {!! $arr !!}
                         </div>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">แผนก <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                         <div class="relative">
-                            <select id="field_user_dept_col" class="{{ $sel }}"><option value="">(ไม่ระบุ)</option></select>
+                            <select id="field_user_dept_col" class="{{ $sel }}">
+                                <option value="">(ไม่ระบุ)</option>
+                                @if(isset($editConfig) && $editConfig->user_dept_col)
+                                    <option value="{{ $editConfig->user_dept_col }}" selected>{{ $editConfig->user_dept_col }}</option>
+                                @endif
+                            </select>
                             {!! $arr !!}
                         </div>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">สถานะ Active <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                         <div class="relative">
-                            <select id="field_user_status_col" class="{{ $sel }}" onchange="wizToggleStatusVal()"><option value="">(ไม่ระบุ)</option></select>
+                            <select id="field_user_status_col" class="{{ $sel }}" onchange="wizToggleStatusVal()">
+                                <option value="">(ไม่ระบุ)</option>
+                                @if(isset($editConfig) && $editConfig->user_status_col)
+                                    <option value="{{ $editConfig->user_status_col }}" selected>{{ $editConfig->user_status_col }}</option>
+                                @endif
+                            </select>
                             {!! $arr !!}
                         </div>
                     </div>
@@ -515,6 +556,9 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <div class="relative flex-1">
                                 <select id="field_perm_table" class="{{ $sel }}" onchange="wizLoadPermColumns()">
                                     <option value="">— เลือกตาราง —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_table)
+                                        <option value="{{ $editConfig->perm_table }}" selected>{{ $editConfig->perm_table }}</option>
+                                    @endif
                                 </select>
                                 {!! $arr !!}
                             </div>
@@ -531,28 +575,48 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         <div id="perm-user-fk-wrap">
                             <label class="{{ $lbl }}">FK ชี้ไปยัง User <span class="text-rose-500">*</span></label>
                             <div class="relative">
-                                <select id="field_perm_user_fk_col" class="{{ $sel }}"><option value="">— เลือกคอลัมน์ —</option></select>
+                                <select id="field_perm_user_fk_col" class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_user_fk_col)
+                                        <option value="{{ $editConfig->perm_user_fk_col }}" selected>{{ $editConfig->perm_user_fk_col }}</option>
+                                    @endif
+                                </select>
                                 {!! $arr !!}
                             </div>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Permission Value <span class="text-rose-500">*</span></label>
                             <div class="relative">
-                                <select id="field_perm_value_col" class="{{ $sel }}"><option value="">— เลือกคอลัมน์ —</option></select>
+                                <select id="field_perm_value_col" class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_value_col)
+                                        <option value="{{ $editConfig->perm_value_col }}" selected>{{ $editConfig->perm_value_col }}</option>
+                                    @endif
+                                </select>
                                 {!! $arr !!}
                             </div>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Label <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                             <div class="relative">
-                                <select id="field_perm_label_col" class="{{ $sel }}"><option value="">(ไม่ระบุ)</option></select>
+                                <select id="field_perm_label_col" class="{{ $sel }}">
+                                    <option value="">(ไม่ระบุ)</option>
+                                    @if(isset($editConfig) && $editConfig->perm_label_col)
+                                        <option value="{{ $editConfig->perm_label_col }}" selected>{{ $editConfig->perm_label_col }}</option>
+                                    @endif
+                                </select>
                                 {!! $arr !!}
                             </div>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Group <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                             <div class="relative">
-                                <select id="field_perm_group_col" class="{{ $sel }}"><option value="">(ไม่ระบุ)</option></select>
+                                <select id="field_perm_group_col" class="{{ $sel }}">
+                                    <option value="">(ไม่ระบุ)</option>
+                                    @if(isset($editConfig) && $editConfig->perm_group_col)
+                                        <option value="{{ $editConfig->perm_group_col }}" selected>{{ $editConfig->perm_group_col }}</option>
+                                    @endif
+                                </select>
                                 {!! $arr !!}
                             </div>
                         </div>
@@ -664,6 +728,9 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <select id="field_perm_def_table" name="perm_def_table" onchange="wizLoadDefColumns()"
                                     class="flex-1 px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
                                 <option value="">— เลือกตาราง —</option>
+                                @if(isset($editConfig) && $editConfig->perm_def_table)
+                                    <option value="{{ $editConfig->perm_def_table }}" selected>{{ $editConfig->perm_def_table }}</option>
+                                @endif
                             </select>
                             <button type="button" onclick="wizLoadTables('perm_def_table', 'wizLoadDefColumns')"
                                     class="px-3 py-2 text-xs font-semibold text-violet-600 bg-violet-50 border border-violet-200 rounded-xl hover:bg-violet-100 transition whitespace-nowrap">
@@ -673,12 +740,15 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                     </div>
 
                     {{-- Columns --}}
-                    <div id="def-columns-wrap" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div id="def-columns-wrap" class="{{ (isset($editConfig) && $editConfig->perm_def_table) ? '' : 'hidden' }} grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-600 mb-1.5">คอลัมน์ Key/Value <span class="text-rose-500">*</span></label>
                             <select id="field_perm_def_value_col" name="perm_def_value_col"
                                     class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
                                 <option value="">— เลือกคอลัมน์ —</option>
+                                @if(isset($editConfig) && $editConfig->perm_def_value_col)
+                                    <option value="{{ $editConfig->perm_def_value_col }}" selected>{{ $editConfig->perm_def_value_col }}</option>
+                                @endif
                             </select>
                         </div>
                         <div>
@@ -686,6 +756,9 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <select id="field_perm_def_pk_col" name="perm_def_pk_col"
                                     class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
                                 <option value="">id (default)</option>
+                                @if(isset($editConfig) && $editConfig->perm_def_pk_col)
+                                    <option value="{{ $editConfig->perm_def_pk_col }}" selected>{{ $editConfig->perm_def_pk_col }}</option>
+                                @endif
                             </select>
                         </div>
                         <div>
@@ -693,6 +766,9 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <select id="field_perm_def_label_col" name="perm_def_label_col"
                                     class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
                                 <option value="">(ไม่ระบุ)</option>
+                                @if(isset($editConfig) && $editConfig->perm_def_label_col)
+                                    <option value="{{ $editConfig->perm_def_label_col }}" selected>{{ $editConfig->perm_def_label_col }}</option>
+                                @endif
                             </select>
                         </div>
                         <div>
@@ -700,6 +776,9 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <select id="field_perm_def_group_col" name="perm_def_group_col"
                                     class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
                                 <option value="">(ไม่ระบุ)</option>
+                                @if(isset($editConfig) && $editConfig->perm_def_group_col)
+                                    <option value="{{ $editConfig->perm_def_group_col }}" selected>{{ $editConfig->perm_def_group_col }}</option>
+                                @endif
                             </select>
                         </div>
                     </div>
@@ -744,6 +823,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <label class="block text-xs font-bold text-amber-700 mb-1.5">คอลัมน์ Soft Delete <span class="text-rose-500">*</span></label>
                             <p class="text-xs text-amber-600 mb-1.5">คอลัมน์ที่จะ UPDATE เช่น <code class="font-mono bg-amber-100 px-1 rounded">is_deleted</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted_at</code></p>
                             <input type="text" id="field_perm_def_soft_delete_col" name="perm_def_soft_delete_col"
+                                   value="{{ isset($editConfig) ? ($editConfig->perm_def_soft_delete_col ?? '') : '' }}"
                                    placeholder="เช่น is_deleted"
                                    class="w-full px-3 py-2 text-sm font-mono text-slate-800 bg-white border border-amber-200 rounded-xl focus:outline-none focus:border-amber-500 transition">
                         </div>
@@ -751,7 +831,8 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <label class="block text-xs font-bold text-amber-700 mb-1.5">ค่าที่หมายถึง "ลบแล้ว" <span class="text-rose-500">*</span></label>
                             <p class="text-xs text-amber-600 mb-1.5">ค่าที่จะ SET เช่น <code class="font-mono bg-amber-100 px-1 rounded">1</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted</code></p>
                             <input type="text" id="field_perm_def_soft_delete_val" name="perm_def_soft_delete_val"
-                                   value="1" placeholder="เช่น 1 หรือ deleted"
+                                   value="{{ isset($editConfig) ? ($editConfig->perm_def_soft_delete_val ?? '1') : '1' }}"
+                                   placeholder="เช่น 1 หรือ deleted"
                                    class="w-full px-3 py-2 text-sm font-mono text-slate-800 bg-white border border-amber-200 rounded-xl focus:outline-none focus:border-amber-500 transition">
                         </div>
                     </div>
@@ -817,6 +898,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     var IS_EDIT = @json(isset($editConfig));
     var EDIT_CONFIG = @json($editConfig ?? null);
     var EDIT_CONFIG_ID = EDIT_CONFIG ? EDIT_CONFIG.id : null;
+    var EDIT_UPDATE_URL = @json(isset($editConfig) ? route('connectors.update', $editConfig->id) : null);
     var AI_AVAILABLE = @json($aiAvailable ?? false);
     var ROUTE_ANALYZE_SCHEMA = '{{ route("connectors.ajax.analyze-schema") }}';
     var ROUTE_ANALYZE_ZIP    = '{{ route("connectors.ajax.analyze-zip") }}';
@@ -1010,12 +1092,13 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
 
     function connData() {
         return {
-            db_driver:   radioVal('db_driver'),
-            db_host:     val('db_host'),
-            db_port:     val('db_port'),
-            db_name:     val('db_name'),
-            db_user:     val('db_user'),
-            db_password: document.getElementById('field_db_password')?.value ?? '',
+            db_driver:            radioVal('db_driver'),
+            db_host:              val('db_host'),
+            db_port:              val('db_port'),
+            db_name:              val('db_name'),
+            db_user:              val('db_user'),
+            db_password:          document.getElementById('field_db_password')?.value ?? '',
+            connector_config_id:  IS_EDIT ? EDIT_CONFIG_ID : null,
         };
     }
 
@@ -1076,11 +1159,11 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
 
     // ── Load Tables into a Select ──────────────────────────────────────────
 
-    window.wizLoadTables = function (fieldId, onChangeFn) {
+    window.wizLoadTables = function (fieldId, onChangeFn, preselectVal) {
         wizFetchTablesInternal(function (tbls) {
             var sel = document.getElementById('field_' + fieldId);
             if (! sel) return;
-            var current = sel.value;
+            var current = (preselectVal !== undefined && preselectVal !== null) ? preselectVal : sel.value;
             sel.innerHTML = '<option value="">— เลือกตาราง —</option>';
             tbls.forEach(function (t) {
                 var opt = document.createElement('option');
@@ -1119,6 +1202,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         var table = val('user_table');
         loadColumnsFor(table, [
             { id: 'field_user_identifier_col', preselect: EDIT_CONFIG?.user_identifier_col },
+            { id: 'field_user_pk_col', nullable: true, preselect: EDIT_CONFIG?.user_pk_col },
             { id: 'field_user_name_col', nullable: true, preselect: EDIT_CONFIG?.user_name_col },
             { id: 'field_user_email_col', nullable: true, preselect: EDIT_CONFIG?.user_email_col },
             { id: 'field_user_dept_col', nullable: true, preselect: EDIT_CONFIG?.user_dept_col },
@@ -1170,15 +1254,18 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
 
     window.wizToggle2Way = function (enabled) {
         document.getElementById('two-way-fields').classList.toggle('hidden', ! enabled);
-        if (enabled && val('perm_def_table') === '') {
-            wizLoadTables('perm_def_table', 'wizLoadDefColumns');
+        if (enabled) {
+            // ใช้ค่าปัจจุบันใน select หรือ EDIT_CONFIG เป็น preselect
+            var preselect = val('perm_def_table') || (EDIT_CONFIG ? EDIT_CONFIG.perm_def_table || null : null);
+            wizLoadTables('perm_def_table', 'wizLoadDefColumns', preselect);
         }
     };
 
     window.wizLoadDefColumns = function () {
         var table = val('perm_def_table');
         if (! table) return;
-        document.getElementById('def-columns-wrap').classList.remove('hidden');
+        var wrap = document.getElementById('def-columns-wrap');
+        if (wrap) { wrap.classList.remove('hidden'); }
         loadColumnsFor(table, [
             { id: 'field_perm_def_value_col',   preselect: EDIT_CONFIG?.perm_def_value_col },
             { id: 'field_perm_def_pk_col',      nullable: true, preselect: EDIT_CONFIG?.perm_def_pk_col },
@@ -1433,6 +1520,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             user_table:             val('user_table'),
             user_ucm_identifier:    radioVal('user_ucm_identifier'),
             user_identifier_col:    val('user_identifier_col'),
+            user_pk_col:            val('user_pk_col') || null,
             user_name_col:          val('user_name_col') || null,
             user_email_col:         val('user_email_col') || null,
             user_dept_col:          val('user_dept_col') || null,
@@ -1446,20 +1534,21 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             perm_group_col:         mode !== 'manual' ? (val('perm_group_col') || null) : null,
             perm_composite_cols:    mode === 'junction' ? JSON.stringify(wizGetCompositeCols()) : null,
             manual_permissions:     mode === 'manual' ? JSON.stringify(getManualPerms()) : null,
-            perm_def_table:           twoWayEnabled ? val('perm_def_table') || null : null,
-            perm_def_value_col:       twoWayEnabled ? val('perm_def_value_col') || null : null,
-            perm_def_pk_col:          twoWayEnabled ? val('perm_def_pk_col') || null : null,
-            perm_def_label_col:       twoWayEnabled ? val('perm_def_label_col') || null : null,
-            perm_def_group_col:       twoWayEnabled ? val('perm_def_group_col') || null : null,
-            perm_delete_mode:         twoWayEnabled ? radioVal('perm_delete_mode') || 'detach_only' : null,
-            perm_def_soft_delete_col: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? val('perm_def_soft_delete_col') || null : null,
-            perm_def_soft_delete_val: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? val('perm_def_soft_delete_val') || null : null,
+            perm_def_table:           twoWayEnabled ? (val('perm_def_table') || (IS_EDIT ? EDIT_CONFIG?.perm_def_table || null : null)) : null,
+            perm_def_value_col:       twoWayEnabled ? (val('perm_def_value_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_value_col || null : null)) : null,
+            perm_def_pk_col:          twoWayEnabled ? (val('perm_def_pk_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_pk_col || null : null)) : null,
+            perm_def_label_col:       twoWayEnabled ? (val('perm_def_label_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_label_col || null : null)) : null,
+            perm_def_group_col:       twoWayEnabled ? (val('perm_def_group_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_group_col || null : null)) : null,
+            perm_delete_mode:         twoWayEnabled ? (radioVal('perm_delete_mode') || (IS_EDIT ? EDIT_CONFIG?.perm_delete_mode || null : null) || 'detach_only') : null,
+            perm_def_soft_delete_col: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? (val('perm_def_soft_delete_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_soft_delete_col || null : null)) : null,
+            perm_def_soft_delete_val: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? (val('perm_def_soft_delete_val') || (IS_EDIT ? EDIT_CONFIG?.perm_def_soft_delete_val || null : null)) : null,
         });
 
-        if (IS_EDIT) { payload._method = 'PUT'; }
+        var submitUrl    = IS_EDIT ? EDIT_UPDATE_URL : '{{ route("connectors.store") }}';
+        var submitMethod = IS_EDIT ? 'PUT' : 'POST';
 
-        fetch('{{ route("connectors.store") }}', {
-            method: 'POST',
+        fetch(submitUrl, {
+            method: submitMethod,
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
             body: JSON.stringify(payload),
         }).then(function (r) { return r.json(); }).then(function (res) {
@@ -1652,6 +1741,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             var m = ut.mapping || {};
             loadColumnsFor(ut.table, [
                 { id: 'field_user_identifier_col',                  preselect: m.identifier },
+                { id: 'field_user_pk_col',     nullable: true,      preselect: m.pk_col },
                 { id: 'field_user_name_col',   nullable: true,      preselect: m.name },
                 { id: 'field_user_email_col',  nullable: true,      preselect: m.email },
                 { id: 'field_user_dept_col',   nullable: true,      preselect: m.department },
@@ -1903,6 +1993,16 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             if (EDIT_CONFIG.perm_delete_mode) {
                 var radio = document.querySelector('input[name="perm_delete_mode"][value="' + EDIT_CONFIG.perm_delete_mode + '"]');
                 if (radio) { radio.checked = true; wizToggleDeleteMode(EDIT_CONFIG.perm_delete_mode); }
+            }
+            // Pre-populate soft delete text inputs (server-side value อาจถูก override ตรงนี้ถ้า JS ต้องการ)
+            // ค่าถูก render server-side แล้วใน value=, ส่วนนี้เป็น safety net
+            if (EDIT_CONFIG.perm_def_soft_delete_col) {
+                var sdcEl = document.getElementById('field_perm_def_soft_delete_col');
+                if (sdcEl && ! sdcEl.value) { sdcEl.value = EDIT_CONFIG.perm_def_soft_delete_col; }
+            }
+            if (EDIT_CONFIG.perm_def_soft_delete_val) {
+                var sdvEl = document.getElementById('field_perm_def_soft_delete_val');
+                if (sdvEl && ! sdvEl.value) { sdvEl.value = EDIT_CONFIG.perm_def_soft_delete_val; }
             }
         }
     }

@@ -5,6 +5,7 @@ namespace App\Adapters;
 use App\Enums\PermissionDeleteMode;
 use App\Models\ConnectorConfig;
 use App\Models\System;
+use App\Models\SystemPermission;
 use App\Models\UcmUser;
 use Illuminate\Support\Facades\Log;
 use PDO;
@@ -76,6 +77,41 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         return $this->config->user_ucm_identifier === 'employee_number'
             ? (string) $user->employee_number
             : $user->username;
+    }
+
+    /**
+     * คืนค่าที่จะใช้ใน WHERE / INSERT ของ junction table
+     *
+     * ถ้า user_pk_col ตั้งค่าไว้ → perm_user_fk_col อ้างอิง PK (INT) ของ user_table
+     * ต้อง lookup ก่อน: SELECT {pk_col} FROM {user_table} WHERE {identifier_col} = {identifier}
+     *
+     * ถ้าไม่ตั้งค่า → ใช้ identifier (username/employee_number) โดยตรง
+     */
+    private function resolveUserFkValue(UcmUser $user): string
+    {
+        $cfg        = $this->config;
+        $identifier = $this->resolveUserIdentifier($user);
+
+        if (! filled($cfg->user_pk_col)) {
+            return $identifier;
+        }
+
+        try {
+            $pdo       = $this->getConnection();
+            $userTable = $this->quoteIdentifier($cfg->user_table);
+            $idCol     = $this->quoteIdentifier($cfg->user_identifier_col);
+            $pkCol     = $this->quoteIdentifier($cfg->user_pk_col);
+
+            $stmt = $pdo->prepare("SELECT {$pkCol} FROM {$userTable} WHERE {$idCol} = ? LIMIT 1");
+            $stmt->execute([$identifier]);
+            $pk = $stmt->fetchColumn();
+
+            return $pk !== false ? (string) $pk : $identifier;
+        } catch (PDOException $e) {
+            Log::warning("[DynamicAdapter:{$this->system->slug}] resolveUserFkValue fallback to identifier: ".$e->getMessage());
+
+            return $identifier;
+        }
     }
 
     // ── Composite Junction Helpers ─────────────────────────────────────────
@@ -186,7 +222,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
     public function getCurrentPermissions(UcmUser $user): array
     {
         $cfg        = $this->config;
-        $identifier = $this->resolveUserIdentifier($user);
+        $identifier = $this->resolveUserFkValue($user);
 
         if ($cfg->permission_mode === 'manual') {
             return [];
@@ -226,7 +262,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
     public function syncPermissions(UcmUser $user, array $permissions): bool
     {
         $cfg        = $this->config;
-        $identifier = $this->resolveUserIdentifier($user);
+        $identifier = $this->resolveUserFkValue($user);
 
         if ($cfg->permission_mode === 'manual') {
             return true; // manual mode — ไม่มี remote sync
@@ -347,6 +383,154 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
     public function supports2WayPermissions(): bool
     {
         return filled($this->config->perm_def_table);
+    }
+
+    /**
+     * อ่าน permission ทั้งหมดจาก remote DB แล้ว sync เข้า system_permissions
+     *
+     * - manual mode        : ใช้ manual_permissions จาก config
+     * - junction/column + perm_def_table : อ่าน perm_def_table (กรอง soft-delete ออก)
+     * - junction/column ธรรมดา           : อ่าน distinct values จาก perm_table
+     *
+     * @return string[] รายการ key ที่เพิ่งสร้างใหม่
+     */
+    public function discoverPermissions(): array
+    {
+        $cfg     = $this->config;
+        $created = [];
+
+        try {
+            $this->system->loadMissing('permissions');
+            $existingKeys = $this->system->permissions->pluck('key')->all();
+
+            $rows = $this->fetchPermissionRows();
+
+            foreach ($rows as $row) {
+                $key         = trim((string) ($row['key'] ?? ''));
+                $remoteValue = isset($row['remote_value']) && $row['remote_value'] !== '' ? $row['remote_value'] : null;
+
+                if ($key === '') {
+                    continue;
+                }
+
+                if (in_array($key, $existingKeys, true)) {
+                    // อัปเดต remote_value ของ record เดิมที่ยังว่างอยู่ (backfill)
+                    if ($remoteValue !== null) {
+                        SystemPermission::where('system_id', $this->system->id)
+                            ->where('key', $key)
+                            ->whereNull('remote_value')
+                            ->update(['remote_value' => $remoteValue]);
+                    }
+
+                    continue;
+                }
+
+                SystemPermission::firstOrCreate(
+                    ['system_id' => $this->system->id, 'key' => $key],
+                    [
+                        'label'        => $row['label'] ?? $key,
+                        'group'        => $row['group'] ?? null,
+                        'remote_value' => $remoteValue,
+                    ]
+                );
+
+                $existingKeys[] = $key;
+                $created[]      = $key;
+
+                Log::info("[DynamicAdapter:{$this->system->slug}] discoverPermissions: สร้าง '{$key}'");
+            }
+
+            // Cleanup: เมื่อใช้ perm_def_table ให้ลบ UCM permissions ที่ไม่อยู่ใน
+            // active list อีกต่อไป (ถูก soft-delete หรือลบออกจาก external DB แล้ว)
+            // ทำเฉพาะเมื่อ $rows มีผลลัพธ์ หรือเมื่อ soft-delete config ถูกตั้งค่าไว้
+            // (ป้องกันลบ UCM ทั้งหมดกรณี connection error ที่ส่ง empty silently)
+            if (filled($cfg->perm_def_table) && filled($cfg->perm_def_value_col)) {
+                $activeKeys = array_values(array_filter(
+                    array_map(fn ($r) => trim((string) ($r['key'] ?? '')), $rows),
+                    fn ($k) => $k !== ''
+                ));
+
+                $stalePermissions = SystemPermission::where('system_id', $this->system->id)
+                    ->whereNotNull('remote_value')
+                    ->when(! empty($activeKeys), fn ($q) => $q->whereNotIn('key', $activeKeys))
+                    ->when(empty($activeKeys), fn ($q) => $q->whereRaw('0')) // ถ้า active list ว่าง ไม่ลบ
+                    ->get();
+
+                foreach ($stalePermissions as $stale) {
+                    $stale->delete();
+                    Log::info("[DynamicAdapter:{$this->system->slug}] discoverPermissions: ลบ '{$stale->key}' (soft-deleted หรือไม่พบใน perm_def_table)");
+                }
+            }
+        } catch (\Throwable $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] discoverPermissions failed: ".$e->getMessage());
+        }
+
+        return $created;
+    }
+
+    /**
+     * @return array<int, array{key: string, label: string, group: string|null, remote_value: string|null}>
+     */
+    private function fetchPermissionRows(): array
+    {
+        $cfg = $this->config;
+
+        // Manual mode — อ่านจาก config โดยตรง ไม่ต้องต่อ DB
+        if ($cfg->permission_mode === 'manual') {
+            return array_map(fn ($p) => [
+                'key'          => $p['key']   ?? '',
+                'label'        => $p['label'] ?? ($p['key'] ?? ''),
+                'group'        => $p['group'] ?? null,
+                'remote_value' => null,
+            ], (array) ($cfg->manual_permissions ?? []));
+        }
+
+        $pdo = $this->getConnection();
+
+        // มี perm_def_table → อ่าน canonical list (2-way sync)
+        if (filled($cfg->perm_def_table) && filled($cfg->perm_def_value_col)) {
+            $defTable = $this->quoteIdentifier($cfg->perm_def_table);
+            $valCol   = $this->quoteIdentifier($cfg->perm_def_value_col);
+            $pkCol    = $cfg->perm_def_pk_col ?: 'id';
+            $quotedPk = $this->quoteIdentifier($pkCol);
+
+            // เลือก PK เสมอเพื่อใช้เป็น remote_value
+            $cols = [$quotedPk, $valCol];
+            if (filled($cfg->perm_def_label_col)) {
+                $cols[] = $this->quoteIdentifier($cfg->perm_def_label_col);
+            }
+            if (filled($cfg->perm_def_group_col)) {
+                $cols[] = $this->quoteIdentifier($cfg->perm_def_group_col);
+            }
+
+            // กรอง soft-deleted rows ออก ด้วย soft_col != soft_val
+            $where  = '';
+            $params = [];
+            if (filled($cfg->perm_def_soft_delete_col) && filled($cfg->perm_def_soft_delete_val)) {
+                $softCol  = $this->quoteIdentifier($cfg->perm_def_soft_delete_col);
+                $where    = " WHERE ({$softCol} IS NULL OR {$softCol} != ?)";
+                $params[] = $cfg->perm_def_soft_delete_val;
+            }
+
+            $stmt = $pdo->prepare('SELECT '.implode(', ', $cols)." FROM {$defTable}{$where}");
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll();
+
+            return array_map(fn ($row) => [
+                'key'          => (string) $row[$cfg->perm_def_value_col],
+                'label'        => $cfg->perm_def_label_col ? ($row[$cfg->perm_def_label_col] ?? '') : $row[$cfg->perm_def_value_col],
+                'group'        => $cfg->perm_def_group_col ? ($row[$cfg->perm_def_group_col] ?? null) : null,
+                'remote_value' => (string) $row[$pkCol],
+            ], $rows);
+        }
+
+        // ไม่มี perm_def_table → อ่าน distinct values จาก perm_table (ไม่มี PK ให้ track)
+        return array_map(fn ($p) => [
+            'key'          => $p['key'],
+            'label'        => $p['label'] ?? $p['key'],
+            'group'        => $p['group'] ?? null,
+            'remote_value' => null,
+        ], $this->getAvailablePermissions());
     }
 
     public function getPermissionDeleteMode(): PermissionDeleteMode

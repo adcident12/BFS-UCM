@@ -18,6 +18,7 @@ class ConnectorConfig extends Model
         'user_table',
         'user_ucm_identifier',
         'user_identifier_col',
+        'user_pk_col',
         'user_name_col',
         'user_email_col',
         'user_dept_col',

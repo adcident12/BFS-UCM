@@ -26,6 +26,7 @@ $sections = [
     ['id' => 'ad-check',          'label' => 'ตรวจสอบ AD'],
     ['id' => 'sync',              'label' => 'การ Sync สิทธิ์'],
     ['id' => 'connector-wizard',  'label' => 'Connector Wizard'],
+    ['id' => 'wiz-scenarios',     'label' => '↳ ตัวอย่าง Scenarios (A–D)'],
     ['id' => 'queue-monitor',         'label' => 'Queue Monitor'],
     ['id' => 'audit-log',             'label' => 'Audit Log'],
     ['id' => 'notification-channels', 'label' => 'Notification Channels'],
@@ -1549,6 +1550,515 @@ $sections = [
                         </div>
                         @endforeach
                     </div>
+                </div>
+
+                {{-- ── Scenarios ── --}}
+                <div id="wiz-scenarios" class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-1">ตัวอย่างการใช้งาน (Scenarios)</h3>
+                    <p class="text-xs text-slate-500 mb-5">ตัวอย่าง Step-by-Step สำหรับแต่ละ Permission Mode โดยใช้ฐานข้อมูลจำลอง <code class="font-mono bg-slate-100 px-1 rounded">connector_test</code></p>
+
+                    {{-- DB Connection Info --}}
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs mb-6">
+                        <p class="font-semibold text-slate-800 mb-2">ข้อมูลการเชื่อมต่อ (ใช้ร่วมกันทุก Scenario)</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5 text-slate-600 font-mono">
+                            <div><span class="text-slate-400 font-sans">Driver</span><br>mysql</div>
+                            <div><span class="text-slate-400 font-sans">Host</span><br>ucm-db</div>
+                            <div><span class="text-slate-400 font-sans">Port</span><br>3306</div>
+                            <div><span class="text-slate-400 font-sans">Database</span><br>connector_test</div>
+                            <div><span class="text-slate-400 font-sans">Username</span><br>ucm_user</div>
+                            <div><span class="text-slate-400 font-sans">Password</span><br>ucm_password</div>
+                        </div>
+                    </div>
+
+                    {{-- Scenario A --}}
+                    <div class="rounded-2xl border border-indigo-200 overflow-hidden mb-5">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-indigo-50 border-b border-indigo-100">
+                            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">A</span>
+                            <div>
+                                <p class="font-bold text-indigo-900 text-sm">Junction Mode + 2-Way Sync</p>
+                                <p class="text-xs text-indigo-600">ตาราง <code class="font-mono">sc_a_users</code> + <code class="font-mono">sc_a_user_perm</code> (junction) + <code class="font-mono">sc_a_perm_def</code> (definition)</p>
+                            </div>
+                        </div>
+                        <div class="px-4 py-4 space-y-4 text-xs bg-white">
+
+                            {{-- Step 1 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">1</span>
+                                    ข้อมูลระบบ
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['ชื่อระบบ', 'ระบบทดสอบ Junction'],
+                                                ['Slug', 'test-junction'],
+                                                ['คำอธิบาย', 'ทดสอบ junction mode พร้อม 2-way sync'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-36">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Step 3 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">3</span>
+                                    ตาราง Users
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['User Table',        'sc_a_users'],
+                                                ['UCM Identifier',    'username'],
+                                                ['Identifier Column', 'username'],
+                                                ['PK Column',         '(ไม่ระบุ — ใช้ username โดยตรง)'],
+                                                ['ชื่อ Column',       'full_name'],
+                                                ['Email Column',      'email'],
+                                                ['Department Column', 'department'],
+                                                ['Status Column',     'status'],
+                                                ['Active Value',      'active'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-36">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Step 4 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">4</span>
+                                    Permissions — Mode: <span class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-bold ml-1">Junction Table</span>
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['Permission Table',       'sc_a_user_perm'],
+                                                ['User FK Column',         'user_id'],
+                                                ['Permission Value Column','perm_key'],
+                                                ['Label Column',           '(ว่าง)'],
+                                                ['Group Column',           '(ว่าง)'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-36">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Step 5 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">5</span>
+                                    2-Way Sync — <span class="text-emerald-600 font-bold ml-1">เปิดใช้งาน</span>
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['Permission Def. Table', 'sc_a_perm_def'],
+                                                ['Def. Value Column',     'perm_key'],
+                                                ['Primary Key Column',    'id'],
+                                                ['Label Column',          'label'],
+                                                ['Group Column',          'grp'],
+                                                ['Delete Mode',           'Soft Delete'],
+                                                ['Soft Delete Column',    'is_deleted'],
+                                                ['ค่าที่หมายถึงลบ',       '1'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-48">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Result --}}
+                            <div class="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                <svg class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <div class="text-emerald-800">
+                                    <p class="font-semibold mb-1">ผลที่ได้หลังกด Discover Permissions บนหน้า System</p>
+                                    <p>Permissions 5 รายการ: <code class="font-mono bg-white px-1 rounded border border-emerald-200">view_report</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">edit_report</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">approve_report</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">manage_user</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">view_audit</code> — รายการ <code class="font-mono bg-white px-1 rounded border border-emerald-200">old_perm</code> (<code class="font-mono">is_deleted=1</code>) จะถูกกรองออก</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Scenario B --}}
+                    <div class="rounded-2xl border border-violet-200 overflow-hidden mb-5">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-violet-50 border-b border-violet-100">
+                            <span class="w-7 h-7 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">B</span>
+                            <div>
+                                <p class="font-bold text-violet-900 text-sm">Column Mode</p>
+                                <p class="text-xs text-violet-600">ตาราง <code class="font-mono">sc_b_employees</code> — Permission เก็บเป็น Column ในตาราง User</p>
+                            </div>
+                        </div>
+                        <div class="px-4 py-4 space-y-4 text-xs bg-white">
+
+                            {{-- Step 3 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">3</span>
+                                    ตาราง Users
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['User Table',        'sc_b_employees'],
+                                                ['UCM Identifier',    'employee_number (เลือก employee_number)'],
+                                                ['Identifier Column', 'employee_number'],
+                                                ['ชื่อ Column',       'full_name'],
+                                                ['Email Column',      'email'],
+                                                ['Department Column', 'dept_code'],
+                                                ['Status Column',     'is_active'],
+                                                ['Active Value',      '1'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-36">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Step 4 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">4</span>
+                                    Permissions — Mode: <span class="px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 font-bold ml-1">Column</span>
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['Permission Table',       'sc_b_employees (ตารางเดียวกับ User)'],
+                                                ['Permission Value Column','role'],
+                                                ['Label Column',           'role_label'],
+                                                ['Group Column',           'role_group'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-36">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Step 5 --}}
+                            <div class="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-600">
+                                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                <span><strong>Step 5 (2-Way Sync)</strong> — ปิด (Column Mode ไม่มีตาราง Definition แยก)</span>
+                            </div>
+
+                            {{-- Result --}}
+                            <div class="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                <svg class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <div class="text-emerald-800">
+                                    <p class="font-semibold mb-1">ผลที่ได้หลังกด Discover Permissions</p>
+                                    <p>Permissions 4 รายการ (distinct values จาก column <code class="font-mono bg-white px-1 rounded border border-emerald-200">role</code>): <code class="font-mono bg-white px-1 rounded border border-emerald-200">admin</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">developer</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">viewer</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">approver</code> พร้อม Label และ Group ที่ดึงมาจาก <code class="font-mono">role_label</code>, <code class="font-mono">role_group</code></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Scenario C --}}
+                    <div class="rounded-2xl border border-amber-200 overflow-hidden mb-5">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-amber-50 border-b border-amber-100">
+                            <span class="w-7 h-7 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">C</span>
+                            <div>
+                                <p class="font-bold text-amber-900 text-sm">Manual Permissions</p>
+                                <p class="text-xs text-amber-700">ตาราง <code class="font-mono">sc_c_staff</code> — กำหนดสิทธิ์เองในตัว Wizard ไม่ดึงจาก DB</p>
+                            </div>
+                        </div>
+                        <div class="px-4 py-4 space-y-4 text-xs bg-white">
+
+                            {{-- Step 3 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">3</span>
+                                    ตาราง Users
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['User Table',        'sc_c_staff'],
+                                                ['UCM Identifier',    'employee_number (เลือก employee_number)'],
+                                                ['Identifier Column', 'employee_number'],
+                                                ['ชื่อ Column',       'display_name'],
+                                                ['Email Column',      'email'],
+                                                ['Department Column', 'division'],
+                                                ['Status Column',     'acc_status'],
+                                                ['Active Value',      'Y'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-36">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Step 4 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">4</span>
+                                    Permissions — Mode: <span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-bold ml-1">Manual</span>
+                                </p>
+                                <p class="text-slate-600 mb-2">กดปุ่ม <strong>"+ เพิ่มสิทธิ์"</strong> แล้วกรอกทีละรายการ:</p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <thead class="bg-slate-100">
+                                            <tr>
+                                                <th class="px-3 py-2 text-left text-slate-600 font-semibold">Key</th>
+                                                <th class="px-3 py-2 text-left text-slate-600 font-semibold">Label</th>
+                                                <th class="px-3 py-2 text-left text-slate-600 font-semibold">Group</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['read_doc',      'อ่านเอกสาร',           'เอกสาร'],
+                                                ['write_doc',     'สร้าง/แก้ไขเอกสาร',    'เอกสาร'],
+                                                ['approve_doc',   'อนุมัติเอกสาร',         'เอกสาร'],
+                                                ['view_report',   'ดูรายงาน',              'รายงาน'],
+                                                ['export_report', 'ส่งออกรายงาน',          'รายงาน'],
+                                            ] as [$k, $l, $g])
+                                            <tr>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $k }}</td>
+                                                <td class="px-3 py-2 text-slate-700">{{ $l }}</td>
+                                                <td class="px-3 py-2 text-slate-500">{{ $g }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Step 5 --}}
+                            <div class="flex items-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-600">
+                                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                <span><strong>Step 5 (2-Way Sync)</strong> — ปิด (Manual Mode ไม่ต้องการตาราง Definition)</span>
+                            </div>
+
+                            {{-- Result --}}
+                            <div class="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                <svg class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <div class="text-emerald-800">
+                                    <p class="font-semibold mb-1">ผลที่ได้ทันทีหลังสร้าง (ไม่ต้อง Discover)</p>
+                                    <p>Permissions 5 รายการถูกสร้างพร้อมกับ Connector: <code class="font-mono bg-white px-1 rounded border border-emerald-200">read_doc</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">write_doc</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">approve_doc</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">view_report</code>, <code class="font-mono bg-white px-1 rounded border border-emerald-200">export_report</code> พร้อม Group จัดหมวดหมู่</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Scenario D --}}
+                    <div class="rounded-2xl border border-cyan-200 overflow-hidden mb-5">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-cyan-50 border-b border-cyan-100">
+                            <span class="w-7 h-7 rounded-full bg-cyan-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">D</span>
+                            <div>
+                                <p class="font-bold text-cyan-900 text-sm">Junction Mode + INT PK FK + 2-Way Sync</p>
+                                <p class="text-xs text-cyan-700">ตาราง <code class="font-mono">sc_d_members</code> + <code class="font-mono">sc_d_member_roles</code> (junction ใช้ <code class="font-mono">member_id INT</code>) + <code class="font-mono">sc_d_role_def</code> (definition)</p>
+                            </div>
+                        </div>
+                        <div class="px-4 py-4 space-y-4 text-xs bg-white">
+
+                            {{-- Context --}}
+                            <div class="flex items-start gap-2 p-3 bg-cyan-50 border border-cyan-200 rounded-lg text-cyan-800">
+                                <svg class="w-4 h-4 text-cyan-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <div>
+                                    <p class="font-semibold mb-1">เมื่อไหร่ต้องใช้ Scenario นี้?</p>
+                                    <p>ใช้เมื่อ <strong>junction table เก็บ FK เป็น INT</strong> (เช่น <code class="font-mono">member_id = 42</code>) แทนที่จะเป็น username/employee_number โดยตรง — ระบบจะ Lookup <code class="font-mono">id</code> จาก user table ก่อน แล้วจึงใช้ค่านั้นในการ INSERT/DELETE junction</p>
+                                </div>
+                            </div>
+
+                            {{-- Step 1 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">1</span>
+                                    ข้อมูลระบบ
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['ชื่อระบบ', 'ระบบทดสอบ INT FK'],
+                                                ['Slug', 'test-junction-intfk'],
+                                                ['คำอธิบาย', 'ทดสอบ junction mode ที่ FK เป็น INT'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-36">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Step 3 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">3</span>
+                                    ตาราง Users
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['User Table',        'sc_d_members'],
+                                                ['UCM Identifier',    'employee_number'],
+                                                ['Identifier Column', 'emp_code'],
+                                                ['PK Column',         'id'],
+                                                ['ชื่อ Column',       'full_name'],
+                                                ['Email Column',      'email'],
+                                                ['Department Column', 'dept'],
+                                                ['Status Column',     'active'],
+                                                ['Active Value',      '1'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-36">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-2 flex items-start gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800">
+                                    <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    <p>การระบุ <strong>PK Column = <code class="font-mono">id</code></strong> บอกให้ระบบ Lookup <code class="font-mono">id</code> ของ user ก่อนทุกครั้งที่ Sync — junction table จะได้รับ <code class="font-mono">member_id = 42</code> แทน <code class="font-mono">emp_code = 'E001'</code></p>
+                                </div>
+                            </div>
+
+                            {{-- Step 4 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">4</span>
+                                    Permissions — Mode: <span class="px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 font-bold ml-1">Junction Table</span>
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['Permission Table',       'sc_d_member_roles'],
+                                                ['User FK Column',         'member_id'],
+                                                ['Permission Value Column','role_key'],
+                                                ['Label Column',           '(ว่าง)'],
+                                                ['Group Column',           '(ว่าง)'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-36">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Step 5 --}}
+                            <div>
+                                <p class="font-bold text-slate-800 mb-2 flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 text-[10px] font-bold flex items-center justify-center flex-shrink-0">5</span>
+                                    2-Way Sync — <span class="text-emerald-600 font-bold ml-1">เปิดใช้งาน</span>
+                                </p>
+                                <div class="bg-slate-50 rounded-lg border border-slate-200 overflow-hidden">
+                                    <table class="w-full text-xs">
+                                        <tbody class="divide-y divide-slate-100">
+                                            @foreach ([
+                                                ['Permission Def. Table', 'sc_d_role_def'],
+                                                ['Def. Value Column',     'role_key'],
+                                                ['Primary Key Column',    'id'],
+                                                ['Label Column',          'role_name'],
+                                                ['Group Column',          'role_group'],
+                                                ['Delete Mode',           'Hard Delete'],
+                                            ] as [$f, $v])
+                                            <tr>
+                                                <td class="px-3 py-2 text-slate-500 w-48">{{ $f }}</td>
+                                                <td class="px-3 py-2 font-mono text-slate-800">{{ $v }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {{-- Result --}}
+                            <div class="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                <svg class="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                <div class="text-emerald-800">
+                                    <p class="font-semibold mb-1">ผลที่ได้และพฤติกรรมขณะ Sync</p>
+                                    <ul class="space-y-1 list-disc list-inside">
+                                        <li>Discover Permissions ดึง roles จาก <code class="font-mono bg-white px-1 rounded border border-emerald-200">sc_d_role_def</code> มาสร้าง Permission ใน UCM</li>
+                                        <li>เมื่อ Sync user — ระบบ Lookup <code class="font-mono bg-white px-1 rounded border border-emerald-200">id</code> จาก <code class="font-mono bg-white px-1 rounded border border-emerald-200">sc_d_members</code> ก่อน แล้วจึง INSERT <code class="font-mono bg-white px-1 rounded border border-emerald-200">(member_id, role_key)</code> ลง junction</li>
+                                        <li>เมื่อลบ permission ใน UCM — ระบบลบแถวออกจาก <code class="font-mono bg-white px-1 rounded border border-emerald-200">sc_d_role_def</code> ด้วย (Hard Delete)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Comparison Table --}}
+                    <div class="rounded-xl border border-slate-200 overflow-hidden">
+                        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                            <p class="font-bold text-slate-800 text-xs">เปรียบเทียบ 4 Scenarios</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs">
+                                <thead class="bg-slate-50 border-b border-slate-200">
+                                    <tr>
+                                        <th class="px-3 py-2.5 text-left text-slate-600 font-semibold w-28"></th>
+                                        <th class="px-3 py-2.5 text-center text-indigo-700 font-semibold">Junction (A)</th>
+                                        <th class="px-3 py-2.5 text-center text-violet-700 font-semibold">Column (B)</th>
+                                        <th class="px-3 py-2.5 text-center text-amber-700 font-semibold">Manual (C)</th>
+                                        <th class="px-3 py-2.5 text-center text-cyan-700 font-semibold">INT FK (D)</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    @foreach ([
+                                        ['Permission มาจาก',    'ตาราง junction',       'Column ใน user table',  'กำหนดใน Wizard',        'ตาราง junction'],
+                                        ['user_pk_col',          '❌ ไม่ระบุ',            '❌ ไม่ระบุ',            '❌ ไม่ระบุ',             '✅ ระบุ (เช่น id)'],
+                                        ['FK ใน junction',       'username / emp_no',    'N/A',                   'N/A',                    'INT (PK ของ user)'],
+                                        ['2-Way Sync',           '✅ รองรับ',             '❌ ไม่รองรับ',          '❌ ไม่รองรับ',           '✅ รองรับ'],
+                                        ['Discover Permissions', '✅ ต้องกด Discover',    '✅ ต้องกด Discover',    '✅ สร้างอัตโนมัติ',      '✅ ต้องกด Discover'],
+                                        ['เหมาะกับ',            'RBAC + username FK',    'Role เดี่ยวต่อ user',  'ไม่มี DB permission',    'RBAC + INT PK FK'],
+                                    ] as [$label, $a, $b, $c, $d])
+                                    <tr>
+                                        <td class="px-3 py-2.5 text-slate-500 font-medium">{{ $label }}</td>
+                                        <td class="px-3 py-2.5 text-center text-slate-700">{{ $a }}</td>
+                                        <td class="px-3 py-2.5 text-center text-slate-700">{{ $b }}</td>
+                                        <td class="px-3 py-2.5 text-center text-slate-700">{{ $c }}</td>
+                                        <td class="px-3 py-2.5 text-center text-slate-700">{{ $d }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
 
                 {{-- แก้ไขและลบ --}}

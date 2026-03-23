@@ -87,7 +87,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/connectors/ajax/analyze-schema', [ConnectorWizardController::class, 'analyzeSchema'])->name('connectors.ajax.analyze-schema');
     Route::post('/connectors/ajax/analyze-zip', [ConnectorWizardController::class, 'analyzeZip'])->name('connectors.ajax.analyze-zip');
     Route::post('/connectors', [ConnectorWizardController::class, 'store'])->name('connectors.store');
-    Route::put('/connectors/{connectorConfig}', [ConnectorWizardController::class, 'update'])->name('connectors.update');
+    Route::match(['PUT', 'POST'], '/connectors/{connectorConfig}', [ConnectorWizardController::class, 'update'])->name('connectors.update');
 
     // Audit Log
     Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit.index');
