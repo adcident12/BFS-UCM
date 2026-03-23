@@ -97,7 +97,7 @@ app/
 │   │   ├── UserController.php           # CRUD ผู้ใช้ + AD import + permissions + export CSV
 │   │   ├── SystemController.php         # CRUD ระบบ + permission management + 2-way toggle
 │   │   ├── AuditLogController.php       # Audit Log — filter, paginate, display
-│   │   ├── ConnectorWizardController.php # Connector Wizard + AJAX endpoints (6 steps, 5 AJAX routes)
+│   │   ├── ConnectorWizardController.php # Connector Wizard + AJAX endpoints (6 steps, 7 AJAX routes)
 │   │   ├── QueueMonitorController.php   # Queue monitor + retry/flush failed jobs
 │   │   ├── NotificationController.php   # Notification Channel CRUD
 │   │   ├── ReportController.php         # Permission Matrix report + CSV Export
@@ -107,6 +107,8 @@ app/
 │   │       ├── AuthController.php       # API token issue / revoke / user-login
 │   │       ├── PermissionController.php # Permission query API (single / all / batch check)
 │   │       └── UserExportController.php # CSV export API
+│   ├── Middleware/
+│   │   └── MinifyHtml.php               # Minify HTML output (strip whitespace)
 │   └── Requests/
 │       └── StoreNotificationChannelRequest.php  # Validation + authorization (Admin L2)
 │
@@ -130,7 +132,12 @@ app/
 └── Services/
     ├── AuditLogger.php                  # Static helper — บันทึก AuditLog ทุกจุดในระบบ
     ├── LdapService.php                  # LDAP search / bind / attribute mapping
-    └── NotificationService.php         # Dispatch notifications ไปยัง active channels
+    ├── NotificationService.php         # Dispatch notifications ไปยัง active channels
+    └── Connector/                       # Connector Wizard — Analysis Services
+        ├── SchemaIntrospector.php       # Introspect remote DB (tables/columns/FK/row count/sample)
+        ├── AISchemaAnalyzer.php         # Claude API (tool_use) → แนะนำ user_table + permission config
+        ├── RuleBasedSuggester.php       # Heuristics + score-based fallback (ไม่ต้องการ API Key)
+        └── ZipAnalyzer.php             # สแกน ZIP source code, ตรวจจับ framework (20+ frameworks)
 
 database/migrations/
     │
@@ -148,19 +155,21 @@ database/migrations/
     ├── 2026_03_19_..._create_personal_access_tokens_table.php  # Sanctum
     │
     │  ── Alter migrations ────────────────────────────────────────────────────
-    ├── 2026_03_19_..._add_is_exclusive_to_system_permissions_table.php
-    ├── 2026_03_19_..._add_employee_number_to_ucm_users_table.php
-    ├── 2026_03_19_..._add_remote_value_to_system_permissions_table.php
-    ├── 2026_03_20_..._add_two_way_permissions_to_systems_table.php
-    ├── 2026_03_20_..._change_is_admin_to_tinyint_in_ucm_users_table.php
+    ├── 2026_03_19_071741_add_is_exclusive_to_system_permissions_table.php
+    ├── 2026_03_19_084328_add_employee_number_to_ucm_users_table.php
+    ├── 2026_03_19_084336_add_employee_number_to_ucm_users_table.php    # (duplicate timestamp — ไฟล์ที่ 2 คือ patch)
+    ├── 2026_03_19_094705_add_remote_value_to_system_permissions_table.php
+    ├── 2026_03_20_100000_add_two_way_permissions_to_systems_table.php
+    ├── 2026_03_20_200000_change_is_admin_to_tinyint_in_ucm_users_table.php
     │
     │  ── Feature migrations ──────────────────────────────────────────────────
-    ├── 2026_03_21_..._create_connector_configs_table.php       ← Connector Wizard
-    ├── 2026_03_21_..._create_audit_logs_table.php              ← Audit Log
-    ├── 2026_03_22_..._create_notification_channels_table.php          ← Notification Channels
-    ├── 2026_03_22_..._add_last_login_at_to_ucm_users.php             ← Inactive User Detection (คอลัมน์ last_login_at)
-    ├── 2026_03_22_..._add_index_last_login_at_to_ucm_users.php       ← Index: last_login_at (ประสิทธิภาพ query)
-    └── 2026_03_22_..._add_two_way_fields_to_connector_configs_table.php ← 2-Way Sync สำหรับ DynamicAdapter (8 คอลัมน์)
+    ├── 2026_03_21_000001_create_connector_configs_table.php            ← Connector Wizard
+    ├── 2026_03_21_130340_create_audit_logs_table.php                   ← Audit Log
+    ├── 2026_03_22_013558_create_notification_channels_table.php        ← Notification Channels
+    ├── 2026_03_22_053529_add_last_login_at_to_ucm_users.php            ← Inactive User Detection
+    ├── 2026_03_22_070119_add_index_last_login_at_to_ucm_users.php      ← Index: last_login_at
+    ├── 2026_03_22_085026_add_two_way_fields_to_connector_configs_table.php ← 2-Way Sync (8 คอลัมน์)
+    └── 2026_03_23_000001_add_composite_cols_to_connector_configs.php   ← Composite Junction Mode
 
 resources/views/
     ├── layouts/app.blade.php               # Main layout + sidebar accordion nav
@@ -419,6 +428,11 @@ MAIL_FROM_NAME="UCM Notification"
 UCM_ALLOWED_DEPARTMENT="Systems Development and IT"  # เว้นว่างเพื่ออนุญาตทุกแผนก
 UCM_AUDIT_DEPARTMENTS="Safety,Quality Assurance"     # แผนกที่ดู Audit Log ได้ (Read-Only) คั่นด้วย ,
 
+# ── AI Schema Analysis (ทางเลือก — Connector Wizard) ─────
+# หากไม่กำหนด ระบบจะใช้ Rule-Based engine แทนโดยอัตโนมัติ
+ANTHROPIC_API_KEY=                         # sk-ant-api03-...  (ว่างเปล่า = ปิดใช้ AI)
+ANTHROPIC_MODEL=claude-opus-4-6            # Model ที่ใช้วิเคราะห์ (default: claude-opus-4-6)
+
 # ── Swagger / API Docs ───────────────────────────────────
 SWAGGER_GENERATE_ALWAYS=false              # false = ใช้ cached JSON (แนะนำใน production)
 L5_SWAGGER_UI_DOC_EXPANSION=full
@@ -478,7 +492,8 @@ exit
 | `POST` | `/systems/{id}/toggle-2way` | เปิด/ปิด 2-Way Sync | L2 |
 | `GET` | `/connectors` | รายการ Connector Wizard | L2 |
 | `GET` | `/connectors/wizard` | สร้าง Connector ใหม่ | L2 |
-| `GET` | `/connectors/{id}/edit` | แก้ไข Connector | L2 |
+| `GET` | `/connectors/{id}/edit` | หน้าแก้ไข Connector | L2 |
+| `PUT` | `/connectors/{id}` | บันทึกการแก้ไข Connector | L2 |
 | `DELETE` | `/connectors/{id}` | ลบ Connector | L2 |
 | `GET` | `/admin/levels` | จัดการระดับ Admin | L2 |
 | `POST` | `/admin/levels/{id}` | อัปเดตระดับ Admin ของผู้ใช้ | L2 |
@@ -507,6 +522,8 @@ exit
 | `POST` | `/connectors/ajax/fetch-columns` | ดึงรายการคอลัมน์ของตาราง |
 | `POST` | `/connectors/ajax/preview-users` | ดูตัวอย่างข้อมูล Users 10 รายการ |
 | `POST` | `/connectors/ajax/preview-permissions` | ดูตัวอย่าง Permissions 20 รายการ |
+| `POST` | `/connectors/ajax/analyze-schema` | วิเคราะห์ schema จาก DB Connection (AI หรือ Rule-Based) |
+| `POST` | `/connectors/ajax/analyze-zip` | วิเคราะห์จาก ZIP source code (ต้องการ API Key) |
 
 ---
 
