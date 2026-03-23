@@ -73,6 +73,36 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             : $user->username;
     }
 
+    // ── Composite Junction Helpers ─────────────────────────────────────────
+
+    private function isComposite(): bool
+    {
+        return ! empty($this->config->perm_composite_cols);
+    }
+
+    private function buildCompositeKey(array $row): string
+    {
+        $parts = [(string) ($row[$this->config->perm_value_col] ?? '')];
+        foreach ($this->config->perm_composite_cols ?? [] as $cc) {
+            $parts[] = (string) ($row[$cc['col']] ?? '');
+        }
+
+        return implode(':', $parts);
+    }
+
+    private function parseCompositeKey(string $key): array
+    {
+        $compositeCols = $this->config->perm_composite_cols ?? [];
+        $count         = 1 + count($compositeCols);
+        $parts         = explode(':', $key, $count);
+        $result        = [$this->config->perm_value_col => $parts[0] ?? ''];
+        foreach ($compositeCols as $i => $cc) {
+            $result[$cc['col']] = $parts[$i + 1] ?? '';
+        }
+
+        return $result;
+    }
+
     // ── Interface Implementation ───────────────────────────────────────────
 
     public function testConnection(): array
@@ -100,9 +130,28 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         }
 
         try {
-            $pdo   = $this->getConnection();
-            $table = $this->quoteIdentifier($cfg->perm_table);
+            $pdo    = $this->getConnection();
+            $table  = $this->quoteIdentifier($cfg->perm_table);
             $valCol = $this->quoteIdentifier($cfg->perm_value_col);
+
+            if ($this->isComposite()) {
+                $compositeCols = $cfg->perm_composite_cols;
+                $extraQuoted   = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
+                $allCols       = array_merge([$valCol], $extraQuoted);
+                $stmt          = $pdo->query('SELECT DISTINCT '.implode(', ', $allCols)." FROM {$table}");
+                $rows          = $stmt->fetchAll();
+
+                return array_map(function ($row) use ($cfg, $compositeCols) {
+                    $key        = $this->buildCompositeKey($row);
+                    $labelParts = [(string) ($row[$cfg->perm_value_col] ?? '')];
+                    foreach ($compositeCols as $cc) {
+                        $labelParts[] = (string) ($row[$cc['col']] ?? '');
+                    }
+                    $label = implode(' · ', array_filter($labelParts, fn ($v) => $v !== ''));
+
+                    return ['key' => $key, 'label' => $label, 'group' => 'ทั่วไป'];
+                }, $rows);
+            }
 
             $cols = [$valCol];
             if ($cfg->perm_label_col) {
@@ -112,7 +161,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 $cols[] = $this->quoteIdentifier($cfg->perm_group_col);
             }
 
-            $stmt = $pdo->query("SELECT DISTINCT " . implode(', ', $cols) . " FROM {$table}");
+            $stmt = $pdo->query('SELECT DISTINCT '.implode(', ', $cols)." FROM {$table}");
             $rows = $stmt->fetchAll();
 
             return array_map(function ($row) use ($cfg) {
@@ -123,7 +172,8 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 ];
             }, $rows);
         } catch (PDOException $e) {
-            Log::error("[DynamicAdapter:{$this->system->slug}] getAvailablePermissions: " . $e->getMessage());
+            Log::error("[DynamicAdapter:{$this->system->slug}] getAvailablePermissions: ".$e->getMessage());
+
             return [];
         }
     }
@@ -147,12 +197,23 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             $fkCol  = $this->quoteIdentifier($cfg->perm_user_fk_col);
             $valCol = $this->quoteIdentifier($cfg->perm_value_col);
 
+            if ($this->isComposite()) {
+                $compositeCols = $cfg->perm_composite_cols;
+                $extraQuoted   = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
+                $allCols       = array_merge([$valCol], $extraQuoted);
+                $stmt          = $pdo->prepare('SELECT '.implode(', ', $allCols)." FROM {$table} WHERE {$fkCol} = ?");
+                $stmt->execute([$identifier]);
+
+                return array_map(fn ($row) => $this->buildCompositeKey($row), $stmt->fetchAll());
+            }
+
             $stmt = $pdo->prepare("SELECT {$valCol} FROM {$table} WHERE {$fkCol} = ?");
             $stmt->execute([$identifier]);
 
             return array_column($stmt->fetchAll(), $cfg->perm_value_col);
         } catch (PDOException $e) {
-            Log::error("[DynamicAdapter:{$this->system->slug}] getCurrentPermissions: " . $e->getMessage());
+            Log::error("[DynamicAdapter:{$this->system->slug}] getCurrentPermissions: ".$e->getMessage());
+
             return [];
         }
     }
@@ -176,6 +237,30 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             $fkCol  = $this->quoteIdentifier($cfg->perm_user_fk_col);
             $valCol = $this->quoteIdentifier($cfg->perm_value_col);
 
+            if ($this->isComposite()) {
+                $compositeCols  = $cfg->perm_composite_cols;
+                $extraQuoted    = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
+                $allInsertCols  = array_merge([$fkCol, $valCol], $extraQuoted);
+                $placeholders   = implode(', ', array_fill(0, count($allInsertCols), '?'));
+                $pdo->beginTransaction();
+                $del = $pdo->prepare("DELETE FROM {$table} WHERE {$fkCol} = ?");
+                $del->execute([$identifier]);
+                if (! empty($permissions)) {
+                    $ins = $pdo->prepare('INSERT INTO '.$table.' ('.implode(', ', $allInsertCols).') VALUES ('.$placeholders.')');
+                    foreach ($permissions as $permKey) {
+                        $parsed = $this->parseCompositeKey($permKey);
+                        $vals   = [$identifier, $parsed[$cfg->perm_value_col] ?? ''];
+                        foreach ($compositeCols as $cc) {
+                            $vals[] = $parsed[$cc['col']] ?? '';
+                        }
+                        $ins->execute($vals);
+                    }
+                }
+                $pdo->commit();
+
+                return true;
+            }
+
             $pdo->beginTransaction();
 
             // ลบ permissions เดิมทั้งหมด
@@ -191,6 +276,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             }
 
             $pdo->commit();
+
             return true;
         } catch (PDOException $e) {
             if ($this->pdo?->inTransaction()) {
@@ -232,7 +318,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
                 $statusVal  = $cfg->user_status_col ? ($row[$cfg->user_status_col] ?? null) : null;
                 $isActive   = $cfg->user_status_active_val !== null
-                    ? ($statusVal == $cfg->user_status_active_val)
+                    ? ((string) $statusVal === (string) $cfg->user_status_active_val)
                     : true;
 
                 return [

@@ -8,6 +8,10 @@ use App\Models\ConnectorConfig;
 use App\Models\System;
 use App\Models\UcmUser;
 use App\Services\AuditLogger;
+use App\Services\Connector\AISchemaAnalyzer;
+use App\Services\Connector\RuleBasedSuggester;
+use App\Services\Connector\SchemaIntrospector;
+use App\Services\Connector\ZipAnalyzer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,14 +49,21 @@ class ConnectorWizardController extends Controller
     {
         $this->requireSuperAdmin();
 
-        return view('connectors.wizard');
+        $aiAvailable = ! empty(config('services.anthropic.api_key'));
+
+        return view('connectors.wizard', compact('aiAvailable'));
     }
 
     public function edit(ConnectorConfig $connectorConfig): View
     {
         $this->requireSuperAdmin();
 
-        return view('connectors.wizard', ['editConfig' => $connectorConfig->load('system')]);
+        $aiAvailable = ! empty(config('services.anthropic.api_key'));
+
+        return view('connectors.wizard', [
+            'editConfig'  => $connectorConfig->load('system'),
+            'aiAvailable' => $aiAvailable,
+        ]);
     }
 
     public function destroy(ConnectorConfig $connectorConfig): RedirectResponse
@@ -263,6 +274,97 @@ class ConnectorWizardController extends Controller
         }
     }
 
+    // ── AJAX: Analyze Schema ───────────────────────────────────────────────
+
+    public function analyzeSchema(Request $request): JsonResponse
+    {
+        $this->requireSuperAdmin();
+
+        $data = $request->validate([
+            'db_driver'   => 'required|in:mysql,pgsql,sqlsrv',
+            'db_host'     => 'required|string|max:255',
+            'db_port'     => 'required|integer|min:1|max:65535',
+            'db_name'     => 'required|string|max:100',
+            'db_user'     => 'required|string|max:100',
+            'db_password' => 'nullable|string|max:255',
+            'use_ai'      => 'nullable|boolean',
+        ]);
+
+        try {
+            $introspector = new SchemaIntrospector($data['db_driver'], $data);
+            $schema       = $introspector->introspect();
+
+            $suggester  = new RuleBasedSuggester($schema);
+            $ruleSuggest = $suggester->suggest();
+
+            $aiSuggest = null;
+            if ($data['use_ai'] ?? false) {
+                $analyzer = new AISchemaAnalyzer(
+                    config('services.anthropic.api_key', ''),
+                    config('services.anthropic.model', 'claude-opus-4-6')
+                );
+                if ($analyzer->isAvailable()) {
+                    $aiSuggest = $analyzer->analyze($schema, [], $ruleSuggest);
+                }
+            }
+
+            return response()->json([
+                'ok'          => true,
+                'rule'        => $ruleSuggest,
+                'ai'          => $aiSuggest,
+                'schema_keys' => array_keys($schema),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
+    // ── AJAX: Analyze ZIP ──────────────────────────────────────────────────
+
+    public function analyzeZip(Request $request): JsonResponse
+    {
+        $this->requireSuperAdmin();
+
+        $data = $request->validate([
+            'db_driver'   => 'required|in:mysql,pgsql,sqlsrv',
+            'db_host'     => 'required|string|max:255',
+            'db_port'     => 'required|integer|min:1|max:65535',
+            'db_name'     => 'required|string|max:100',
+            'db_user'     => 'required|string|max:100',
+            'db_password' => 'nullable|string|max:255',
+            'source_zip'  => 'required|file|mimes:zip|max:51200',
+        ]);
+
+        try {
+            $introspector = new SchemaIntrospector($data['db_driver'], $data);
+            $schema       = $introspector->introspect();
+
+            $zipResult   = (new ZipAnalyzer())->analyze($request->file('source_zip'));
+            $suggester   = new RuleBasedSuggester($schema);
+            $ruleSuggest = $suggester->suggest();
+
+            $analyzer = new AISchemaAnalyzer(
+                config('services.anthropic.api_key', ''),
+                config('services.anthropic.model', 'claude-opus-4-6')
+            );
+
+            if (! $analyzer->isAvailable()) {
+                return response()->json(['ok' => false, 'message' => 'ยังไม่ได้ตั้งค่า ANTHROPIC_API_KEY']);
+            }
+
+            $aiSuggest = $analyzer->analyze($schema, $zipResult['files'], $ruleSuggest);
+
+            return response()->json([
+                'ok'        => true,
+                'rule'      => $ruleSuggest,
+                'ai'        => $aiSuggest,
+                'framework' => $zipResult['framework'],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
     // ── Store (Final Submit) ───────────────────────────────────────────────
 
     public function store(Request $request): JsonResponse
@@ -303,6 +405,7 @@ class ConnectorWizardController extends Controller
             'perm_value_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'perm_label_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'perm_group_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_composite_cols' => 'nullable|json',
             'manual_permissions' => 'nullable|json',
 
             // 2-Way Sync
@@ -369,6 +472,9 @@ class ConnectorWizardController extends Controller
                 'perm_value_col' => $data['perm_value_col'] ?? null,
                 'perm_label_col' => $data['perm_label_col'] ?? null,
                 'perm_group_col' => $data['perm_group_col'] ?? null,
+                'perm_composite_cols' => isset($data['perm_composite_cols'])
+                    ? json_decode($data['perm_composite_cols'], true)
+                    : null,
                 'manual_permissions' => isset($data['manual_permissions'])
                     ? json_decode($data['manual_permissions'], true)
                     : null,

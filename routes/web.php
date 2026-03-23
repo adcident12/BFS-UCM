@@ -84,6 +84,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/connectors/ajax/fetch-columns', [ConnectorWizardController::class, 'fetchColumns'])->name('connectors.ajax.fetch-columns');
     Route::post('/connectors/ajax/preview-users', [ConnectorWizardController::class, 'previewUsers'])->name('connectors.ajax.preview-users');
     Route::post('/connectors/ajax/preview-permissions', [ConnectorWizardController::class, 'previewPermissions'])->name('connectors.ajax.preview-permissions');
+    Route::post('/connectors/ajax/analyze-schema', [ConnectorWizardController::class, 'analyzeSchema'])->name('connectors.ajax.analyze-schema');
+    Route::post('/connectors/ajax/analyze-zip', [ConnectorWizardController::class, 'analyzeZip'])->name('connectors.ajax.analyze-zip');
     Route::post('/connectors', [ConnectorWizardController::class, 'store'])->name('connectors.store');
     Route::put('/connectors/{connectorConfig}', [ConnectorWizardController::class, 'update'])->name('connectors.update');
 

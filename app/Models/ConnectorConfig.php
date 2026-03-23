@@ -29,6 +29,7 @@ class ConnectorConfig extends Model
         'perm_value_col',
         'perm_label_col',
         'perm_group_col',
+        'perm_composite_cols',
         'manual_permissions',
         'perm_def_table',
         'perm_def_value_col',
@@ -43,8 +44,9 @@ class ConnectorConfig extends Model
     protected $hidden = ['db_password'];
 
     protected $casts = [
-        'db_port'            => 'integer',
+        'db_port' => 'integer',
         'manual_permissions' => 'array',
+        'perm_composite_cols' => 'array',
     ];
 
     public function system(): BelongsTo

@@ -238,6 +238,65 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 </button>
                 <div id="conn-result" style="display:none" class="rounded-xl text-sm font-medium p-3 flex items-center gap-2"></div>
 
+                {{-- ── AI Schema Analysis Panel (shown after successful connection test) ── --}}
+                <div id="analysis-panel" style="display:none" class="border border-indigo-200 rounded-xl overflow-hidden">
+                    <div class="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-indigo-50 to-violet-50 border-b border-indigo-100">
+                        <svg class="w-4 h-4 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.416A3 3 0 0118 19.5H6a3 3 0 01-2.39-2.751L3.263 16.1a5.002 5.002 0 012.08-4.1"/>
+                        </svg>
+                        <span class="text-sm font-bold text-indigo-700">วิเคราะห์ Schema อัตโนมัติ</span>
+                        <span class="ml-auto text-[11px] text-slate-400">ช่วยแนะนำการตั้งค่า Steps 3–4</span>
+                    </div>
+                    <div class="px-4 py-3 bg-white space-y-3">
+
+                        @if($aiAvailable ?? false)
+                        {{-- AI toggle --}}
+                        <label class="flex items-center gap-2.5 cursor-pointer select-none">
+                            <div class="relative">
+                                <input type="checkbox" id="use_ai_toggle" class="sr-only" onchange="wizToggleAI(this.checked)">
+                                <div id="ai-toggle-track" class="w-9 h-5 rounded-full bg-slate-200 transition-colors"></div>
+                                <div id="ai-toggle-thumb" class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"></div>
+                            </div>
+                            <span class="text-[13px] font-semibold text-slate-700">ใช้ AI วิเคราะห์ (Claude)</span>
+                            <span class="text-[11px] text-slate-400">— แม่นยำกว่า แต่ใช้เวลานานขึ้น</span>
+                        </label>
+
+                        {{-- ZIP upload (shown when AI enabled) --}}
+                        <div id="zip-upload-row" style="display:none" class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                            <p class="text-[12px] font-semibold text-slate-600 mb-2">
+                                <svg class="inline w-3.5 h-3.5 mr-1 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                อัปโหลด Source Code (ไม่บังคับ)
+                            </p>
+                            <div id="zip-drop-area" class="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition"
+                                 onclick="document.getElementById('source_zip_input').click()"
+                                 ondragover="event.preventDefault()" ondrop="wizHandleZipDrop(event)">
+                                <input type="file" id="source_zip_input" accept=".zip" class="hidden" onchange="wizHandleZipSelect(this)">
+                                <div id="zip-placeholder">
+                                    <p class="text-[12px] text-slate-500">คลิกหรือลาก ZIP ไฟล์มาวาง</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">ไฟล์ source code ของเว็บที่จะเชื่อมต่อ (สูงสุด 50 MB)</p>
+                                </div>
+                                <div id="zip-selected" style="display:none" class="flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <span id="zip-filename" class="text-[12px] font-semibold text-indigo-700"></span>
+                                    <button type="button" class="text-slate-400 hover:text-rose-500 transition" onclick="wizClearZip(event)">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        <button type="button" id="run-analysis-btn"
+                                class="{{ $btnO }} w-full justify-center py-2"
+                                onclick="wizRunAnalysis()">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            วิเคราะห์และแนะนำการตั้งค่า
+                        </button>
+
+                        <div id="analysis-result" style="display:none"></div>
+                    </div>
+                </div>
+
             </div>
         </div>
         <div class="flex items-center justify-between mt-5">
@@ -499,6 +558,22 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </div>
                     </div>
 
+                    {{-- Composite Junction Columns --}}
+                    <div id="perm-composite-section" class="mt-4 hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <p class="text-xs font-bold text-slate-600">คอลัมน์ FK เสริม <span class="text-[10px] font-normal text-slate-400">(Multi-Master Junction)</span></p>
+                                <p class="text-[11px] text-slate-400 mt-0.5">เมื่อตาราง mapping อ้างอิงมากกว่า 1 master table — เพิ่มคอลัมน์ที่เหลือเพื่อสร้าง composite key</p>
+                            </div>
+                            <button type="button" class="{{ $btnO }}" onclick="wizAddCompositeCol()">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                เพิ่มคอลัมน์
+                            </button>
+                        </div>
+                        <div id="composite-cols-list" class="space-y-2"></div>
+                        <p id="composite-empty-hint" class="text-[11px] text-slate-400 italic mt-1">ตัวอย่าง: ระบบมีตาราง UserGrant(user_id, pg_id, s_id) → เพิ่ม s_id เป็น FK เสริม</p>
+                    </div>
+
                     <button class="{{ $btnO }} w-full justify-center mt-4" onclick="wizPreviewPermissions()">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -742,10 +817,14 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     var IS_EDIT = @json(isset($editConfig));
     var EDIT_CONFIG = @json($editConfig ?? null);
     var EDIT_CONFIG_ID = EDIT_CONFIG ? EDIT_CONFIG.id : null;
+    var AI_AVAILABLE = @json($aiAvailable ?? false);
+    var ROUTE_ANALYZE_SCHEMA = '{{ route("connectors.ajax.analyze-schema") }}';
+    var ROUTE_ANALYZE_ZIP    = '{{ route("connectors.ajax.analyze-zip") }}';
 
-    var currentStep = 1;
-    var tables      = [];
-    var connTested  = false;
+    var currentStep    = 1;
+    var tables         = [];
+    var connTested     = false;
+    var wizSuggestion  = null;
 
     // ── Base class strings for step circles / labels / lines ───────────────
 
@@ -814,7 +893,8 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     window.wizNext = function (from) {
         if (! wizValidate(from)) return;
         showStep(from + 1);
-        if (from + 1 === 6) wizBuildSummary();
+        if (from + 1 === 4) { wizApplyPermSuggestion(); }
+        if (from + 1 === 6) { wizBuildSummary(); }
     };
 
     window.wizPrev = function (from) {
@@ -973,6 +1053,8 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 el.innerHTML = '<svg style="width:1rem;height:1rem;flex-shrink:0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>เชื่อมต่อสำเร็จ — พร้อมดำเนินการต่อ</span>';
                 connTested = true;
                 wizFetchTablesInternal();
+                var panel = document.getElementById('analysis-panel');
+                if (panel) { panel.style.display = ''; }
             } else {
                 el.style.background = '#fef2f2';
                 el.style.border = '1.5px solid #fecaca';
@@ -1080,6 +1162,8 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         if (hint) hint.textContent = mode === 'column'
             ? 'Column mode: ให้เลือกตาราง users เดิมของระบบ'
             : 'ตาราง junction ที่เก็บความสัมพันธ์ user ↔ permission';
+        var compositeSection = document.getElementById('perm-composite-section');
+        if (compositeSection) compositeSection.classList.toggle('hidden', mode !== 'junction');
     };
 
     // ── 2-Way Sync Toggle ──────────────────────────────────────────────────
@@ -1360,6 +1444,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             perm_value_col:         mode !== 'manual' ? val('perm_value_col') : null,
             perm_label_col:         mode !== 'manual' ? (val('perm_label_col') || null) : null,
             perm_group_col:         mode !== 'manual' ? (val('perm_group_col') || null) : null,
+            perm_composite_cols:    mode === 'junction' ? JSON.stringify(wizGetCompositeCols()) : null,
             manual_permissions:     mode === 'manual' ? JSON.stringify(getManualPerms()) : null,
             perm_def_table:           twoWayEnabled ? val('perm_def_table') || null : null,
             perm_def_value_col:       twoWayEnabled ? val('perm_def_value_col') || null : null,
@@ -1401,6 +1486,365 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
     }
 
+    // ── AI Schema Analysis ─────────────────────────────────────────────────
+
+    window.wizToggleAI = function (checked) {
+        var track  = document.getElementById('ai-toggle-track');
+        var thumb  = document.getElementById('ai-toggle-thumb');
+        var zipRow = document.getElementById('zip-upload-row');
+        if (track) { track.style.backgroundColor = checked ? '#6366f1' : ''; track.classList.toggle('bg-indigo-500', checked); track.classList.toggle('bg-slate-200', ! checked); }
+        if (thumb) { thumb.style.transform = checked ? 'translateX(16px)' : ''; }
+        if (zipRow) { zipRow.style.display = checked ? '' : 'none'; }
+    };
+
+    window.wizHandleZipSelect = function (input) {
+        var file = input.files[0];
+        if (! file) { return; }
+        document.getElementById('zip-placeholder').style.display = 'none';
+        document.getElementById('zip-selected').style.display = '';
+        document.getElementById('zip-filename').textContent = file.name + ' (' + (file.size / 1024 / 1024).toFixed(1) + ' MB)';
+    };
+
+    window.wizHandleZipDrop = function (e) {
+        e.preventDefault();
+        var file = e.dataTransfer.files[0];
+        if (! file || ! file.name.endsWith('.zip')) { return; }
+        var input = document.getElementById('source_zip_input');
+        var dt    = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        wizHandleZipSelect(input);
+    };
+
+    window.wizClearZip = function (e) {
+        e.stopPropagation();
+        var input = document.getElementById('source_zip_input');
+        input.value = '';
+        document.getElementById('zip-placeholder').style.display = '';
+        document.getElementById('zip-selected').style.display = 'none';
+    };
+
+    window.wizRunAnalysis = function () {
+        var btn    = document.getElementById('run-analysis-btn');
+        var result = document.getElementById('analysis-result');
+        var useAI  = AI_AVAILABLE && document.getElementById('use_ai_toggle') && document.getElementById('use_ai_toggle').checked;
+        var zipInput = document.getElementById('source_zip_input');
+        var hasZip   = useAI && zipInput && zipInput.files.length > 0;
+
+        btn.disabled = true;
+        btn.innerHTML = '<svg style="width:.875rem;height:.875rem;animation:spin 1s linear infinite" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> กำลังวิเคราะห์...';
+        result.style.display = 'none';
+
+        if (hasZip) {
+            var formData = new FormData();
+            formData.append('_token', CSRF);
+            var cd = connData();
+            Object.keys(cd).forEach(function (k) { formData.append(k, cd[k]); });
+            formData.append('source_zip', zipInput.files[0]);
+
+            fetch(ROUTE_ANALYZE_ZIP, { method: 'POST', body: formData })
+                .then(function (r) { return r.json(); })
+                .then(function (res) { wizRenderAnalysis(res, btn, result); })
+                .catch(function (e) { wizRenderAnalysisError(e.message, btn, result); });
+        } else {
+            var payload = Object.assign({}, connData(), { use_ai: useAI ? 1 : 0 });
+            post(ROUTE_ANALYZE_SCHEMA, payload, function (res) {
+                wizRenderAnalysis(res, btn, result);
+            });
+        }
+    };
+
+    function wizRenderAnalysis(res, btn, result) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> วิเคราะห์และแนะนำการตั้งค่า';
+        result.style.display = '';
+
+        if (! res.ok) {
+            result.innerHTML = '<div class="rounded-lg p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs">' + escHtml(res.message || 'เกิดข้อผิดพลาด') + '</div>';
+            return;
+        }
+
+        var suggestion = res.ai || res.rule;
+        if (! suggestion) {
+            result.innerHTML = '<div class="rounded-lg p-3 bg-amber-50 border border-amber-200 text-amber-700 text-xs">ไม่สามารถวิเคราะห์ได้</div>';
+            return;
+        }
+
+        wizSuggestion = suggestion;
+        var source   = res.ai ? ('AI (Claude' + (res.framework ? ' · ' + escHtml(res.framework) : '') + ')') : 'Rule-based';
+        var ut       = suggestion.user_table || {};
+        var perm     = suggestion.permission || {};
+        var masters  = suggestion.master_tables || [];
+
+        var html = '<div class="space-y-2.5">';
+
+        // Source badge
+        html += '<div class="flex items-center gap-1.5"><span class="text-[11px] font-semibold px-2 py-0.5 rounded-full ' + (res.ai ? 'bg-violet-100 text-violet-700' : 'bg-indigo-100 text-indigo-700') + '">' + source + '</span><span class="text-[11px] text-slate-400">วิเคราะห์เสร็จสิ้น</span></div>';
+
+        // User Table suggestion
+        if (ut.table) {
+            html += '<div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5">';
+            html += '<div class="flex items-center justify-between mb-1.5">';
+            html += '<span class="text-xs font-bold text-emerald-700">ตาราง Users: <code class="font-mono">' + escHtml(ut.table) + '</code></span>';
+            html += '<span class="text-[11px] text-slate-500">' + (ut.confidence || 0) + '% มั่นใจ</span>';
+            html += '</div>';
+            if (ut.reasons && ut.reasons.length) {
+                html += '<ul class="text-[11px] text-emerald-700 space-y-0.5 mb-2">' + ut.reasons.map(function (r) { return '<li>• ' + escHtml(r) + '</li>'; }).join('') + '</ul>';
+            }
+            html += '<button type="button" class="text-[11px] font-semibold px-2.5 py-1 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition" onclick="wizApplyUserSuggestion()">ใช้การตั้งค่านี้ →</button>';
+            html += '</div>';
+        }
+
+        // Permission suggestion
+        if (perm.mode) {
+            var modeLabel = perm.mode === 'junction' ? 'Junction Table' : perm.mode === 'column' ? 'Single Column' : 'Manual';
+            html += '<div class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5">';
+            html += '<div class="flex items-center justify-between mb-1.5">';
+            html += '<span class="text-xs font-bold text-blue-700">Permission Mode: <code class="font-mono">' + escHtml(modeLabel) + '</code>' + (perm.table ? ' · <code class="font-mono">' + escHtml(perm.table) + '</code>' : '') + '</span>';
+            html += '<span class="text-[11px] text-slate-500">' + (perm.confidence || 0) + '% มั่นใจ</span>';
+            html += '</div>';
+            if (perm.reasons && perm.reasons.length) {
+                html += '<ul class="text-[11px] text-blue-700 space-y-0.5">' + perm.reasons.map(function (r) { return '<li>• ' + escHtml(r) + '</li>'; }).join('') + '</ul>';
+            }
+            html += '</div>';
+        }
+
+        // Master tables
+        if (masters.length > 0) {
+            html += '<div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">';
+            html += '<p class="text-[11px] font-semibold text-slate-500 mb-1">Reference Tables ที่แนะนำ</p>';
+            html += '<div class="flex flex-wrap gap-1">' + masters.map(function (m) { return '<span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600">' + escHtml(m.table) + '</span>'; }).join('') + '</div>';
+            html += '</div>';
+        }
+
+        html += '</div>';
+        result.innerHTML = html;
+    }
+
+    function wizRenderAnalysisError(msg, btn, result) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> วิเคราะห์และแนะนำการตั้งค่า';
+        result.style.display = '';
+        result.innerHTML = '<div class="rounded-lg p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs">' + escHtml(msg) + '</div>';
+    }
+
+    window.wizApplyUserSuggestion = function () {
+        if (! wizSuggestion) { return; }
+        var ut = wizSuggestion.user_table;
+        if (! ut || ! ut.table) { return; }
+
+        showStep(3);
+
+        var doApply = function () {
+            // Populate the user_table <select> with options (it starts empty)
+            var sel = document.getElementById('field_user_table');
+            if (! sel) { return; }
+            sel.innerHTML = '<option value="">— เลือกตาราง —</option>';
+            tables.forEach(function (t) {
+                var opt = document.createElement('option');
+                opt.value = t;
+                opt.textContent = t;
+                if (t === ut.table) { opt.selected = true; }
+                sel.appendChild(opt);
+            });
+
+            // Fetch columns and pre-select each one via loadColumnsFor's preselect param
+            var m = ut.mapping || {};
+            loadColumnsFor(ut.table, [
+                { id: 'field_user_identifier_col',                  preselect: m.identifier },
+                { id: 'field_user_name_col',   nullable: true,      preselect: m.name },
+                { id: 'field_user_email_col',  nullable: true,      preselect: m.email },
+                { id: 'field_user_dept_col',   nullable: true,      preselect: m.department },
+                { id: 'field_user_status_col', nullable: true,      preselect: m.status },
+            ]);
+
+            if (m.status) { setTimeout(wizToggleStatusVal, 800); }
+        };
+
+        if (tables.length > 0) {
+            doApply();
+        } else {
+            wizFetchTablesInternal(doApply);
+        }
+    };
+
+    // Apply permission suggestion when step 4 loads (called from wizNext hook)
+    function wizApplyPermSuggestion() {
+        if (! wizSuggestion) { return; }
+        var perm = wizSuggestion.permission;
+        if (! perm || ! perm.mode) { return; }
+
+        selectPermMode(perm.mode);
+        wizPermModeChange(perm.mode);
+
+        if (perm.mode === 'manual') { return; }
+
+        // Determine which table to use for the perm_table select
+        var tableToUse = perm.table || null;
+        if (perm.mode === 'column' && ! tableToUse) {
+            // Column mode: permission column lives on the user table itself
+            tableToUse = (wizSuggestion.user_table || {}).table || null;
+        }
+        if (! tableToUse) { return; }
+
+        // Populate the perm_table <select> with options
+        var sel = document.getElementById('field_perm_table');
+        if (sel) {
+            sel.innerHTML = '<option value="">— เลือกตาราง —</option>';
+            tables.forEach(function (t) {
+                var opt = document.createElement('option');
+                opt.value = t; opt.textContent = t;
+                if (t === tableToUse) { opt.selected = true; }
+                sel.appendChild(opt);
+            });
+        }
+
+        if (perm.mode === 'junction') {
+            loadColumnsFor(tableToUse, [
+                { id: 'field_perm_user_fk_col',                    preselect: perm.user_fk_col },
+                { id: 'field_perm_value_col',                       preselect: perm.value_col },
+                { id: 'field_perm_label_col', nullable: true,       preselect: perm.label_col },
+                { id: 'field_perm_group_col', nullable: true,       preselect: perm.group_col },
+            ]);
+
+            // Apply composite cols — delay until loadColumnsFor AJAX completes
+            if (perm.composite_cols && perm.composite_cols.length > 0) {
+                var list = document.getElementById('composite-cols-list');
+                if (list) { list.innerHTML = ''; }
+                var hint = document.getElementById('composite-empty-hint');
+                if (hint) { hint.style.display = ''; }
+                setTimeout(function () {
+                    perm.composite_cols.forEach(function (cc) { wizAddCompositeCol(cc); });
+                }, 600);
+            }
+        } else if (perm.mode === 'column') {
+            // column: perm.column is the permission column on the user table
+            loadColumnsFor(tableToUse, [
+                { id: 'field_perm_value_col',                       preselect: perm.column },
+                { id: 'field_perm_label_col', nullable: true },
+                { id: 'field_perm_group_col', nullable: true },
+            ]);
+        }
+    }
+
+    // ── Composite Junction Columns ─────────────────────────────────────────
+
+    window.wizAddCompositeCol = function (preset) {
+        preset = preset || {};
+        var list = document.getElementById('composite-cols-list');
+        var hint = document.getElementById('composite-empty-hint');
+        if (! list) { return; }
+
+        // Build master table options from tables array fetched in step 2
+        var masterOpts = '<option value="">(ไม่ระบุ)</option>';
+        tables.forEach(function (t) {
+            masterOpts += '<option value="' + escHtml(t) + '">' + escHtml(t) + '</option>';
+        });
+
+        var selectCls = 'w-full pl-3 pr-8 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg appearance-none focus:outline-none focus:border-indigo-500';
+
+        var row = document.createElement('div');
+        row.className = 'composite-col-row flex items-start gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-200';
+        row.innerHTML = [
+            '<div class="flex-1 min-w-0">',
+            '  <label class="block text-[11px] font-semibold text-slate-500 mb-1">คอลัมน์ใน Mapping Table <span class="text-rose-500">*</span></label>',
+            '  <select class="composite-col-select ' + selectCls + '">',
+            '    <option value="">— เลือกคอลัมน์ —</option>',
+            '  </select>',
+            '</div>',
+            '<div class="flex-1 min-w-0">',
+            '  <label class="block text-[11px] font-semibold text-slate-500 mb-1">Master Table <span class="text-[10px] font-normal">(ไม่บังคับ)</span></label>',
+            '  <select class="composite-master-table ' + selectCls + '" onchange="wizLoadCompositeLabelCols(this)">',
+            masterOpts,
+            '  </select>',
+            '</div>',
+            '<div class="flex-1 min-w-0">',
+            '  <label class="block text-[11px] font-semibold text-slate-500 mb-1">Label Column <span class="text-[10px] font-normal">(ไม่บังคับ)</span></label>',
+            '  <select class="composite-master-label ' + selectCls + '">',
+            '    <option value="">(ไม่ระบุ)</option>',
+            '  </select>',
+            '</div>',
+            '<button type="button" class="mt-5 text-slate-400 hover:text-rose-500 transition flex-shrink-0" onclick="wizRemoveCompositeCol(this)">',
+            '  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+            '</button>',
+        ].join('');
+
+        list.appendChild(row);
+        if (hint) { hint.style.display = 'none'; }
+
+        // Populate junction-column select from current perm_table columns
+        var permTable = val('perm_table');
+        if (permTable) {
+            var colSelect    = row.querySelector('.composite-col-select');
+            var existingCols = [];
+            var existingSel  = document.getElementById('field_perm_value_col');
+            if (existingSel) {
+                for (var i = 0; i < existingSel.options.length; i++) {
+                    if (existingSel.options[i].value) { existingCols.push(existingSel.options[i].value); }
+                }
+            }
+            existingCols.forEach(function (c) {
+                var opt = document.createElement('option');
+                opt.value = c; opt.textContent = c;
+                if (c === preset.col) { opt.selected = true; }
+                colSelect.appendChild(opt);
+            });
+        }
+
+        // Set preset master_table then load its columns for label select
+        var masterSel = row.querySelector('.composite-master-table');
+        if (preset.master_table) {
+            masterSel.value = preset.master_table;
+            wizLoadCompositeLabelCols(masterSel, preset.master_label_col);
+        }
+    };
+
+    // Load columns for the label-column select of a composite row
+    window.wizLoadCompositeLabelCols = function (masterSel, preselect) {
+        var row      = masterSel.closest('.composite-col-row');
+        var labelSel = row ? row.querySelector('.composite-master-label') : null;
+        if (! labelSel) { return; }
+        var tableName = masterSel.value;
+        labelSel.innerHTML = '<option value="">(ไม่ระบุ)</option>';
+        if (! tableName) { return; }
+        var data = Object.assign(connData(), { table: tableName });
+        post('{{ route("connectors.ajax.fetch-columns") }}', data, function (res) {
+            if (! res.ok) { return; }
+            var cols = res.columns || [];
+            cols.forEach(function (c) {
+                var opt = document.createElement('option');
+                opt.value = c; opt.textContent = c;
+                if (c === preselect) { opt.selected = true; }
+                labelSel.appendChild(opt);
+            });
+        });
+    };
+
+    window.wizRemoveCompositeCol = function (btn) {
+        var row = btn.closest('.composite-col-row');
+        if (row) { row.remove(); }
+        var list = document.getElementById('composite-cols-list');
+        var hint = document.getElementById('composite-empty-hint');
+        if (hint && list && list.children.length === 0) { hint.style.display = ''; }
+    };
+
+    function wizGetCompositeCols() {
+        var rows   = document.querySelectorAll('.composite-col-row');
+        var result = [];
+        rows.forEach(function (row) {
+            var col = row.querySelector('.composite-col-select') ? row.querySelector('.composite-col-select').value : '';
+            if (! col) { return; }
+            var entry = { col: col };
+            var mt    = row.querySelector('.composite-master-table') ? row.querySelector('.composite-master-table').value : '';
+            var ml    = row.querySelector('.composite-master-label') ? row.querySelector('.composite-master-label').value : '';
+            if (mt) { entry.master_table = mt; }
+            if (ml) { entry.master_label_col = ml; }
+            result.push(entry);
+        });
+
+        return result;
+    }
+
     // ── CSS Animation ──────────────────────────────────────────────────────
     var spinStyle = document.createElement('style');
     spinStyle.textContent = '@keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }';
@@ -1440,6 +1884,13 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             });
             wizLoadUserColumns();
             wizLoadPermColumns();
+
+            // Restore composite cols in edit mode
+            if (pMode === 'junction' && EDIT_CONFIG.perm_composite_cols && EDIT_CONFIG.perm_composite_cols.length > 0) {
+                setTimeout(function () {
+                    EDIT_CONFIG.perm_composite_cols.forEach(function (cc) { wizAddCompositeCol(cc); });
+                }, 800);
+            }
         });
     }
 

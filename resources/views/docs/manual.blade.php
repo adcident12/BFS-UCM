@@ -898,12 +898,14 @@ $sections = [
                 {{-- TOC ภายใน --}}
                 <div class="flex flex-wrap gap-2 text-[11px]">
                     @foreach ([
-                        ['href' => '#wiz-intro',    'label' => 'คืออะไร'],
-                        ['href' => '#wiz-prereq',   'label' => 'ก่อนเริ่ม'],
-                        ['href' => '#wiz-steps',    'label' => '6 ขั้นตอน'],
-                        ['href' => '#wiz-perm-mode','label' => 'เลือก Permission Mode'],
-                        ['href' => '#wiz-2way',     'label' => '2-Way Sync & Delete Mode'],
-                        ['href' => '#wiz-after',    'label' => 'หลังสร้างแล้ว'],
+                        ['href' => '#wiz-intro',     'label' => 'คืออะไร'],
+                        ['href' => '#wiz-prereq',    'label' => 'ก่อนเริ่ม'],
+                        ['href' => '#wiz-analyze',   'label' => 'วิเคราะห์อัตโนมัติ (AI)'],
+                        ['href' => '#wiz-steps',     'label' => '6 ขั้นตอน'],
+                        ['href' => '#wiz-perm-mode', 'label' => 'เลือก Permission Mode'],
+                        ['href' => '#wiz-composite', 'label' => 'Composite Junction'],
+                        ['href' => '#wiz-2way',      'label' => '2-Way Sync & Delete Mode'],
+                        ['href' => '#wiz-after',     'label' => 'หลังสร้างแล้ว'],
                     ] as $t)
                     <a href="{{ $t['href'] }}" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors font-medium">{{ $t['label'] }}</a>
                     @endforeach
@@ -913,7 +915,7 @@ $sections = [
                 <div id="wiz-intro">
                     <p><strong class="text-slate-900">Connector Wizard</strong> คือเครื่องมือที่ช่วยให้ Admin ระดับ 2 สามารถเชื่อมต่อฐานข้อมูลของระบบภายนอก (เช่น ระบบซ่อมบำรุง, ระบบ HR, ระบบจัดการเอกสาร) เข้ากับ UCM ได้ <strong>โดยไม่ต้องเขียนโค้ด PHP</strong> เพียงกรอกข้อมูลผ่านหน้า Wizard แบบ Step-by-Step</p>
 
-                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
                             <div class="text-2xl mb-2">🔌</div>
                             <div class="font-bold text-indigo-900 text-sm mb-1">No-Code</div>
@@ -929,6 +931,11 @@ $sections = [
                             <div class="font-bold text-sky-900 text-sm mb-1">Sync อัตโนมัติ</div>
                             <p class="text-xs text-sky-700">หลังตั้งค่าแล้ว UCM จะ sync สิทธิ์ไปยังระบบปลายทางทันทีที่มีการเปลี่ยนแปลง</p>
                         </div>
+                        <div class="bg-violet-50 rounded-xl p-4 border border-violet-100">
+                            <div class="text-2xl mb-2">🤖</div>
+                            <div class="font-bold text-violet-900 text-sm mb-1">AI Analysis</div>
+                            <p class="text-xs text-violet-700">วิเคราะห์โครงสร้าง DB และ Source Code ด้วย AI แนะนำการตั้งค่าอัตโนมัติ</p>
+                        </div>
                     </div>
                 </div>
 
@@ -939,6 +946,68 @@ $sections = [
                     <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
                         <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                         <span>Connector Wizard ต้องการสิทธิ์เข้าถึงฐานข้อมูลโดยตรง กรุณาเตรียม <strong>Host, Port, ชื่อ Database, Username, Password</strong> ของระบบปลายทางไว้ก่อน</span>
+                    </div>
+                </div>
+
+                {{-- วิเคราะห์อัตโนมัติ (AI) --}}
+                <div id="wiz-analyze" class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-1">วิเคราะห์โครงสร้างฐานข้อมูลอัตโนมัติ</h3>
+                    <p class="text-xs text-slate-500 mb-4">ก่อนกรอก Step 3–4 ด้วยตนเอง ลองใช้ฟีเจอร์วิเคราะห์อัตโนมัติเพื่อให้ระบบแนะนำการตั้งค่าได้ทันที</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                        {{-- วิเคราะห์จาก DB Connection --}}
+                        <div class="bg-slate-50 rounded-xl border border-slate-200 p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">🔍</span>
+                                <p class="font-bold text-slate-800 text-sm">วิเคราะห์จาก DB Connection</p>
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2">ปุ่ม <strong>"วิเคราะห์ Schema อัตโนมัติ"</strong> ใน Step 2 จะ introspect ฐานข้อมูลปลายทางโดยตรง ดึงโครงสร้างตาราง คอลัมน์ FK และตัวอย่างข้อมูล แล้วส่งให้ AI หรือ Rule-Based engine วิเคราะห์</p>
+                            <ul class="text-xs text-slate-500 space-y-1 list-disc list-inside">
+                                <li>ไม่ต้องอัปโหลดไฟล์ใดๆ</li>
+                                <li>ทำงานได้ทันทีหลังผ่าน Test Connection</li>
+                                <li>ดึง row count และ sample data (PII ถูก REDACT อัตโนมัติ)</li>
+                            </ul>
+                        </div>
+                        {{-- วิเคราะห์จาก Source Code ZIP --}}
+                        <div class="bg-violet-50 rounded-xl border border-violet-200 p-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-lg">📦</span>
+                                <p class="font-bold text-violet-800 text-sm">วิเคราะห์จาก Source Code ZIP</p>
+                                <span class="text-[10px] font-bold bg-violet-100 text-violet-700 px-1.5 py-0.5 rounded">ต้องการ API Key</span>
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2">อัปโหลดไฟล์ <strong>.zip</strong> ที่บีบอัด source code ของระบบภายนอก ระบบจะสแกนหาไฟล์ migration, model, schema และตรวจจับ framework อัตโนมัติ จากนั้นส่ง context ให้ Claude API วิเคราะห์</p>
+                            <ul class="text-xs text-slate-500 space-y-1 list-disc list-inside">
+                                <li>รองรับ 20+ frameworks: Laravel, Django, Rails, Spring, NestJS ฯลฯ</li>
+                                <li>รองรับ Legacy PHP (ไม่มี framework) และ Plain SQL</li>
+                                <li>ข้อมูลลับ (password, token) ถูก redact ก่อนส่ง AI</li>
+                                <li>ขนาดไฟล์สูงสุด: 100 MB (uncompressed), 512 KB ต่อไฟล์</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {{-- ระดับความแม่นยำ --}}
+                    <div class="rounded-xl border border-slate-200 overflow-hidden mb-4">
+                        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                            <p class="font-bold text-slate-800 text-xs">ระดับความแม่นยำของการวิเคราะห์</p>
+                        </div>
+                        <div class="divide-y divide-slate-100">
+                            @foreach ([
+                                ['mode' => 'AI + Source Code', 'color' => 'violet', 'pct' => '90–98%', 'desc' => 'ส่ง schema + source files ให้ Claude API วิเคราะห์ — แม่นยำที่สุด เหมาะกับระบบที่มีชื่อตารางไม่ตรงมาตรฐาน'],
+                                ['mode' => 'AI เท่านั้น', 'color' => 'indigo', 'pct' => '80–92%', 'desc' => 'ส่ง schema introspect ให้ Claude API วิเคราะห์ — ดีมากสำหรับ DB ที่มี FK constraints ครบ'],
+                                ['mode' => 'Rule-Based', 'color' => 'sky', 'pct' => '65–85%', 'desc' => 'ใช้ heuristics และ pattern matching — ไม่ต้องการ API Key ทำงานเร็ว เหมาะกับระบบที่ชื่อตารางเป็นมาตรฐาน'],
+                            ] as $row)
+                            <div class="flex items-center gap-3 px-4 py-3 text-xs">
+                                <span class="inline-block w-24 flex-shrink-0 text-center px-2 py-1 rounded-lg font-bold bg-{{ $row['color'] }}-100 text-{{ $row['color'] }}-800">{{ $row['mode'] }}</span>
+                                <span class="font-bold text-slate-700 w-16 flex-shrink-0">{{ $row['pct'] }}</span>
+                                <span class="text-slate-500">{{ $row['desc'] }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                        <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                        <span>ผลที่ได้จาก AI เป็นเพียง <strong>ข้อเสนอแนะ</strong> — กดปุ่ม <strong>"ใช้การตั้งค่านี้"</strong> เพื่อ autofill ค่าลง Wizard แล้วตรวจสอบความถูกต้องก่อนกด "ถัดไป" ทุกครั้ง ค่า confidence ต่ำกว่า 60% แสดงว่าระบบไม่แน่ใจ ควรตรวจสอบด้วยตนเอง</span>
                     </div>
                 </div>
 
@@ -974,6 +1043,10 @@ $sections = [
                                     @endforeach
                                 </div>
                                 <p class="mt-2 text-xs text-slate-600">กด <strong>"ทดสอบการเชื่อมต่อ"</strong> เพื่อตรวจสอบว่าเข้าถึงฐานข้อมูลได้ก่อนดำเนินการต่อ</p>
+                                <div class="mt-2 flex items-start gap-2 p-2.5 bg-violet-50 border border-violet-200 rounded-lg text-xs text-violet-800">
+                                    <span class="text-base leading-none">🤖</span>
+                                    <span>หลัง Test Connection สำเร็จ กด <strong>"วิเคราะห์ Schema อัตโนมัติ"</strong> เพื่อให้ AI หรือ Rule-Based engine แนะนำการตั้งค่า Step 3–4 ให้อัตโนมัติ หรืออัปโหลด <strong>ZIP source code</strong> เพื่อความแม่นยำสูงขึ้น → <a href="#wiz-analyze" class="underline">รายละเอียด</a></span>
+                                </div>
                             </div>
                         </div>
 
@@ -1016,6 +1089,7 @@ $sections = [
                                         </div>
                                         <p class="text-xs text-slate-600">ตาราง mapping แยกต่างหาก เช่น <code class="font-mono bg-slate-100 px-1 rounded text-[10px]">user_roles(user_id, role_code)</code> เหมาะสำหรับระบบที่ผู้ใช้มีได้หลายสิทธิ์</p>
                                         <p class="text-xs text-slate-500 mt-1">→ ต้องระบุ: ตาราง, FK column ที่ชี้หาผู้ใช้, column ค่าสิทธิ์</p>
+                                        <p class="text-xs text-violet-600 mt-1">→ รองรับ <strong>Composite Junction</strong>: ถ้า junction มี FK มากกว่า 2 ตัว สามารถเพิ่ม "คอลัมน์เสริม" ได้ → <a href="#wiz-composite" class="underline">รายละเอียด</a></p>
                                     </div>
                                     <div class="bg-white border border-slate-200 rounded-xl p-3">
                                         <div class="flex items-center gap-2 mb-1">
@@ -1267,6 +1341,65 @@ $sections = [
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                {{-- Composite Junction --}}
+                <div id="wiz-composite" class="border-t border-slate-100 pt-5">
+                    <h3 class="font-bold text-slate-900 mb-1">Composite Junction Mode (Step 4)</h3>
+                    <p class="text-xs text-slate-500 mb-4">ใช้เมื่อตาราง junction มี Foreign Key มากกว่า 2 ตัว เช่น ระบบที่สิทธิ์ผูกกับทั้ง Role และ Site พร้อมกัน</p>
+
+                    {{-- อธิบาย composite --}}
+                    <div class="bg-slate-50 rounded-xl border border-slate-200 p-4 mb-4 text-xs">
+                        <p class="font-semibold text-slate-800 mb-2">ตัวอย่าง: ตาราง <code class="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">UserGrant(user_id, pg_id, site_id)</code></p>
+                        <div class="space-y-1.5 text-slate-600">
+                            <div class="flex items-start gap-2">
+                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700 flex-shrink-0">user_fk_col</span>
+                                <p><code class="font-mono bg-white px-1 rounded border border-slate-200">user_id</code> — FK ที่ชี้ไปยัง users table</p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700 flex-shrink-0">value_col</span>
+                                <p><code class="font-mono bg-white px-1 rounded border border-slate-200">pg_id</code> — FK แรกที่ไม่ใช่ user FK = ค่าหลักของสิทธิ์ อ้างอิง <code class="font-mono bg-white px-1 rounded border border-slate-200">PageGroups</code></p>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-violet-100 text-violet-700 flex-shrink-0">composite_cols</span>
+                                <p><code class="font-mono bg-white px-1 rounded border border-slate-200">site_id</code> → Master Table: <code class="font-mono bg-white px-1 rounded border border-slate-200">Sites</code> — FK เสริมที่ต้องระบุเพิ่ม</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Key format --}}
+                    <div class="rounded-xl border border-slate-200 overflow-hidden mb-4">
+                        <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                            <p class="font-bold text-slate-800 text-xs">รูปแบบ Permission Key ใน UCM</p>
+                        </div>
+                        <div class="px-4 py-3 text-xs space-y-2">
+                            <p class="text-slate-600">เมื่อใช้ Composite Junction UCM จะสร้าง Permission key เป็น <strong>composite key</strong> โดยใช้ <code class="font-mono bg-slate-100 px-1 rounded">:</code> เป็นตัวคั่น:</p>
+                            <div class="bg-slate-900 text-emerald-400 font-mono rounded-lg px-4 py-3 text-[11px] leading-relaxed">
+                                <p class="text-slate-400"># value_col = pg_id, composite_cols = [site_id]</p>
+                                <p>"5:3"  &nbsp; <span class="text-slate-400">→ pg_id=5, site_id=3</span></p>
+                                <p>"12:1" &nbsp; <span class="text-slate-400">→ pg_id=12, site_id=1</span></p>
+                            </div>
+                            <p class="text-slate-500">ใน UCM จะแสดง Label ที่ดึงมาจาก Master Table แทน key ดิบ เช่น "Report (Bangkok Branch)"</p>
+                        </div>
+                    </div>
+
+                    {{-- วิธีเพิ่ม composite col --}}
+                    <div class="bg-violet-50 border border-violet-200 rounded-xl p-4 text-xs mb-4">
+                        <p class="font-semibold text-violet-900 mb-2">วิธีเพิ่ม Composite Column ใน Wizard</p>
+                        <ol class="space-y-1.5 text-slate-700 list-decimal list-inside">
+                            <li>เลือก <strong>Permission Mode = Junction Table</strong></li>
+                            <li>กรอก Perm Table, User FK, Value Column ตามปกติ</li>
+                            <li>กด <strong>"+ เพิ่มคอลัมน์เสริม"</strong></li>
+                            <li>เลือก <strong>Column</strong> (FK เสริมในตาราง junction) จาก dropdown</li>
+                            <li>เลือก <strong>Master Table</strong> ที่ FK นั้นอ้างอิง จาก dropdown</li>
+                            <li>เลือก <strong>Label Column</strong> บน Master Table เพื่อแสดงชื่อที่อ่านได้</li>
+                        </ol>
+                    </div>
+
+                    <div class="flex items-start gap-3 p-3.5 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-800">
+                        <svg class="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>AI Analysis สามารถตรวจพบ Composite Junction ได้อัตโนมัติ — หาก AI แนะนำมา กด <strong>"ใช้การตั้งค่านี้"</strong> แล้วระบบจะสร้าง composite rows ให้ทันที</span>
                     </div>
                 </div>
 
