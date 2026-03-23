@@ -132,6 +132,9 @@ const { token, user, permissions } = await res.json();
 // 200 OK
 { "message": "Token revoked" }
 
+// 400 — ไม่พบ active token ที่ผูกกับ request
+{ "message": "No active token" }
+
 // 401 — ไม่มี / หมดอายุ token
 { "message": "Unauthenticated." }
         </x-slot>
@@ -200,7 +203,7 @@ $token = $res->json('token');
         path="/api/permissions/check"
         summary="ตรวจสอบว่า user มี permission นี้ไหม"
         auth="true"
-        description="เช็คแบบ real-time ว่า user มี permission key ใดๆ ในระบบที่ระบุ เหมาะสำหรับ middleware หรือ guard ในระบบภายนอก"
+        description="เช็คแบบ real-time ว่า user มี permission key ใดๆ ในระบบที่ระบุ เหมาะสำหรับ middleware หรือ guard ในระบบภายนอก — Admin token ตรวจสอบได้ทุก user, User token ตรวจสอบได้เฉพาะของตัวเอง"
     >
         <x-slot name="requestBody">
 {
@@ -219,6 +222,9 @@ $token = $res->json('token');
 
 // 200 — user ไม่พบใน UCM
 { "allowed": false, "reason": "user_not_found" }
+
+// 403 — User token พยายาม query ผู้ใช้คนอื่น
+{ "message": "Forbidden" }
         </x-slot>
 
         <x-slot name="example">
@@ -250,7 +256,7 @@ const { allowed } = await res.json();
         path="/api/users/{username}/permissions"
         summary="ดึง permissions ของ user ในระบบที่ระบุ"
         auth="true"
-        description="คืน array ของ permission keys ทั้งหมดที่ user มีในระบบนั้น เหมาะสำหรับโหลดสิทธิ์ทั้งหมดหลัง login แล้ว cache ไว้ใช้งาน"
+        description="คืน array ของ permission keys ทั้งหมดที่ user มีในระบบนั้น เหมาะสำหรับโหลดสิทธิ์ทั้งหมดหลัง login แล้ว cache ไว้ใช้งาน — Admin token ดึงได้ทุก user, User token ดึงได้เฉพาะของตัวเอง"
     >
         <x-slot name="requestBody">
 // Query Parameters
@@ -264,6 +270,9 @@ const { allowed } = await res.json();
   "system":      "repair-system",
   "permissions": ["view_report", "edit_order", "approve"]
 }
+
+// 403 — User token พยายาม query ผู้ใช้คนอื่น
+{ "message": "Forbidden" }
 
 // 404 — user ไม่พบหรือ inactive
 { "message": "User 'john.doe' not found" }
@@ -294,7 +303,7 @@ const { permissions } = await res.json();
         path="/api/users/{username}/permissions/all"
         summary="ดึง permissions ของ user ในทุกระบบพร้อมกัน"
         auth="true"
-        description="คืน permissions แบบ group by system slug ในคำสั่งเดียว (ใช้ single JOIN query ไม่มี N+1) เหมาะสำหรับ portal หรือ dashboard ที่ต้องแสดงสิทธิ์ทุกระบบ"
+        description="คืน permissions แบบ group by system slug ในคำสั่งเดียว (ใช้ single JOIN query ไม่มี N+1) เหมาะสำหรับ portal หรือ dashboard ที่ต้องแสดงสิทธิ์ทุกระบบ — Admin token ดึงได้ทุก user, User token ดึงได้เฉพาะของตัวเอง"
     >
         <x-slot name="requestBody">
 // ไม่มี query parameters — คืนทุกระบบที่ active
@@ -310,6 +319,9 @@ const { permissions } = await res.json();
     "finance":       ["view_budget"]
   }
 }
+
+// 403 — User token พยายาม query ผู้ใช้คนอื่น
+{ "message": "Forbidden" }
 
 // 404 — user ไม่พบหรือ inactive
 { "message": "User 'john.doe' not found" }

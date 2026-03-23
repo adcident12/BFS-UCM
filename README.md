@@ -534,13 +534,15 @@ Authentication: `Authorization: Bearer <token>` (Laravel Sanctum)
 
 | Method | Endpoint | Description | สิทธิ์ |
 |--------|----------|-------------|--------|
-| `POST` | `/auth/token` | ออก API Token (LDAP credentials) | — |
-| `POST` | `/auth/user-login` | Login + รับ Token + Permissions ทุกระบบ | — |
-| `DELETE` | `/auth/token` | Revoke Token ปัจจุบัน | — |
-| `GET` | `/users/{username}/permissions` | สิทธิ์ของ User ในระบบที่ Token นั้นเชื่อมกับ | Bearer |
-| `GET` | `/users/{username}/permissions/all` | สิทธิ์ทุก System ของ User | Bearer |
-| `POST` | `/permissions/check` | ตรวจสอบสิทธิ์เฉพาะรายการ (batch) | Bearer |
-| `GET` | `/users/export` | Export ผู้ใช้ทั้งหมด (CSV) | Bearer |
+| `POST` | `/auth/token` | ออก Admin API Token (LDAP credentials) — long-lived | — |
+| `POST` | `/auth/user-login` | User Login + รับ Token + Permissions ทุกระบบ | — |
+| `DELETE` | `/auth/token` | Revoke Token ปัจจุบัน | Bearer |
+| `GET` | `/users/{username}/permissions` | สิทธิ์ของ User ในระบบที่ระบุ | Bearer ¹ |
+| `GET` | `/users/{username}/permissions/all` | สิทธิ์ทุก System ของ User | Bearer ¹ |
+| `POST` | `/permissions/check` | ตรวจสอบสิทธิ์รายการเดียว (real-time) | Bearer ¹ |
+| `GET` | `/users/export` | Export ผู้ใช้ทั้งหมด + Permissions เป็น JSON | Bearer |
+
+> ¹ **Token Scope** — Admin token (จาก `/auth/token`) query ได้ทุก user; User token (จาก `/auth/user-login`) query ได้เฉพาะ username ของตัวเองเท่านั้น (403 ถ้า query user อื่น)
 
 ### ตัวอย่างการใช้ API
 
@@ -625,18 +627,24 @@ X-UCM-Signature: <HMAC-SHA256(json_body, secret)>
 
 ### Events ที่รองรับ
 
-| Event Key | เกิดขึ้นเมื่อ |
-|-----------|--------------|
-| `permissions_updated` | Admin บันทึกการเปลี่ยนแปลงสิทธิ์ผู้ใช้ |
-| `user_imported` | นำเข้าผู้ใช้รายคนจาก Active Directory |
-| `user_bulk_imported` | นำเข้าผู้ใช้แบบ Bulk จาก Active Directory |
-| `user_removed` | ลบผู้ใช้ออกจากระบบ UCM |
-| `admin_level_updated` | เปลี่ยนระดับ Admin ของผู้ใช้ |
-| `system_created` | เพิ่มระบบที่เชื่อมต่อใหม่ |
-| `system_updated` | แก้ไขข้อมูลระบบที่เชื่อมต่อ |
-| `system_deleted` | ลบระบบที่เชื่อมต่อ |
-| `login_failed` | Login ล้มเหลว (รหัสผ่านผิด หรือแผนกไม่มีสิทธิ์) |
-| `*` | Wildcard — รับแจ้งเตือนทุก event |
+| Event Key | เกิดขึ้นเมื่อ | หมวด |
+|-----------|--------------|------|
+| `permissions_updated` | Admin บันทึกการเปลี่ยนแปลงสิทธิ์ผู้ใช้ | Users |
+| `account_status_changed` | เปิด/ปิดใช้งาน Account ผู้ใช้ | Users |
+| `user_imported` | นำเข้าผู้ใช้รายคนจาก Active Directory | Users |
+| `user_bulk_imported` | นำเข้าผู้ใช้แบบ Bulk จาก Active Directory | Users |
+| `user_removed` | ลบผู้ใช้ออกจากระบบ UCM | Users |
+| `admin_level_updated` | เปลี่ยนระดับ Admin ของผู้ใช้ | Users |
+| `system_created` | เพิ่มระบบที่เชื่อมต่อใหม่ | Systems |
+| `system_updated` | แก้ไขข้อมูลระบบที่เชื่อมต่อ | Systems |
+| `system_deleted` | ลบระบบที่เชื่อมต่อ | Systems |
+| `system_2way_toggled` | เปิด/ปิด 2-Way Permission Sync ของระบบ | Systems |
+| `connector_created` | สร้าง Connector Config ใหม่ผ่าน Wizard | Connectors |
+| `connector_updated` | แก้ไข Connector Config | Connectors |
+| `connector_deleted` | ลบ Connector Config | Connectors |
+| `login_failed` | Login ล้มเหลว (รหัสผ่านผิด หรือแผนกไม่มีสิทธิ์) | Security |
+| `api_token_issued` | ออก Admin API Token ใหม่ (POST /api/auth/token) | API |
+| `*` | Wildcard — รับแจ้งเตือนทุก event | — |
 
 ### การจัดการ Channel
 
@@ -894,8 +902,9 @@ Job config: `tries=3`, `timeout=30s`, `backoff=10s`
 | `auth` | Login, Login Failed (รวมถึงกรณีแผนกไม่ได้รับอนุญาต), Logout |
 | `users` | Import, Bulk Import, Update Info, Remove, Admin Level Changed |
 | `permissions` | Update Permissions, Account Status Changed, Discover Permissions |
-| `systems` | Create/Update/Delete System, Toggle 2-Way, Create/Update/Delete Permission Definition, Discover Permission Definitions |
+| `systems` | Create/Update/Delete System, Toggle 2-Way, Create/Update/Delete Permission Definition, Discover Permission Definitions, Create/Update/Delete Group Record |
 | `connectors` | Create/Update/Delete Connector Config |
+| `notifications` | Create/Update/Delete Notification Channel |
 | `api` | Issue Token, Revoke Token, User Login via API |
 
 ### สิทธิ์การเข้าถึง
@@ -928,6 +937,7 @@ UCM_AUDIT_DEPARTMENTS="Safety,Quality Assurance"
 - Session timeout 120 นาที (ปรับได้ใน `.env SESSION_LIFETIME`)
 - ข้อมูล `db_password` และ `api_token` ถูก hidden ใน Model `$hidden` — ไม่ถูกส่งออกใน JSON response
 - Authorization ทุก mutation route ใช้ `abort_unless()` ตามระดับที่เหมาะสม: `isAdmin()` สำหรับ L1 ขึ้นไป, `isSuperAdmin()` สำหรับ L2 (เช่น CRUD System, Notification Channels, Connector Wizard, จัดการ Admin)
+- **API Permission Authorization** — Permission endpoints (`/users/{username}/permissions`, `/permissions/check`) ตรวจสอบ token scope: Admin token query ได้ทุก user, User token query ได้เฉพาะ username ของตัวเอง (ตอบ 403 ถ้าพยายาม query user อื่น)
 - UUID ของ Failed Job ถูก validate ด้วย `Str::isUuid()` ก่อนส่งให้ Artisan command
 - Webhook Secret ใช้ HMAC-SHA256 — ระบบปลายทางควรตรวจสอบ `X-UCM-Signature` header ก่อนประมวลผล payload
 

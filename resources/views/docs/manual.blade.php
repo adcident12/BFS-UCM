@@ -1704,9 +1704,10 @@ $sections = [
                         @foreach ([
                             ['label' => 'Auth', 'color' => 'sky', 'desc' => 'Login / Logout / Login Failed'],
                             ['label' => 'Users', 'color' => 'indigo', 'desc' => 'Import, อัปเดต, ลบผู้ใช้'],
-                            ['label' => 'Permissions', 'color' => 'violet', 'desc' => 'เพิ่ม/ลบ/เปลี่ยน สิทธิ์ผู้ใช้'],
-                            ['label' => 'Systems', 'color' => 'emerald', 'desc' => 'สร้าง/แก้ไข/ลบ ระบบและ Permission Definition'],
+                            ['label' => 'Permissions', 'color' => 'violet', 'desc' => 'เพิ่ม/ลบ/เปลี่ยน สิทธิ์ผู้ใช้ และ Account Status'],
+                            ['label' => 'Systems', 'color' => 'emerald', 'desc' => 'สร้าง/แก้ไข/ลบ ระบบ, Permission Definition และข้อมูล Reference'],
                             ['label' => 'Connectors', 'color' => 'amber', 'desc' => 'สร้าง/แก้ไข/ลบ Connector Wizard'],
+                            ['label' => 'Notifications', 'color' => 'teal', 'desc' => 'สร้าง/แก้ไข/ลบ Notification Channel'],
                             ['label' => 'API', 'color' => 'rose', 'desc' => 'ออก Token / Revoke / User Login ผ่าน API'],
                         ] as $item)
                         <div class="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
@@ -1728,7 +1729,7 @@ $sections = [
                             <svg class="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a2 2 0 012-2z"/></svg>
                             <div>
                                 <p class="font-semibold text-indigo-800">กรองตามประเภท</p>
-                                <p class="text-slate-600 mt-0.5">คลิกแท็บ Auth / Users / Permissions / Systems / Connectors / API เพื่อกรองเฉพาะหมวดนั้น</p>
+                                <p class="text-slate-600 mt-0.5">คลิกแท็บ Auth / Users / Permissions / Systems / Connectors / Notifications / API เพื่อกรองเฉพาะหมวดนั้น</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
@@ -1769,7 +1770,7 @@ $sections = [
                             </thead>
                             <tbody>
                                 @foreach ([
-                                    ['col' => 'ประเภท', 'desc' => 'หมวดหมู่เหตุการณ์ (Auth / Users / Permissions / Systems / Connectors / API)'],
+                                    ['col' => 'ประเภท', 'desc' => 'หมวดหมู่เหตุการณ์ (Auth / Users / Permissions / Systems / Connectors / Notifications / API)'],
                                     ['col' => 'เหตุการณ์', 'desc' => 'ชื่อ Event เช่น Login, Update Permissions, Create System'],
                                     ['col' => 'ผู้กระทำ', 'desc' => 'Username ของผู้ดำเนินการ (หรือ System หากเกิดจาก API)'],
                                     ['col' => 'เป้าหมาย', 'desc' => 'ข้อมูลที่ถูกกระทำ เช่น ชื่อผู้ใช้ ชื่อระบบ'],
@@ -1855,24 +1856,48 @@ $sections = [
                             <thead>
                                 <tr class="bg-slate-50">
                                     <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">Event Key</th>
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">หมวด</th>
                                     <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">เมื่อไหร่</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ([
-                                    ['event' => 'permissions_updated',  'desc' => 'เมื่อมีการเปลี่ยนแปลงสิทธิ์ผู้ใช้ (ผ่านหน้า Manage Permissions)'],
-                                    ['event' => 'user_imported',        'desc' => 'เมื่อนำเข้าผู้ใช้รายคนจาก Active Directory'],
-                                    ['event' => 'user_bulk_imported',   'desc' => 'เมื่อนำเข้าผู้ใช้แบบ Bulk จาก Active Directory'],
-                                    ['event' => 'user_removed',         'desc' => 'เมื่อลบผู้ใช้ออกจากระบบ UCM'],
-                                    ['event' => 'admin_level_updated',  'desc' => 'เมื่อเปลี่ยนระดับ Admin ของผู้ใช้'],
-                                    ['event' => 'system_created',       'desc' => 'เมื่อเพิ่มระบบที่เชื่อมต่อใหม่'],
-                                    ['event' => 'system_updated',       'desc' => 'เมื่อแก้ไขข้อมูลระบบที่เชื่อมต่อ'],
-                                    ['event' => 'system_deleted',       'desc' => 'เมื่อลบระบบที่เชื่อมต่อ'],
-                                    ['event' => 'login_failed',         'desc' => 'เมื่อมีการ Login ล้มเหลว (รหัสผ่านผิด หรือแผนกไม่มีสิทธิ์)'],
-                                    ['event' => '*',                    'desc' => 'Wildcard — รับแจ้งเตือนทุก event'],
+                                    // Users
+                                    ['event' => 'permissions_updated',   'group' => 'Users', 'desc' => 'เมื่อมีการเปลี่ยนแปลงสิทธิ์ผู้ใช้ (ผ่านหน้า Manage Permissions)'],
+                                    ['event' => 'account_status_changed','group' => 'Users', 'desc' => 'เมื่อเปิด/ปิด Account ของผู้ใช้ในระบบภายนอก'],
+                                    ['event' => 'user_imported',         'group' => 'Users', 'desc' => 'เมื่อนำเข้าผู้ใช้รายคนจาก Active Directory'],
+                                    ['event' => 'user_bulk_imported',    'group' => 'Users', 'desc' => 'เมื่อนำเข้าผู้ใช้แบบ Bulk จาก Active Directory'],
+                                    ['event' => 'user_removed',          'group' => 'Users', 'desc' => 'เมื่อลบผู้ใช้ออกจากระบบ UCM'],
+                                    ['event' => 'admin_level_updated',   'group' => 'Users', 'desc' => 'เมื่อเปลี่ยนระดับ Admin ของผู้ใช้'],
+                                    // Systems
+                                    ['event' => 'system_created',        'group' => 'Systems', 'desc' => 'เมื่อเพิ่มระบบที่เชื่อมต่อใหม่'],
+                                    ['event' => 'system_updated',        'group' => 'Systems', 'desc' => 'เมื่อแก้ไขข้อมูลระบบที่เชื่อมต่อ'],
+                                    ['event' => 'system_deleted',        'group' => 'Systems', 'desc' => 'เมื่อลบระบบที่เชื่อมต่อ'],
+                                    ['event' => 'system_2way_toggled',   'group' => 'Systems', 'desc' => 'เมื่อเปิด/ปิด 2-Way Permission Sync ของระบบ'],
+                                    // Connectors
+                                    ['event' => 'connector_created',     'group' => 'Connectors', 'desc' => 'เมื่อสร้าง Connector Wizard ใหม่'],
+                                    ['event' => 'connector_updated',     'group' => 'Connectors', 'desc' => 'เมื่อแก้ไข Connector Wizard'],
+                                    ['event' => 'connector_deleted',     'group' => 'Connectors', 'desc' => 'เมื่อลบ Connector Wizard'],
+                                    // Security / API
+                                    ['event' => 'login_failed',          'group' => 'Security', 'desc' => 'เมื่อมีการ Login ล้มเหลว (รหัสผ่านผิด หรือแผนกไม่มีสิทธิ์)'],
+                                    ['event' => 'api_token_issued',      'group' => 'Security', 'desc' => 'เมื่อมีการออก API Token (admin credentials ผ่าน /api/auth/token)'],
+                                    // Wildcard
+                                    ['event' => '*',                     'group' => '',        'desc' => 'Wildcard — รับแจ้งเตือนทุก event'],
                                 ] as $row)
                                 <tr class="border border-slate-100">
                                     <td class="px-3 py-2 font-mono font-semibold text-indigo-700 bg-slate-50/50 whitespace-nowrap">{{ $row['event'] }}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap">
+                                        @if($row['group'])
+                                            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded
+                                                {{ match($row['group']) {
+                                                    'Users'      => 'bg-indigo-100 text-indigo-700',
+                                                    'Systems'    => 'bg-emerald-100 text-emerald-700',
+                                                    'Connectors' => 'bg-amber-100 text-amber-700',
+                                                    'Security'   => 'bg-rose-100 text-rose-700',
+                                                    default      => 'bg-slate-100 text-slate-600',
+                                                } }}">{{ $row['group'] }}</span>
+                                        @endif
+                                    </td>
                                     <td class="px-3 py-2 text-slate-600">{{ $row['desc'] }}</td>
                                 </tr>
                                 @endforeach
@@ -1887,10 +1912,12 @@ $sections = [
 <pre>{
   "event": "permissions_updated",
   "payload": {
-    "user_id": 42,
     "username": "john.doe",
-    "description": "อัปเดตสิทธิ์ john.doe",
-    ...
+    "name": "John Doe",
+    "system": "repair-system",
+    "permissions": "view_report, edit_order",
+    "performed_by": "admin",
+    "description": "อัปเดตสิทธิ์ John Doe ในระบบ repair-system"
   },
   "timestamp": "2026-03-22T10:00:00+07:00",
   "source": "UCM"

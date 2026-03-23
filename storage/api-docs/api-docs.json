@@ -242,6 +242,16 @@
                             }
                         }
                     },
+                    "400": {
+                        "description": "ไม่พบ active token ใน request นี้",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "ไม่มี token",
                         "content": {
@@ -266,7 +276,7 @@
                     "Permissions"
                 ],
                 "summary": "ตรวจสอบ Permission (real-time)",
-                "description": "เช็คว่า user มี permission key ใดๆ ในระบบที่ระบุ เหมาะสำหรับใช้ใน middleware",
+                "description": "เช็คว่า user มี permission key ใดๆ ในระบบที่ระบุ เหมาะสำหรับใช้ใน middleware\n\n**Token Scope:**\n- Admin token (จาก `/auth/token`) — query ได้ทุก user\n- User token (จาก `/auth/user-login`) — query ได้เฉพาะ username ของตัวเอง",
                 "operationId": "checkPermission",
                 "requestBody": {
                     "required": true,
@@ -333,6 +343,16 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "User token พยายาม query ข้อมูลของผู้ใช้คนอื่น",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -348,7 +368,7 @@
                     "Permissions"
                 ],
                 "summary": "ดึง permissions ของ user ในระบบที่ระบุ",
-                "description": "คืน array ของ permission keys ทั้งหมดที่ user มีในระบบนั้น",
+                "description": "คืน array ของ permission keys ทั้งหมดที่ user มีในระบบนั้น\n\n**Token Scope:**\n- Admin token (จาก `/auth/token`) — query ได้ทุก user\n- User token (จาก `/auth/user-login`) — query ได้เฉพาะ username ของตัวเอง",
                 "operationId": "getUserPermissions",
                 "parameters": [
                     {
@@ -413,6 +433,16 @@
                             }
                         }
                     },
+                    "403": {
+                        "description": "User token พยายาม query ข้อมูลของผู้ใช้คนอื่น",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
                     "404": {
                         "description": "ไม่พบ user หรือ system",
                         "content": {
@@ -437,7 +467,7 @@
                     "Permissions"
                 ],
                 "summary": "ดึง permissions ของ user ในทุกระบบ",
-                "description": "คืน permissions แบบ group by system slug ในคำสั่งเดียว (single JOIN query — ไม่มี N+1)",
+                "description": "คืน permissions แบบ group by system slug ในคำสั่งเดียว (single JOIN query — ไม่มี N+1)\n\n**Token Scope:**\n- Admin token (จาก `/auth/token`) — query ได้ทุก user\n- User token (จาก `/auth/user-login`) — query ได้เฉพาะ username ของตัวเอง",
                 "operationId": "getAllSystemsPermissions",
                 "parameters": [
                     {
@@ -488,6 +518,16 @@
                     },
                     "401": {
                         "description": "ไม่มี token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "User token พยายาม query ข้อมูลของผู้ใช้คนอื่น",
                         "content": {
                             "application/json": {
                                 "schema": {

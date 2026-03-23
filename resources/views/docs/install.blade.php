@@ -808,7 +808,17 @@ $sections = [
                         </div>
                     </div>
                 </div>
-                <p class="text-xs text-slate-500">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mt-1">
+                    <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                        <p class="font-semibold text-indigo-800 mb-1">Admin Token <span class="font-normal text-indigo-600">(จาก <code class="font-mono">/api/auth/token</code>)</span></p>
+                        <p class="text-indigo-700">ออกให้ผู้ใช้ที่เป็น Admin — สามารถ query permissions ของ <strong>ผู้ใช้คนใดก็ได้</strong> ใช้สำหรับ server-to-server integration</p>
+                    </div>
+                    <div class="p-3 bg-sky-50 rounded-xl border border-sky-100">
+                        <p class="font-semibold text-sky-800 mb-1">User Token <span class="font-normal text-sky-600">(จาก <code class="font-mono">/api/auth/user-login</code>)</span></p>
+                        <p class="text-sky-700">ออกให้ผู้ใช้ทั่วไป — query permissions ได้เฉพาะ <strong>ของตัวเองเท่านั้น</strong> เหมาะสำหรับ frontend app ที่ delegate auth มาที่ UCM</p>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 mt-2">
                     ดู endpoints ทั้งหมดได้ที่
                     <a href="{{ route('api-docs') }}" class="text-indigo-600 hover:underline font-semibold">API Docs</a> หรือ
                     <a href="{{ url('api-docs/swagger') }}" class="text-indigo-600 hover:underline font-semibold">Swagger UI</a>
