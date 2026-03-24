@@ -534,8 +534,8 @@ Authentication: `Authorization: Bearer <token>` (Laravel Sanctum)
 
 | Method | Endpoint | Description | สิทธิ์ |
 |--------|----------|-------------|--------|
-| `POST` | `/auth/token` | ออก Admin API Token (LDAP credentials) — long-lived | — |
-| `POST` | `/auth/user-login` | User Login + รับ Token + Permissions ทุกระบบ | — |
+| `POST` | `/auth/token` | ออก Admin API Token (LDAP credentials) — ไม่มีวันหมดอายุ | — |
+| `POST` | `/auth/user-login` | User Login + รับ Token + Permissions — หมดอายุใน 24 ชม. ² | — |
 | `DELETE` | `/auth/token` | Revoke Token ปัจจุบัน | Bearer |
 | `GET` | `/users/{username}/permissions` | สิทธิ์ของ User ในระบบที่ระบุ | Bearer ¹ |
 | `GET` | `/users/{username}/permissions/all` | สิทธิ์ทุก System ของ User | Bearer ¹ |
@@ -543,6 +543,8 @@ Authentication: `Authorization: Bearer <token>` (Laravel Sanctum)
 | `GET` | `/users/export` | Export ผู้ใช้ทั้งหมด + Permissions เป็น JSON | Bearer |
 
 > ¹ **Token Scope** — Admin token (จาก `/auth/token`) query ได้ทุก user; User token (จาก `/auth/user-login`) query ได้เฉพาะ username ของตัวเองเท่านั้น (403 ถ้า query user อื่น)
+>
+> ² **User Token Expiry** — response มี field `expires_at` (ISO 8601) บอกเวลาหมดอายุ ระบบควรตรวจสอบและ refresh token ก่อนหมดอายุ ปรับได้ด้วย `UCM_USER_TOKEN_TTL_HOURS` ใน `.env`
 
 ### ตัวอย่างการใช้ API
 

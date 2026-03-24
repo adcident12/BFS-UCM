@@ -163,7 +163,11 @@ class AuthController extends Controller
         // ลบ token เก่าของระบบนี้ก่อน (ป้องกัน token สะสม)
         $user->tokens()->where('name', $tokenName)->delete();
 
-        $token = $user->createToken($tokenName);
+        // User token หมดอายุใน UCM_USER_TOKEN_TTL_HOURS ชั่วโมง (default 24)
+        $ttlHours = (int) config('ucm.user_token_ttl_hours', 24);
+        $expiresAt = now()->addHours($ttlHours);
+
+        $token = $user->createToken($tokenName, ['*'], $expiresAt);
 
         // ดึง permissions ของระบบที่ระบุมา (ถ้ามี)
         $permissions = [];
@@ -190,6 +194,7 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token->plainTextToken,
             'type' => 'Bearer',
+            'expires_at' => $expiresAt->toIso8601String(),
             'user' => [
                 'username' => $user->username,
                 'name' => $user->name,

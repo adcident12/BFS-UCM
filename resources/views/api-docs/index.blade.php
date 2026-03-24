@@ -58,7 +58,7 @@
         summary="User Login — รับ token + ข้อมูล user + permissions"
         auth="false"
         rate-limit="10 requests / minute"
-        description="ให้ผู้ใช้ทั่วไป login ด้วย username/password (ตรวจสอบผ่าน LDAP) แล้วรับ Sanctum token พร้อม permissions ของระบบที่ระบุ ใช้สำหรับระบบใหม่ที่ต้องการ delegate auth ทั้งหมดมาที่ UCM"
+        description="ให้ผู้ใช้ทั่วไป login ด้วย username/password (ตรวจสอบผ่าน LDAP) แล้วรับ Sanctum token พร้อม permissions ของระบบที่ระบุ ใช้สำหรับระบบใหม่ที่ต้องการ delegate auth ทั้งหมดมาที่ UCM — Token มีอายุ 24 ชั่วโมง (ปรับได้ด้วย UCM_USER_TOKEN_TTL_HOURS)"
     >
         <x-slot name="requestBody">
 {
@@ -73,6 +73,7 @@
 {
   "token":       "1|AbCdEf...",
   "type":        "Bearer",
+  "expires_at":  "2026-03-25T10:00:00+07:00",   // หมดอายุใน 24 ชม.
   "user": {
     "username":   "john.doe",
     "name":       "John Doe",
@@ -103,7 +104,8 @@ $res = Http::post('{{ url("/api/auth/user-login") }}', [
     'password' => 'secret',
     'system'   => 'repair-system',
 ]);
-$token       = $res->json('token');
+$token      = $res->json('token');
+$expiresAt  = $res->json('expires_at'); // "2026-03-25T10:00:00+07:00"
 $permissions = $res->json('permissions'); // ["view_report", ...]
 
 // JavaScript (fetch)
@@ -112,7 +114,7 @@ const res = await fetch('{{ url("/api/auth/user-login") }}', {
     headers: { 'Content-Type': 'application/json' },
     body:    JSON.stringify({ username: 'john.doe', password: 'secret', system: 'repair-system' }),
 });
-const { token, user, permissions } = await res.json();
+const { token, expires_at, user, permissions } = await res.json();
         </x-slot>
     </x-api-endpoint>
 

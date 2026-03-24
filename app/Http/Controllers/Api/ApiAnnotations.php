@@ -71,7 +71,7 @@ class ApiAnnotations
         path: '/auth/user-login',
         operationId: 'userLogin',
         summary: 'User Login',
-        description: "Authenticate ผู้ใช้ทั่วไปด้วย LDAP credentials แล้วรับ Sanctum token + permissions\n\n**Rate Limit:** 10 requests / minute per IP",
+        description: "Authenticate ผู้ใช้ทั่วไปด้วย LDAP credentials แล้วรับ Sanctum token + permissions\n\n**Token Expiry:** 24 ชั่วโมง (ปรับได้ด้วย `UCM_USER_TOKEN_TTL_HOURS` ใน `.env`)\n\n**Rate Limit:** 10 requests / minute per IP",
         tags: ['Authentication'],
         requestBody: new OA\RequestBody(
             required: true,
@@ -91,6 +91,7 @@ class ApiAnnotations
                 content: new OA\JsonContent(properties: [
                     new OA\Property(property: 'token', type: 'string', example: '1|AbCdEfGhIjKl...'),
                     new OA\Property(property: 'type', type: 'string', example: 'Bearer'),
+                    new OA\Property(property: 'expires_at', type: 'string', format: 'date-time', example: '2026-03-25T10:00:00+07:00', description: 'เวลาหมดอายุของ token (ISO 8601)'),
                     new OA\Property(property: 'user', ref: '#/components/schemas/UserProfile'),
                     new OA\Property(property: 'permissions', type: 'array', items: new OA\Items(type: 'string'), example: ['view_report', 'edit_order']),
                 ]),
