@@ -261,31 +261,59 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
     public function syncPermissions(UcmUser $user, array $permissions): bool
     {
-        $cfg        = $this->config;
-        $identifier = $this->resolveUserFkValue($user);
+        $cfg = $this->config;
 
         if ($cfg->permission_mode === 'manual') {
-            return true; // manual mode — ไม่มี remote sync
+            return true;
         }
 
-        if (! $cfg->perm_table || ! $cfg->perm_user_fk_col || ! $cfg->perm_value_col) {
+        if (! $cfg->perm_table || ! $cfg->perm_value_col) {
+            return false;
+        }
+
+        // column mode — UPDATE user row โดยตรง (ไม่มี junction table)
+        if ($cfg->permission_mode === 'column') {
+            return $this->syncColumnMode($user, $permissions);
+        }
+
+        // junction mode — ต้องมี FK column
+        if (! $cfg->perm_user_fk_col) {
             return false;
         }
 
         try {
-            $pdo    = $this->getConnection();
-            $table  = $this->quoteIdentifier($cfg->perm_table);
-            $fkCol  = $this->quoteIdentifier($cfg->perm_user_fk_col);
-            $valCol = $this->quoteIdentifier($cfg->perm_value_col);
+            // ตรวจสอบว่า user มีอยู่ใน user_table ไหม → ถ้าไม่มีให้สร้าง
+            if ($cfg->user_table && $cfg->user_identifier_col) {
+                $identStr  = $this->resolveUserIdentifier($user);
+                $userTable = $this->quoteIdentifier($cfg->user_table);
+                $idCol     = $this->quoteIdentifier($cfg->user_identifier_col);
+                $pdo       = $this->getConnection();
+                $chk       = $pdo->prepare("SELECT 1 FROM {$userTable} WHERE {$idCol} = ? LIMIT 1");
+                $chk->execute([$identStr]);
+                if (! $chk->fetchColumn()) {
+                    Log::info("[DynamicAdapter:{$this->system->slug}] User {$identStr} ยังไม่มี → กำลังสร้าง...");
+                    if (! $this->createUser($user, $permissions)) {
+                        return false;
+                    }
+                    Log::info("[DynamicAdapter:{$this->system->slug}] สร้าง user {$identStr} สำเร็จ");
+
+                    return true; // createUser จัดการ permissions แล้ว
+                }
+            }
+
+            $identifier = $this->resolveUserFkValue($user);
+            $pdo        = $this->getConnection();
+            $table      = $this->quoteIdentifier($cfg->perm_table);
+            $fkCol      = $this->quoteIdentifier($cfg->perm_user_fk_col);
+            $valCol     = $this->quoteIdentifier($cfg->perm_value_col);
 
             if ($this->isComposite()) {
-                $compositeCols  = $cfg->perm_composite_cols;
-                $extraQuoted    = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
-                $allInsertCols  = array_merge([$fkCol, $valCol], $extraQuoted);
-                $placeholders   = implode(', ', array_fill(0, count($allInsertCols), '?'));
+                $compositeCols = $cfg->perm_composite_cols;
+                $extraQuoted   = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
+                $allInsertCols = array_merge([$fkCol, $valCol], $extraQuoted);
+                $placeholders  = implode(', ', array_fill(0, count($allInsertCols), '?'));
                 $pdo->beginTransaction();
-                $del = $pdo->prepare("DELETE FROM {$table} WHERE {$fkCol} = ?");
-                $del->execute([$identifier]);
+                $pdo->prepare("DELETE FROM {$table} WHERE {$fkCol} = ?")->execute([$identifier]);
                 if (! empty($permissions)) {
                     $ins = $pdo->prepare('INSERT INTO '.$table.' ('.implode(', ', $allInsertCols).') VALUES ('.$placeholders.')');
                     foreach ($permissions as $permKey) {
@@ -303,19 +331,13 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             }
 
             $pdo->beginTransaction();
-
-            // ลบ permissions เดิมทั้งหมด
-            $del = $pdo->prepare("DELETE FROM {$table} WHERE {$fkCol} = ?");
-            $del->execute([$identifier]);
-
-            // Insert permissions ใหม่
+            $pdo->prepare("DELETE FROM {$table} WHERE {$fkCol} = ?")->execute([$identifier]);
             if (! empty($permissions)) {
                 $ins = $pdo->prepare("INSERT INTO {$table} ({$fkCol}, {$valCol}) VALUES (?, ?)");
                 foreach ($permissions as $perm) {
                     $ins->execute([$identifier, $perm]);
                 }
             }
-
             $pdo->commit();
 
             return true;
@@ -323,7 +345,101 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             if ($this->pdo?->inTransaction()) {
                 $this->pdo->rollBack();
             }
-            Log::error("[DynamicAdapter:{$this->system->slug}] syncPermissions: " . $e->getMessage());
+            Log::error("[DynamicAdapter:{$this->system->slug}] syncPermissions: ".$e->getMessage());
+
+            return false;
+        }
+    }
+
+    public function createUser(UcmUser $user, array $permissions): bool
+    {
+        $cfg        = $this->config;
+        $identifier = $this->resolveUserIdentifier($user);
+
+        try {
+            $pdo       = $this->getConnection();
+            $userTable = $this->quoteIdentifier($cfg->user_table);
+
+            // สร้าง column => value จาก UCM fields ที่ config ระบุ
+            $data = [$cfg->user_identifier_col => $identifier];
+            if (filled($cfg->user_name_col)) {
+                $data[$cfg->user_name_col] = $user->name ?? '';
+            }
+            if (filled($cfg->user_email_col)) {
+                $data[$cfg->user_email_col] = $user->email ?? '';
+            }
+            if (filled($cfg->user_dept_col)) {
+                $data[$cfg->user_dept_col] = $user->department ?? '';
+            }
+            if (filled($cfg->user_status_col) && filled($cfg->user_status_active_val)) {
+                $data[$cfg->user_status_col] = $cfg->user_status_active_val;
+            }
+            // column mode — ใส่ค่า permission ลงใน row เดียวกัน
+            if ($cfg->permission_mode === 'column' && filled($cfg->perm_value_col) && ! empty($permissions)) {
+                $data[$cfg->perm_value_col] = $permissions[0];
+            }
+
+            $quotedCols   = implode(', ', array_map(fn ($c) => $this->quoteIdentifier($c), array_keys($data)));
+            $placeholders = implode(', ', array_fill(0, count($data), '?'));
+
+            $pdo->prepare("INSERT INTO {$userTable} ({$quotedCols}) VALUES ({$placeholders})")
+                ->execute(array_values($data));
+
+            Log::info("[DynamicAdapter:{$this->system->slug}] createUser: สร้าง user {$identifier} สำเร็จ");
+
+            // junction mode — sync permissions เข้า perm_table หลัง INSERT user
+            if ($cfg->permission_mode !== 'column' && $cfg->perm_table && $cfg->perm_user_fk_col && ! empty($permissions)) {
+                $fkVal  = filled($cfg->user_pk_col) ? ($pdo->lastInsertId() ?: $identifier) : $identifier;
+                $table  = $this->quoteIdentifier($cfg->perm_table);
+                $fkCol  = $this->quoteIdentifier($cfg->perm_user_fk_col);
+                $valCol = $this->quoteIdentifier($cfg->perm_value_col);
+                $ins    = $pdo->prepare("INSERT INTO {$table} ({$fkCol}, {$valCol}) VALUES (?, ?)");
+                foreach ($permissions as $perm) {
+                    $ins->execute([$fkVal, $perm]);
+                }
+            }
+
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] createUser failed for {$identifier}: ".$e->getMessage());
+
+            return false;
+        }
+    }
+
+    private function syncColumnMode(UcmUser $user, array $permissions): bool
+    {
+        $cfg        = $this->config;
+        $identifier = $this->resolveUserIdentifier($user);
+
+        try {
+            $pdo    = $this->getConnection();
+            $table  = $this->quoteIdentifier($cfg->perm_table);
+            $valCol = $this->quoteIdentifier($cfg->perm_value_col);
+            $idCol  = $this->quoteIdentifier($cfg->user_identifier_col);
+            $val    = $permissions[0] ?? null;
+
+            // ตรวจสอบว่า user มีอยู่ไหม
+            $chk = $pdo->prepare("SELECT 1 FROM {$table} WHERE {$idCol} = ? LIMIT 1");
+            $chk->execute([$identifier]);
+            if (! $chk->fetchColumn()) {
+                Log::info("[DynamicAdapter:{$this->system->slug}] Column mode — User {$identifier} ยังไม่มี → กำลังสร้าง...");
+                if (! $this->createUser($user, $permissions)) {
+                    return false;
+                }
+                Log::info("[DynamicAdapter:{$this->system->slug}] สร้าง user {$identifier} สำเร็จ");
+
+                return true;
+            }
+
+            // User มีอยู่แล้ว → UPDATE column
+            $pdo->prepare("UPDATE {$table} SET {$valCol} = ? WHERE {$idCol} = ?")
+                ->execute([$val, $identifier]);
+
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] syncColumnMode: ".$e->getMessage());
+
             return false;
         }
     }
@@ -537,6 +653,73 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
     {
         return PermissionDeleteMode::tryFrom($this->config->perm_delete_mode ?? '')
             ?? PermissionDeleteMode::DetachOnly;
+    }
+
+    public function getAccountStatus(UcmUser $user): ?bool
+    {
+        $cfg = $this->config;
+
+        if (! filled($cfg->user_status_col)) {
+            return null;
+        }
+
+        try {
+            $pdo        = $this->getConnection();
+            $userTable  = $this->quoteIdentifier($cfg->user_table);
+            $idCol      = $this->quoteIdentifier($cfg->user_identifier_col);
+            $statusCol  = $this->quoteIdentifier($cfg->user_status_col);
+            $identifier = $this->resolveUserIdentifier($user);
+
+            $stmt = $pdo->prepare("SELECT {$statusCol} FROM {$userTable} WHERE {$idCol} = ? LIMIT 1");
+            $stmt->execute([$identifier]);
+            $row = $stmt->fetch();
+
+            if ($row === false) {
+                return null;
+            }
+
+            $val = (string) $row[$cfg->user_status_col];
+
+            return $cfg->user_status_active_val !== null
+                ? $val === (string) $cfg->user_status_active_val
+                : true;
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] getAccountStatus: ".$e->getMessage());
+
+            return null;
+        }
+    }
+
+    public function setAccountStatus(UcmUser $user, bool $active): bool
+    {
+        $cfg = $this->config;
+
+        if (! filled($cfg->user_status_col)) {
+            return false;
+        }
+
+        $targetVal = $active
+            ? ($cfg->user_status_active_val ?? '1')
+            : ($cfg->user_status_inactive_val ?? '0');
+
+        try {
+            $pdo        = $this->getConnection();
+            $userTable  = $this->quoteIdentifier($cfg->user_table);
+            $idCol      = $this->quoteIdentifier($cfg->user_identifier_col);
+            $statusCol  = $this->quoteIdentifier($cfg->user_status_col);
+            $identifier = $this->resolveUserIdentifier($user);
+
+            $pdo->prepare("UPDATE {$userTable} SET {$statusCol} = ? WHERE {$idCol} = ?")
+                ->execute([$targetVal, $identifier]);
+
+            Log::info("[DynamicAdapter:{$this->system->slug}] setAccountStatus: {$identifier} → ".($active ? 'active' : 'inactive'));
+
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] setAccountStatus: ".$e->getMessage());
+
+            return false;
+        }
     }
 
     /**

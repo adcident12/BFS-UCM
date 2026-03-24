@@ -24,6 +24,7 @@ class ConnectorConfig extends Model
         'user_dept_col',
         'user_status_col',
         'user_status_active_val',
+        'user_status_inactive_val',
         'permission_mode',
         'perm_table',
         'perm_user_fk_col',

@@ -429,6 +429,7 @@ class ConnectorWizardController extends Controller
             'user_dept_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'user_status_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'user_status_active_val' => 'nullable|string|max:100',
+            'user_status_inactive_val' => 'nullable|string|max:100',
 
             // Permission
             'permission_mode' => 'required|in:junction,column,manual',
@@ -508,6 +509,7 @@ class ConnectorWizardController extends Controller
                 'user_dept_col' => $data['user_dept_col'] ?? null,
                 'user_status_col' => $data['user_status_col'] ?? null,
                 'user_status_active_val' => $data['user_status_active_val'] ?? null,
+                'user_status_inactive_val' => $data['user_status_inactive_val'] ?? null,
                 'permission_mode' => $data['permission_mode'],
                 'perm_table' => $data['perm_table'] ?? null,
                 'perm_user_fk_col' => $data['perm_user_fk_col'] ?? null,

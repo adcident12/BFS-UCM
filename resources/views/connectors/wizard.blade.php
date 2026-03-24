@@ -454,9 +454,17 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             {!! $arr !!}
                         </div>
                     </div>
-                    <div id="status-val-wrap" class="hidden">
-                        <label class="{{ $lbl }}">ค่าที่หมายถึง "Active"</label>
-                        <input type="text" id="field_user_status_active_val" class="{{ $inp }}" placeholder="เช่น 1, Y, active, true">
+                    <div id="status-val-wrap" class="hidden col-span-2 grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="{{ $lbl }}">ค่าที่หมายถึง "Active"</label>
+                            <input type="text" id="field_user_status_active_val" class="{{ $inp }}" placeholder="เช่น 1, Y, active, true"
+                                value="{{ isset($editConfig) ? ($editConfig->user_status_active_val ?? '') : '' }}">
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">ค่าที่หมายถึง "Inactive" <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
+                            <input type="text" id="field_user_status_inactive_val" class="{{ $inp }}" placeholder="เช่น 0, N, inactive, false (default: 0)"
+                                value="{{ isset($editConfig) ? ($editConfig->user_status_inactive_val ?? '') : '' }}">
+                        </div>
                     </div>
                 </div>
 
@@ -1524,8 +1532,9 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             user_name_col:          val('user_name_col') || null,
             user_email_col:         val('user_email_col') || null,
             user_dept_col:          val('user_dept_col') || null,
-            user_status_col:        val('user_status_col') || null,
-            user_status_active_val: val('user_status_active_val') || null,
+            user_status_col:          val('user_status_col') || null,
+            user_status_active_val:   val('user_status_active_val') || null,
+            user_status_inactive_val: val('user_status_inactive_val') || null,
             permission_mode:        mode,
             perm_table:             mode !== 'manual' ? val('perm_table') : null,
             perm_user_fk_col:       mode === 'junction' ? val('perm_user_fk_col') : null,
@@ -1951,9 +1960,6 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         wizPermModeChange(pMode);
 
         if (EDIT_CONFIG.user_status_col) wizToggleStatusVal();
-        if (document.getElementById('field_user_status_active_val')) {
-            document.getElementById('field_user_status_active_val').value = EDIT_CONFIG.user_status_active_val || '';
-        }
 
         if (pMode === 'manual' && EDIT_CONFIG.manual_permissions) {
             EDIT_CONFIG.manual_permissions.forEach(function (p) { wizAddManualPerm(p); });
