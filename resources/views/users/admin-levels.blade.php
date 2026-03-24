@@ -178,19 +178,19 @@
         {{-- Level filter tabs --}}
         <div class="flex items-center rounded-xl ring-1 ring-slate-200 bg-slate-50 p-0.5 gap-0.5 flex-shrink-0">
             <button type="button" data-level-filter="all"
-                    class="lvl-tab px-3 py-1.5 text-xs font-bold rounded-lg transition-all bg-white text-slate-700 shadow-sm ring-1 ring-slate-200/80">
+                    class="lvl-tab px-3 py-1.5 text-xs font-bold rounded-lg transition-all bg-white text-slate-700 shadow-sm ring-1 ring-slate-200/80 cursor-pointer">
                 ทั้งหมด <span class="tabular-nums text-slate-400 font-medium">{{ $users->count() }}</span>
             </button>
             <button type="button" data-level-filter="0"
-                    class="lvl-tab px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:bg-white/60">
+                    class="lvl-tab px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:bg-white/60 cursor-pointer">
                 ทั่วไป <span class="tabular-nums font-medium">{{ $countL0 }}</span>
             </button>
             <button type="button" data-level-filter="1"
-                    class="lvl-tab px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:bg-white/60">
+                    class="lvl-tab px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:bg-white/60 cursor-pointer">
                 L1 <span class="tabular-nums font-medium">{{ $countL1 }}</span>
             </button>
             <button type="button" data-level-filter="2"
-                    class="lvl-tab px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:bg-white/60">
+                    class="lvl-tab px-3 py-1.5 text-xs font-bold rounded-lg transition-all text-slate-400 hover:bg-white/60 cursor-pointer">
                 L2 <span class="tabular-nums font-medium">{{ $countL2 }}</span>
             </button>
         </div>

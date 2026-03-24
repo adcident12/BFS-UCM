@@ -199,7 +199,7 @@
                             </span>
                             @endif
                             <button type="button" onclick="permEdit({{ $perm->id }})"
-                                class="text-xs font-semibold text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors">แก้ไข</button>
+                                class="text-xs font-semibold text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">แก้ไข</button>
                             <form id="del-perm-{{ $perm->id }}" method="POST"
                                 action="{{ route('systems.permissions.destroy', [$system, $perm]) }}" class="hidden">
                                 @csrf @method('DELETE')
@@ -207,11 +207,11 @@
                             @if ($perm->remote_value && \App\Adapters\AdapterFactory::supports2WayPermissions($system))
                             <button type="button"
                                 onclick="askConfirm('del-perm-{{ $perm->id }}', 'ลบ permission \'{{ addslashes($perm->label) }}\' ?', 'การลบนี้จะลบ &quot;{{ addslashes($perm->remote_value) }}&quot; ออกจาก {{ $system->name }} ด้วยทันที (2-way sync)')"
-                                class="text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors">ลบ</button>
+                                class="text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">ลบ</button>
                             @else
                             <button type="button"
                                 onclick="askConfirm('del-perm-{{ $perm->id }}', 'ลบ permission \'{{ addslashes($perm->label) }}\' ?')"
-                                class="text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors">ลบ</button>
+                                class="text-xs font-semibold text-red-400 hover:text-red-600 hover:bg-red-50 px-2.5 py-1 rounded-lg transition-colors cursor-pointer">ลบ</button>
                             @endif
                         </div>
                         @endif {{-- isAdmin --}}
@@ -257,7 +257,7 @@
                                 <code class="text-xs text-slate-400 font-mono mr-auto bg-white px-2 py-1 rounded-lg">{{ $perm->key }}</code>
                                 <button type="submit" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-colors">บันทึก</button>
                                 <button type="button" onclick="permCancel({{ $perm->id }})"
-                                    class="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-semibold rounded-xl hover:bg-slate-50 transition-colors">ยกเลิก</button>
+                                    class="px-3.5 py-1.5 bg-white border border-slate-200 text-slate-600 text-xs font-semibold rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">ยกเลิก</button>
                             </div>
                         </form>
                     </div>
@@ -434,7 +434,7 @@
                         class="hidden text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full tabular-nums">
                     </span>
                     <button type="button" onclick="groupReload('{{ $group }}', '{{ $groupSlug }}')"
-                        class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                         title="รีโหลด">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

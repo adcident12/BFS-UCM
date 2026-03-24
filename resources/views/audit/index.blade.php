@@ -356,7 +356,7 @@
                                 @if ($log->metadata)
                                     <button type="button"
                                             onclick="this.nextElementSibling.classList.toggle('hidden'); this.textContent = this.nextElementSibling.classList.contains('hidden') ? '▸ ดูรายละเอียด' : '▾ ซ่อน'"
-                                            class="text-xs text-indigo-500 hover:text-indigo-700 mt-1.5 font-medium">
+                                            class="text-xs text-indigo-500 hover:text-indigo-700 mt-1.5 font-medium cursor-pointer">
                                         ▸ ดูรายละเอียด
                                     </button>
                                     <pre class="hidden mt-2 text-xs bg-slate-50 border border-slate-100 rounded-xl p-3 overflow-auto max-h-40 text-slate-600 font-mono leading-relaxed">{{ json_encode($log->metadata, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>

@@ -134,7 +134,7 @@
                     @csrf @method('DELETE')
                     <button type="button"
                             onclick="askConfirm('del-connector-{{ $config->id }}', 'ลบ Connector นี้?', '{{ addslashes($system?->name ?? $config->db_name) }}')"
-                            class="text-xs font-semibold text-rose-500 hover:text-rose-700 py-1.5 px-3 rounded-lg hover:bg-rose-50 transition">
+                            class="text-xs font-semibold text-rose-500 hover:text-rose-700 py-1.5 px-3 rounded-lg hover:bg-rose-50 transition cursor-pointer">
                         ลบ
                     </button>
                 </form>

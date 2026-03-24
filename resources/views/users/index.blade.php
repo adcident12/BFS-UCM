@@ -57,14 +57,14 @@
             ไม่ได้ใช้งาน
         </a>
         <button id="btn-check-ad"
-                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-sm font-semibold rounded-xl transition-all duration-150 whitespace-nowrap">
+                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-sm font-semibold rounded-xl transition-all duration-150 whitespace-nowrap cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             ตรวจสอบ AD
         </button>
         <button id="btn-open-modal"
-                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm shadow-indigo-200 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200 whitespace-nowrap">
+                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm shadow-indigo-200 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200 whitespace-nowrap cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
@@ -121,7 +121,7 @@
                     <p class="text-xs text-slate-400">ค้นหาผู้ใช้ UCM ที่ไม่มีบัญชีใน Active Directory</p>
                 </div>
             </div>
-            <button id="btn-close-ad-check" class="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+            <button id="btn-close-ad-check" class="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -141,7 +141,7 @@
                 <p class="text-sm font-semibold text-slate-700 mb-1">ตรวจสอบผู้ใช้กับ Active Directory</p>
                 <p class="text-xs text-slate-400 mb-5">ระบบจะตรวจสอบว่าผู้ใช้ทั้งหมดใน UCM ยังมีบัญชีอยู่ใน AD หรือไม่</p>
                 <button id="btn-start-ad-check"
-                        class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl shadow-sm transition-all duration-150">
+                        class="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl shadow-sm transition-all duration-150 cursor-pointer">
                     เริ่มตรวจสอบ
                 </button>
             </div>
@@ -183,7 +183,7 @@
         {{-- Footer --}}
         <div id="adc-footer" style="display:none" class="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50/50">
             <button id="btn-recheck"
-                    class="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors">
+                    class="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors cursor-pointer">
                 ตรวจสอบใหม่
             </button>
             <button id="btn-remove-selected" disabled
@@ -221,12 +221,12 @@
         {{-- Tabs --}}
         <div class="flex border-b border-slate-100 flex-shrink-0 px-2 pt-1">
             <button data-tab="ad"
-                    class="tab-btn flex-1 py-2.5 px-4 text-sm font-semibold border-b-2 transition-colors rounded-t-lg border-indigo-600 text-indigo-600">
+                    class="tab-btn flex-1 py-2.5 px-4 text-sm font-semibold border-b-2 transition-colors rounded-t-lg border-indigo-600 text-indigo-600 cursor-pointer">
                 ค้นหาจาก AD
             </button>
             @if($importableSystems->isNotEmpty())
             <button data-tab="system"
-                    class="tab-btn flex-1 py-2.5 px-4 text-sm font-semibold border-b-2 transition-colors rounded-t-lg border-transparent text-slate-500 hover:text-slate-700">
+                    class="tab-btn flex-1 py-2.5 px-4 text-sm font-semibold border-b-2 transition-colors rounded-t-lg border-transparent text-slate-500 hover:text-slate-700 cursor-pointer">
                 นำเข้าจากระบบ
             </button>
             @endif
@@ -272,7 +272,7 @@
                 {{-- Custom searchable dropdown --}}
                 <div id="sys-dropdown" class="relative flex-1">
                     <button type="button" id="sys-dropdown-btn"
-                            class="w-full flex items-center justify-between px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 text-left transition-all">
+                            class="w-full flex items-center justify-between px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 text-left transition-all cursor-pointer">
                         <span id="sys-dropdown-label" class="text-slate-400 truncate">— เลือกระบบ —</span>
                         <svg class="w-4 h-4 text-slate-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -286,12 +286,12 @@
                         </div>
                         <div id="sys-options" class="max-h-48 overflow-y-auto py-1">
                             <button type="button" data-value="" data-label="— เลือกระบบ —"
-                                    class="sys-option w-full text-left px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 rounded-lg mx-1" style="width:calc(100% - 8px)">
+                                    class="sys-option w-full text-left px-3 py-2 text-sm text-slate-400 hover:bg-slate-50 rounded-lg mx-1 cursor-pointer" style="width:calc(100% - 8px)">
                                 — เลือกระบบ —
                             </button>
                             @foreach($importableSystems as $sys)
                             <button type="button" data-value="{{ $sys->id }}" data-label="{{ $sys->name }}"
-                                    class="sys-option w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg mx-1 transition-colors" style="width:calc(100% - 8px)">
+                                    class="sys-option w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-lg mx-1 transition-colors cursor-pointer" style="width:calc(100% - 8px)">
                                 {{ $sys->name }}
                             </button>
                             @endforeach
@@ -366,7 +366,7 @@
             </div>
         </div>
         <button id="btn-export-all" onclick="doExport()"
-                class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap">
+                class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>
@@ -379,7 +379,7 @@
          class="flex items-center justify-between px-4 md:px-6 py-3.5 border-b border-emerald-200 bg-emerald-50">
         <div class="flex items-center gap-3">
             <button onclick="clearSelection()"
-                    class="w-7 h-7 flex items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors" title="ยกเลิกการเลือก">
+                    class="w-7 h-7 flex items-center justify-center rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors cursor-pointer" title="ยกเลิกการเลือก">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
@@ -389,7 +389,7 @@
             </span>
         </div>
         <button id="btn-export-selected" onclick="doExport()"
-                class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-lg transition-colors shadow-sm shadow-emerald-200 whitespace-nowrap">
+                class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-lg transition-colors shadow-sm shadow-emerald-200 whitespace-nowrap cursor-pointer">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>

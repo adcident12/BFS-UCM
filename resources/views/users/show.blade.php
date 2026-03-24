@@ -46,7 +46,7 @@
                 <span id="emp-view" class="text-sm font-mono font-semibold text-slate-700">{{ $user->employee_number ?: '—' }}</span>
                 @if (auth()->user()->isSuperAdmin())
                 <button id="emp-edit-btn" onclick="empEdit()"
-                        class="text-xs font-semibold text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-lg transition-colors">แก้ไข</button>
+                        class="text-xs font-semibold text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-lg transition-colors cursor-pointer">แก้ไข</button>
                 <form id="emp-form" style="display:none"
                       action="{{ route('users.info.update', $user) }}" method="POST"
                       class="flex flex-wrap items-center gap-1.5">
@@ -54,7 +54,7 @@
                     <input type="text" name="employee_number" value="{{ $user->employee_number }}" placeholder="เช่น EMP001"
                            class="text-sm border border-slate-200 rounded-lg px-3 py-1.5 w-28 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
                     <button type="submit" class="text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg px-3 py-1.5 transition-colors">บันทึก</button>
-                    <button type="button" onclick="empCancel()" class="text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg px-2 py-1.5 transition-colors">ยกเลิก</button>
+                    <button type="button" onclick="empCancel()" class="text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg px-2 py-1.5 transition-colors cursor-pointer">ยกเลิก</button>
                 </form>
                 @endif
             </div>
@@ -142,7 +142,7 @@
                         </form>
                         <button type="button"
                                 onclick="askConfirm('form-disable-{{ $system->id }}', 'ปิดการใช้งาน account?', '{{ addslashes($user->name) }} ใน {{ addslashes($system->name) }}')"
-                                class="text-xs font-semibold text-red-600 hover:text-red-800 border border-red-200 hover:bg-red-50 rounded-lg px-2.5 py-1 transition-colors">
+                                class="text-xs font-semibold text-red-600 hover:text-red-800 border border-red-200 hover:bg-red-50 rounded-lg px-2.5 py-1 transition-colors cursor-pointer">
                             ปิดการใช้งาน
                         </button>
                         @endif
@@ -156,7 +156,7 @@
                         </form>
                         <button type="button"
                                 onclick="askConfirm('form-enable-{{ $system->id }}', 'เปิดใช้งาน account?', '{{ addslashes($user->name) }} ใน {{ addslashes($system->name) }}')"
-                                class="text-xs font-semibold text-emerald-600 hover:text-emerald-800 border border-emerald-200 hover:bg-emerald-50 rounded-lg px-2.5 py-1 transition-colors">
+                                class="text-xs font-semibold text-emerald-600 hover:text-emerald-800 border border-emerald-200 hover:bg-emerald-50 rounded-lg px-2.5 py-1 transition-colors cursor-pointer">
                             เปิดใช้งาน
                         </button>
                         @endif
@@ -177,7 +177,7 @@
                         </form>
                         <button type="button"
                                 onclick="askConfirm('form-discover-{{ $system->id }}', 'Discover สิทธิ์จากระบบจริง?', 'UCM จะอัปเดตสิทธิ์ของ {{ addslashes($user->name) }} ให้ตรงกับ {{ addslashes($system->name) }} ทันที')"
-                                class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 border border-indigo-200 hover:bg-indigo-50 rounded-lg px-2.5 py-1 transition-colors">
+                                class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 border border-indigo-200 hover:bg-indigo-50 rounded-lg px-2.5 py-1 transition-colors cursor-pointer">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                             </svg>
