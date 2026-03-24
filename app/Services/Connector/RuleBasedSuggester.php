@@ -9,11 +9,12 @@ class RuleBasedSuggester
     public function suggest(): array
     {
         $userResult = $this->suggestUserTable();
+        $permResult = $this->suggestPermission($userResult['table'] ?? null);
 
         return [
             'user_table'    => $userResult,
-            'permission'    => $this->suggestPermission($userResult['table'] ?? null),
-            'master_tables' => $this->suggestMasterTables($userResult['table'] ?? null),
+            'permission'    => $permResult,
+            'master_tables' => $this->suggestMasterTables($userResult['table'] ?? null, $permResult),
         ];
     }
 
@@ -182,7 +183,7 @@ class RuleBasedSuggester
                     'score'      => $score,
                     'confidence' => min((int) round($score / 118 * 100), 95),
                     'reasons'    => $reasons,
-                    'mapping'    => $this->suggestUserMapping(array_column($cols, 'name'), $lower),
+                    'mapping'    => $this->suggestUserMapping(array_column($cols, 'name'), $lower, $info['sample'] ?? []),
                 ];
             }
         }
@@ -198,7 +199,7 @@ class RuleBasedSuggester
         return $best;
     }
 
-    private function suggestUserMapping(array $colNames, array $lower): array
+    private function suggestUserMapping(array $colNames, array $lower, array $sample = []): array
     {
         $map     = array_combine($lower, $colNames);
         $mapping = [];
@@ -266,7 +267,56 @@ class RuleBasedSuggester
             }
         }
 
+        // Detect active/inactive values from sample data
+        if (isset($mapping['status']) && ! empty($sample)) {
+            [$activeVal, $inactiveVal] = $this->detectStatusValues($mapping['status'], $sample);
+            if ($activeVal !== null) {
+                $mapping['status_active_val'] = $activeVal;
+            }
+            if ($inactiveVal !== null) {
+                $mapping['status_inactive_val'] = $inactiveVal;
+            }
+        }
+
         return $mapping;
+    }
+
+    /**
+     * ตรวจจับค่า active/inactive จาก sample rows โดยเปรียบเทียบกับ known patterns
+     *
+     * @param  array<int, array<string, mixed>>  $sample
+     * @return array{0: string|null, 1: string|null}
+     */
+    private function detectStatusValues(string $statusCol, array $sample): array
+    {
+        $knownActive   = ['1', 'true', 'y', 'yes', 'active', 'enable', 'enabled', 'a', 'normal', 'open'];
+        $knownInactive = ['0', 'false', 'n', 'no', 'inactive', 'disable', 'disabled', 'i', 'closed', 'blocked', 'suspended'];
+
+        $activeVal   = null;
+        $inactiveVal = null;
+
+        foreach ($sample as $row) {
+            $val = $row[$statusCol] ?? null;
+            if ($val === null) {
+                continue;
+            }
+
+            $lower = strtolower((string) $val);
+
+            if ($activeVal === null && in_array($lower, $knownActive, true)) {
+                $activeVal = (string) $val;
+            }
+
+            if ($inactiveVal === null && in_array($lower, $knownInactive, true)) {
+                $inactiveVal = (string) $val;
+            }
+
+            if ($activeVal !== null && $inactiveVal !== null) {
+                break;
+            }
+        }
+
+        return [$activeVal, $inactiveVal];
     }
 
     // ── Permission ──────────────────────────────────────────────────────────
@@ -356,7 +406,7 @@ class RuleBasedSuggester
                 $reasons[] = "ชื่อตาราง '{$table}' มีคำที่เกี่ยวกับ permission";
             }
 
-            if ($score >= 45) {
+            if ($score >= 40) {
                 $nonUserFkCols = $this->collectNonUserFkCols($fks, $lower, $lowerMap, $userTable, $userFkCol);
 
                 $valueCol      = ! empty($nonUserFkCols) ? $nonUserFkCols[0]['col'] : null;
@@ -513,10 +563,9 @@ class RuleBasedSuggester
 
     // ── Master Tables ───────────────────────────────────────────────────────
 
-    private function suggestMasterTables(?string $userTable): array
+    private function suggestMasterTables(?string $userTable, array $permSuggestion): array
     {
-        $permSuggestion   = $this->suggestPermission($userTable);
-        $permTable        = $permSuggestion['table'] ?? null;
+        $permTable = $permSuggestion['table'] ?? null;
         $compositeMasters = array_filter(array_column($permSuggestion['composite_cols'] ?? [], 'master_table'));
 
         // รวม value_col master table ด้วย

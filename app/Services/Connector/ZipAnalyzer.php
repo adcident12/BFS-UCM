@@ -45,7 +45,7 @@ class ZipAnalyzer
         '/sequelize/i', '/typeorm/i', '/gorm/i',
     ];
 
-    private const PII_KEYS = '/password|passwd|secret|api_key|token|private_key/i';
+    private const PII_PATTERN = 'password|passwd|secret|api_key|token|private_key';
 
     public function analyze(UploadedFile $file): array
     {
@@ -183,7 +183,7 @@ class ZipAnalyzer
     private function sanitizeContent(string $content): string
     {
         return preg_replace_callback(
-            '/(' . trim(self::PII_KEYS, '/i') . ')\s*[=:]\s*["\']?(\S+?)["\']?(?=[\s,;\)\n]|$)/i',
+            '/(' . self::PII_PATTERN . ')\s*[=:]\s*["\']?(\S+?)["\']?(?=[\s,;\)\n]|$)/i',
             fn ($m) => $m[1] . '=[REDACTED]',
             $content
         ) ?? $content;

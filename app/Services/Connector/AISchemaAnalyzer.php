@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Http;
 
 class AISchemaAnalyzer
 {
+    /** ขนาดสูงสุดของ source files section ใน prompt (~20K tokens) */
+    private const MAX_SOURCE_CHARS = 80_000;
+
     public function __construct(
         private readonly string $apiKey = '',
         private readonly string $model = 'claude-opus-4-6'
@@ -24,7 +27,8 @@ class AISchemaAnalyzer
      */
     public function analyze(array $schema, array $sourceFiles = [], ?array $ruleHint = null): array
     {
-        $trimmedSchema = $this->trimSchema($schema);
+        $userTable     = $ruleHint['user_table']['table'] ?? null;
+        $trimmedSchema = $this->trimSchema($schema, $userTable);
         $prompt        = $this->buildPrompt($trimmedSchema, $sourceFiles, $ruleHint);
 
         $response = Http::withHeaders([
@@ -33,7 +37,7 @@ class AISchemaAnalyzer
             'content-type'      => 'application/json',
         ])->timeout(90)->post('https://api.anthropic.com/v1/messages', [
             'model'       => $this->model,
-            'max_tokens'  => 2048,
+            'max_tokens'  => 4096,
             'tools'       => [$this->buildTool()],
             'tool_choice' => ['type' => 'tool', 'name' => 'suggest_connector_config'],
             'messages'    => [
@@ -56,11 +60,12 @@ class AISchemaAnalyzer
 
     /**
      * ตัด schema ให้กระชับก่อนส่ง AI: เก็บ sample ไว้แค่ 1 แถว และตาราง > 10 col จะไม่ส่ง sample
+     * ยกเว้น user table ที่เก็บ 1 sample เสมอ เพื่อให้ Claude เห็นค่า status/active ได้
      *
      * @param  array<string, mixed>  $schema
      * @return array<string, mixed>
      */
-    private function trimSchema(array $schema): array
+    private function trimSchema(array $schema, ?string $userTable = null): array
     {
         $trimmed = [];
 
@@ -68,7 +73,12 @@ class AISchemaAnalyzer
             $colCount = count($info['columns'] ?? []);
             $entry    = $info;
 
-            if ($colCount > 10) {
+            if ($table === $userTable) {
+                // User table: เก็บ 1 sample แม้จะมี column มาก เพื่อให้ Claude เห็นค่า status
+                if (! empty($entry['sample']) && is_array($entry['sample'])) {
+                    $entry['sample'] = array_slice($entry['sample'], 0, 1);
+                }
+            } elseif ($colCount > 10) {
                 unset($entry['sample']);
             } elseif (! empty($entry['sample']) && is_array($entry['sample'])) {
                 $entry['sample'] = array_slice($entry['sample'], 0, 1);
@@ -87,8 +97,23 @@ class AISchemaAnalyzer
         $sourceSection = '';
         if (! empty($sourceFiles)) {
             $sourceSection = "\n\n## Source Code Files\n";
+            $usedChars     = 0;
+            $truncated     = false;
+
             foreach ($sourceFiles as $path => $content) {
-                $sourceSection .= "\n### {$path}\n```\n{$content}\n```\n";
+                $entry = "\n### {$path}\n```\n{$content}\n```\n";
+
+                if ($usedChars + strlen($entry) > self::MAX_SOURCE_CHARS) {
+                    $truncated = true;
+                    break;
+                }
+
+                $sourceSection .= $entry;
+                $usedChars     += strlen($entry);
+            }
+
+            if ($truncated) {
+                $sourceSection .= "\n> [หมายเหตุ: ไฟล์บางส่วนถูกละเว้นเนื่องจาก content เกิน limit — schema ด้านบนยังครบถ้วน]\n";
             }
         }
 
@@ -153,8 +178,11 @@ class AISchemaAnalyzer
   - `user_fk_col`: คอลัมน์ FK ที่อ้างอิง user table (เช่น user_id, emp_id, n_id)
   - `value_col`: **คอลัมน์ FK แรกที่ไม่ใช่ user FK** — ค่าหลักของสิทธิ์ (เช่น role_id, pg_id)
   - `composite_cols`: FK เสริมที่เหลือ (ถ้าตาราง junction มี FK > 2 ตัว)
-    ตัวอย่าง: junction มี user_id, pg_id, s_id → value_col=pg_id, composite_cols=[{col:"s_id", master_table:"Sites"}]
+    ตัวอย่าง: junction มี user_id, pg_id, s_id → value_col=pg_id, composite_cols=[{col:"s_id", master_table:"Sites", master_label_col:"site_name"}]
     ถ้ามีแค่ 2 FK → composite_cols=[] (ว่าง)
+    - composite_cols[*].master_label_col: คอลัมน์ label บน master table ของ composite col นั้น (ถ้าระบุได้)
+  - `label_col`: (ถ้าระบุได้) คอลัมน์ชื่อ/label บน master table ที่ value_col อ้างอิง เช่น role_name, perm_name, page_name
+  - `group_col`: (ถ้ามี) คอลัมน์จัดกลุ่ม permission บน master table เช่น module, category, group_type
 
 **mode = column** (permission เก็บในคอลัมน์บน user table โดยตรง):
   เช่น `users.role`, `users.access_level`, `users.user_type`, `employees.level`
@@ -167,6 +195,7 @@ class AISchemaAnalyzer
 ตาราง lookup ที่มีคอลัมน์น้อย (≤12) และแถวข้อมูลปานกลาง (1–5,000)
 เช่น roles, departments, page_groups, sites, categories, document_types
 **ข้ามตาราง**: log, audit, history, session, token, queue, migration, temp
+- `label_col`: (ถ้าระบุได้) คอลัมน์ที่ใช้แสดงชื่อรายการใน UI เช่น name, title, label, description
 
 ## Database Schema
 ```json
@@ -217,15 +246,15 @@ PROMPT;
                         'type'       => 'object',
                         'required'   => ['mode', 'confidence', 'reasons'],
                         'properties' => [
-                            'mode'        => ['type' => 'string', 'enum' => ['junction', 'column', 'manual']],
+                            'mode'        => ['type' => 'string', 'enum' => ['junction', 'column', 'manual'], 'description' => 'junction=ตาราง mapping แยก, column=คอลัมน์บน user table, manual=ระบุไม่ได้'],
                             'confidence'  => ['type' => 'integer'],
                             'reasons'     => ['type' => 'array', 'items' => ['type' => 'string']],
-                            'table'       => ['type' => 'string'],
-                            'user_fk_col' => ['type' => 'string'],
-                            'value_col'   => ['type' => 'string'],
-                            'label_col'   => ['type' => 'string'],
-                            'group_col'   => ['type' => 'string'],
-                            'column'         => ['type' => 'string', 'description' => 'สำหรับ column mode'],
+                            'table'       => ['type' => 'string', 'description' => 'ชื่อตาราง junction (junction mode)'],
+                            'user_fk_col' => ['type' => 'string', 'description' => 'คอลัมน์ FK ที่อ้างอิง user table ใน junction เช่น user_id, emp_id'],
+                            'value_col'   => ['type' => 'string', 'description' => 'คอลัมน์ FK หลักของสิทธิ์ใน junction — ตัวแรกที่ไม่ใช่ user FK เช่น role_id, pg_id'],
+                            'label_col'   => ['type' => 'string', 'description' => 'คอลัมน์ชื่อ/label บน master table ที่ value_col อ้างอิง เช่น role_name, perm_name, page_name'],
+                            'group_col'   => ['type' => 'string', 'description' => 'คอลัมน์จัดกลุ่ม permission บน master table เช่น module, category, group_type'],
+                            'column'         => ['type' => 'string', 'description' => 'สำหรับ column mode: ชื่อคอลัมน์บน user table ที่เก็บสิทธิ์ เช่น role, access_level'],
                             'composite_cols' => [
                                 'type'        => 'array',
                                 'description' => 'คอลัมน์ FK เสริมในตาราง junction ที่อ้างอิง master tables เพิ่มเติม',
@@ -245,9 +274,11 @@ PROMPT;
                         'type'  => 'array',
                         'items' => [
                             'type'       => 'object',
+                            'required'   => ['table'],
                             'properties' => [
-                                'table'   => ['type' => 'string'],
-                                'reasons' => ['type' => 'array', 'items' => ['type' => 'string']],
+                                'table'     => ['type' => 'string'],
+                                'label_col' => ['type' => 'string', 'description' => 'คอลัมน์ที่ใช้แสดงชื่อรายการใน UI เช่น name, title, label, description'],
+                                'reasons'   => ['type' => 'array', 'items' => ['type' => 'string']],
                             ],
                         ],
                     ],
