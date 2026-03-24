@@ -400,10 +400,11 @@
 @push('scripts')
 <script>
 (function () {
-    var POLL_URL     = '{{ route('queue.monitor.poll') }}';
-    var INTERVAL     = 4000;
-    var isSuperAdmin = {{ auth()->user()->isSuperAdmin() ? 'true' : 'false' }};
-    var timer        = null;
+    var POLL_URL      = '{{ route('queue.monitor.poll') }}';
+    var INTERVAL      = 4000;
+    var isSuperAdmin  = {{ auth()->user()->isSuperAdmin() ? 'true' : 'false' }};
+    var timer         = null;
+    var lastFailedCount = {{ $failedCount }}; // จำนวนตอน page load
 
     // ── helpers ──────────────────────────────────────────────────────────
     function fmt(n) { return Number(n).toLocaleString(); }
@@ -445,30 +446,11 @@
         }
     }
 
-    function renderFailedJobs(jobs) {
-        var tbody = document.getElementById('failed-jobs-body');
-        if (!tbody) { return; }
-        if (!jobs.length) {
-            if (tbody.querySelectorAll('tr').length > 0) { location.reload(); }
-            return;
+    function checkFailedCount(newCount) {
+        // reload เฉพาะเมื่อจำนวน failed jobs เปลี่ยนแปลง
+        if (newCount !== lastFailedCount) {
+            location.reload();
         }
-        var html = jobs.map(function (job) {
-            var actions = isSuperAdmin
-                ? '<td class="px-3 py-3 text-right"><div class="flex items-center justify-end gap-1">'
-                    + '<form method="POST" action="/queue/failed/' + job.uuid + '/retry"><input type="hidden" name="_token" value="{{ csrf_token() }}">'
-                    + '<button type="submit" title="Retry" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button></form>'
-                    + '<form id="del-job-' + job.uuid + '" method="POST" action="/queue/failed/' + job.uuid + '"><input type="hidden" name="_token" value="{{ csrf_token() }}"><input type="hidden" name="_method" value="DELETE">'
-                    + '<button type="button" title="ลบ" onclick="askConfirm(\'del-job-' + job.uuid + '\',\'ลบ Failed Job นี้?\',\'' + job.name.replace(/'/g, "\\'") + '\')" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></form>'
-                    + '</div></td>'
-                : '';
-            return '<tr class="group hover:bg-slate-50/70 transition-colors">'
-                + '<td class="px-5 py-3"><div class="flex items-center gap-2"><div class="w-6 h-6 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0"><svg class="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></div><div class="min-w-0"><span class="text-xs font-bold text-slate-700 block truncate max-w-[140px]">' + job.name + '</span><span class="text-[10px] font-mono text-slate-300 truncate block max-w-[140px]">' + job.uuid.substring(0, 18) + '</span></div></div></td>'
-                + '<td class="px-3 py-3 hidden md:table-cell"><span class="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-lg">' + job.queue + '</span></td>'
-                + '<td class="px-3 py-3 text-xs text-slate-500 whitespace-nowrap"><span title="' + job.failed_at_full + '">' + job.failed_at + '</span></td>'
-                + '<td class="px-3 py-3 hidden lg:table-cell"><span class="text-[10px] font-mono text-slate-400 leading-relaxed line-clamp-2">' + (job.exception || '') + '</span></td>'
-                + actions + '</tr>';
-        }).join('');
-        tbody.innerHTML = html;
     }
 
     function renderSyncActivity(syncs) {
@@ -512,7 +494,7 @@
                 if (ssEl) { ssEl.textContent = fmt(d.syncSuccess); }
                 if (sfEl) { sfEl.textContent = fmt(d.syncFailed);   sfEl.className = 'text-2xl font-bold tabular-nums ' + (d.syncFailed > 0    ? 'text-rose-600'   : 'text-slate-800'); }
                 setPill(d.pendingJobs, d.processingJobs);
-                renderFailedJobs(d.failedJobs);
+                checkFailedCount(d.failedCount);
                 renderSyncActivity(d.recentSyncs);
                 setIndicator('ok');
             })
