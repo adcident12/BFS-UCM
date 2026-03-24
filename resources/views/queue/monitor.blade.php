@@ -36,32 +36,30 @@
         <div class="flex items-center gap-3 flex-shrink-0">
             {{-- Queue depth pill --}}
             @php $totalQueued = $pendingJobs + $processingJobs; @endphp
-            @if ($processingJobs > 0)
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/15 border border-emerald-400/20 rounded-xl">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span class="text-emerald-300 text-xs font-semibold">Processing {{ $processingJobs }} job</span>
-                </div>
-            @elseif ($pendingJobs > 0)
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-400/20 rounded-xl">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                    <span class="text-amber-300 text-xs font-semibold">{{ $pendingJobs }} jobs รอ worker</span>
-                </div>
-            @else
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl">
-                    <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                    <span class="text-slate-400 text-xs font-semibold">Queue ว่าง</span>
-                </div>
-            @endif
+            <div id="queue-status-pill">
+                @if ($processingJobs > 0)
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/15 border border-emerald-400/20 rounded-xl">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-emerald-300 text-xs font-semibold">Processing {{ $processingJobs }} job</span>
+                    </div>
+                @elseif ($pendingJobs > 0)
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-400/20 rounded-xl">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                        <span class="text-amber-300 text-xs font-semibold">{{ $pendingJobs }} jobs รอ worker</span>
+                    </div>
+                @else
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl">
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                        <span class="text-slate-400 text-xs font-semibold">Queue ว่าง</span>
+                    </div>
+                @endif
+            </div>
 
-            {{-- Refresh button --}}
-            <a href="{{ route('queue.monitor') }}"
-               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/8 hover:bg-white/15 border border-white/10 rounded-xl text-white/70 hover:text-white text-xs font-semibold transition-all">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                Refresh
-            </a>
+            {{-- Auto-refresh indicator --}}
+            <div id="poll-indicator" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl">
+                <span id="poll-dot" class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                <span id="poll-label" class="text-slate-400 text-xs font-semibold">Live</span>
+            </div>
         </div>
     </div>
 </div>
@@ -80,7 +78,7 @@
             </div>
             <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Pending</span>
         </div>
-        <div class="text-2xl font-bold text-slate-800 tabular-nums">{{ number_format($pendingJobs) }}</div>
+        <div id="stat-pending" class="text-2xl font-bold text-slate-800 tabular-nums">{{ number_format($pendingJobs) }}</div>
         <div class="text-xs text-slate-400 font-medium mt-0.5">รอประมวลผล</div>
     </div>
 
@@ -95,7 +93,7 @@
             </div>
             <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Running</span>
         </div>
-        <div class="text-2xl font-bold {{ $processingJobs > 0 ? 'text-indigo-600' : 'text-slate-800' }} tabular-nums">{{ number_format($processingJobs) }}</div>
+        <div id="stat-processing" class="text-2xl font-bold {{ $processingJobs > 0 ? 'text-indigo-600' : 'text-slate-800' }} tabular-nums">{{ number_format($processingJobs) }}</div>
         <div class="text-xs text-slate-400 font-medium mt-0.5">กำลังประมวลผล</div>
     </div>
 
@@ -110,7 +108,7 @@
             </div>
             <span class="text-[10px] font-bold {{ $failedCount > 0 ? 'text-red-300' : 'text-slate-300' }} uppercase tracking-wider">Failed</span>
         </div>
-        <div class="text-2xl font-bold {{ $failedCount > 0 ? 'text-red-600' : 'text-slate-800' }} tabular-nums">{{ number_format($failedCount) }}</div>
+        <div id="stat-failed" class="text-2xl font-bold {{ $failedCount > 0 ? 'text-red-600' : 'text-slate-800' }} tabular-nums">{{ number_format($failedCount) }}</div>
         <div class="text-xs text-slate-400 font-medium mt-0.5">Jobs ที่ล้มเหลว</div>
     </div>
 
@@ -125,7 +123,7 @@
             </div>
             <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">วันนี้ ✓</span>
         </div>
-        <div class="text-2xl font-bold text-emerald-600 tabular-nums">{{ number_format($syncSuccess) }}</div>
+        <div id="stat-sync-success" class="text-2xl font-bold text-emerald-600 tabular-nums">{{ number_format($syncSuccess) }}</div>
         <div class="text-xs text-slate-400 font-medium mt-0.5">Sync สำเร็จ</div>
     </div>
 
@@ -140,7 +138,7 @@
             </div>
             <span class="text-[10px] font-bold {{ $syncFailed > 0 ? 'text-rose-300' : 'text-slate-300' }} uppercase tracking-wider">วันนี้ ✗</span>
         </div>
-        <div class="text-2xl font-bold {{ $syncFailed > 0 ? 'text-rose-600' : 'text-slate-800' }} tabular-nums">{{ number_format($syncFailed) }}</div>
+        <div id="stat-sync-failed" class="text-2xl font-bold {{ $syncFailed > 0 ? 'text-rose-600' : 'text-slate-800' }} tabular-nums">{{ number_format($syncFailed) }}</div>
         <div class="text-xs text-slate-400 font-medium mt-0.5">Sync ล้มเหลว</div>
     </div>
 
@@ -220,7 +218,7 @@
                         @endif
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody id="failed-jobs-body" class="divide-y divide-slate-50">
                     @foreach ($failedJobs as $job)
                     @php
                         $payload     = json_decode($job->payload, true);
@@ -318,7 +316,7 @@
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto max-h-[600px] divide-y divide-slate-50">
+        <div id="sync-activity-list" class="flex-1 overflow-y-auto max-h-[600px] divide-y divide-slate-50">
             @forelse ($recentSyncs as $log)
             @php
                 $isSuccess = $log->status === 'success';
@@ -398,3 +396,141 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    var POLL_URL     = '{{ route('queue.monitor.poll') }}';
+    var INTERVAL     = 4000;
+    var isSuperAdmin = {{ auth()->user()->isSuperAdmin() ? 'true' : 'false' }};
+    var timer        = null;
+
+    // ── helpers ──────────────────────────────────────────────────────────
+    function fmt(n) { return Number(n).toLocaleString(); }
+
+    function setPill(pending, processing) {
+        var el = document.getElementById('queue-status-pill');
+        if (!el) { return; }
+        if (processing > 0) {
+            el.innerHTML = '<div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/15 border border-emerald-400/20 rounded-xl">'
+                + '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>'
+                + '<span class="text-emerald-300 text-xs font-semibold">Processing ' + processing + ' job</span></div>';
+        } else if (pending > 0) {
+            el.innerHTML = '<div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/15 border border-amber-400/20 rounded-xl">'
+                + '<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>'
+                + '<span class="text-amber-300 text-xs font-semibold">' + pending + ' jobs รอ worker</span></div>';
+        } else {
+            el.innerHTML = '<div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl">'
+                + '<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>'
+                + '<span class="text-slate-400 text-xs font-semibold">Queue ว่าง</span></div>';
+        }
+    }
+
+    function setIndicator(state) {
+        var dot   = document.getElementById('poll-dot');
+        var label = document.getElementById('poll-label');
+        if (!dot || !label) { return; }
+        if (state === 'ok') {
+            dot.className   = 'w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse';
+            label.textContent = 'Live';
+            label.className = 'text-slate-400 text-xs font-semibold';
+        } else if (state === 'error') {
+            dot.className   = 'w-1.5 h-1.5 rounded-full bg-red-400';
+            label.textContent = 'Error';
+            label.className = 'text-red-400 text-xs font-semibold';
+        } else {
+            dot.className   = 'w-1.5 h-1.5 rounded-full bg-slate-500';
+            label.textContent = 'Paused';
+            label.className = 'text-slate-500 text-xs font-semibold';
+        }
+    }
+
+    function renderFailedJobs(jobs) {
+        var tbody = document.getElementById('failed-jobs-body');
+        if (!tbody) { return; }
+        if (!jobs.length) {
+            if (tbody.querySelectorAll('tr').length > 0) { location.reload(); }
+            return;
+        }
+        var html = jobs.map(function (job) {
+            var actions = isSuperAdmin
+                ? '<td class="px-3 py-3 text-right"><div class="flex items-center justify-end gap-1">'
+                    + '<form method="POST" action="/queue/failed/' + job.uuid + '/retry"><input type="hidden" name="_token" value="{{ csrf_token() }}">'
+                    + '<button type="submit" title="Retry" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button></form>'
+                    + '<form id="del-job-' + job.uuid + '" method="POST" action="/queue/failed/' + job.uuid + '"><input type="hidden" name="_token" value="{{ csrf_token() }}"><input type="hidden" name="_method" value="DELETE">'
+                    + '<button type="button" title="ลบ" onclick="askConfirm(\'del-job-' + job.uuid + '\',\'ลบ Failed Job นี้?\',\'' + job.name.replace(/'/g, "\\'") + '\')" class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></form>'
+                    + '</div></td>'
+                : '';
+            return '<tr class="group hover:bg-slate-50/70 transition-colors">'
+                + '<td class="px-5 py-3"><div class="flex items-center gap-2"><div class="w-6 h-6 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0"><svg class="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></div><div class="min-w-0"><span class="text-xs font-bold text-slate-700 block truncate max-w-[140px]">' + job.name + '</span><span class="text-[10px] font-mono text-slate-300 truncate block max-w-[140px]">' + job.uuid.substring(0, 18) + '</span></div></div></td>'
+                + '<td class="px-3 py-3 hidden md:table-cell"><span class="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-lg">' + job.queue + '</span></td>'
+                + '<td class="px-3 py-3 text-xs text-slate-500 whitespace-nowrap"><span title="' + job.failed_at_full + '">' + job.failed_at + '</span></td>'
+                + '<td class="px-3 py-3 hidden lg:table-cell"><span class="text-[10px] font-mono text-slate-400 leading-relaxed line-clamp-2">' + (job.exception || '') + '</span></td>'
+                + actions + '</tr>';
+        }).join('');
+        tbody.innerHTML = html;
+    }
+
+    function renderSyncActivity(syncs) {
+        var list = document.getElementById('sync-activity-list');
+        if (!list) { return; }
+        if (!syncs.length) {
+            list.innerHTML = '<div class="flex flex-col items-center justify-center py-14 text-slate-300"><svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg><p class="text-xs font-medium">ยังไม่มี Sync Log</p></div>';
+            return;
+        }
+        var html = syncs.map(function (log) {
+            var isSuccess = log.status === 'success';
+            var isPending = log.status === 'pending';
+            var isGrant   = log.action === 'grant';
+            var dot = isPending
+                ? '<div class="w-5 h-5 rounded-full bg-amber-50 flex items-center justify-center"><div class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></div></div>'
+                : isSuccess
+                    ? '<div class="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center"><svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg></div>'
+                    : '<div class="w-5 h-5 rounded-full bg-red-50 flex items-center justify-center"><svg class="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg></div>';
+            var badge = '<span class="inline-flex items-center px-1.5 py-0.5 text-[9px] font-bold rounded uppercase tracking-wider ' + (isGrant ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600') + '">' + (log.action || '—').toUpperCase() + '</span>';
+            var sys  = log.system_name ? '<span class="text-[10px] text-slate-400 font-medium truncate">→ ' + log.system_name + '</span>' : '';
+            var err  = (!isSuccess && log.error_message) ? '<p class="text-[10px] text-red-400 font-medium mt-0.5 truncate">' + log.error_message + '</p>' : '';
+            var by   = log.performed_by ? '<span class="text-[10px] text-slate-300 font-medium truncate">by ' + log.performed_by + '</span>' : '';
+            return '<div class="px-5 py-3 hover:bg-slate-50/70 transition-colors"><div class="flex items-start gap-3"><div class="flex-shrink-0 mt-0.5">' + dot + '</div><div class="flex-1 min-w-0"><div class="flex items-center gap-1.5 flex-wrap"><span class="text-xs font-bold text-slate-700 truncate">' + log.user_name + '</span>' + badge + sys + '</div>' + err + '<div class="flex items-center gap-2 mt-1">' + by + '<span class="text-[10px] text-slate-300 ml-auto whitespace-nowrap tabular-nums" title="' + log.full_time + '">' + log.diff + '</span></div></div></div></div>';
+        }).join('');
+        list.innerHTML = html;
+    }
+
+    // ── poll ─────────────────────────────────────────────────────────────
+    function poll() {
+        fetch(POLL_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { if (!r.ok) { throw new Error(r.status); } return r.json(); })
+            .then(function (d) {
+                var pEl  = document.getElementById('stat-pending');
+                var rEl  = document.getElementById('stat-processing');
+                var fEl  = document.getElementById('stat-failed');
+                var ssEl = document.getElementById('stat-sync-success');
+                var sfEl = document.getElementById('stat-sync-failed');
+                if (pEl)  { pEl.textContent  = fmt(d.pendingJobs); }
+                if (rEl)  { rEl.textContent  = fmt(d.processingJobs); rEl.className = 'text-2xl font-bold tabular-nums ' + (d.processingJobs > 0 ? 'text-indigo-600' : 'text-slate-800'); }
+                if (fEl)  { fEl.textContent  = fmt(d.failedCount);   fEl.className = 'text-2xl font-bold tabular-nums ' + (d.failedCount > 0    ? 'text-red-600'    : 'text-slate-800'); }
+                if (ssEl) { ssEl.textContent = fmt(d.syncSuccess); }
+                if (sfEl) { sfEl.textContent = fmt(d.syncFailed);   sfEl.className = 'text-2xl font-bold tabular-nums ' + (d.syncFailed > 0    ? 'text-rose-600'   : 'text-slate-800'); }
+                setPill(d.pendingJobs, d.processingJobs);
+                renderFailedJobs(d.failedJobs);
+                renderSyncActivity(d.recentSyncs);
+                setIndicator('ok');
+            })
+            .catch(function () { setIndicator('error'); });
+    }
+
+    // หยุด poll เมื่อ tab ซ่อน / กลับมา poll ต่อเมื่อ tab active
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            clearInterval(timer);
+            setIndicator('paused');
+        } else {
+            poll();
+            timer = setInterval(poll, INTERVAL);
+        }
+    });
+
+    timer = setInterval(poll, INTERVAL);
+})();
+</script>
+@endpush

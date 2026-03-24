@@ -104,6 +104,7 @@ Route::middleware('auth')->group(function () {
 
     // Queue Monitor
     Route::get('/queue/monitor', [QueueMonitorController::class, 'index'])->name('queue.monitor');
+    Route::get('/queue/monitor/poll', [QueueMonitorController::class, 'poll'])->name('queue.monitor.poll');
     Route::post('/queue/failed/retry-all', [QueueMonitorController::class, 'retryAll'])->name('queue.failed.retry-all');
     Route::delete('/queue/failed/flush', [QueueMonitorController::class, 'flushFailed'])->name('queue.failed.flush');
     Route::post('/queue/failed/{uuid}/retry', [QueueMonitorController::class, 'retryFailed'])->name('queue.failed.retry');
