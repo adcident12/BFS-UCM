@@ -395,9 +395,26 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 $table = $this->quoteIdentifier($cfg->perm_table);
                 $fkCol = $this->quoteIdentifier($cfg->perm_user_fk_col);
                 $valCol = $this->quoteIdentifier($cfg->perm_value_col);
-                $ins = $pdo->prepare("INSERT INTO {$table} ({$fkCol}, {$valCol}) VALUES (?, ?)");
-                foreach ($permissions as $perm) {
-                    $ins->execute([$fkVal, $perm]);
+
+                if ($this->isComposite()) {
+                    $compositeCols = $cfg->perm_composite_cols;
+                    $extraQuoted = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
+                    $allInsertCols = array_merge([$fkCol, $valCol], $extraQuoted);
+                    $placeholders = implode(', ', array_fill(0, count($allInsertCols), '?'));
+                    $ins = $pdo->prepare('INSERT INTO '.$table.' ('.implode(', ', $allInsertCols).') VALUES ('.$placeholders.')');
+                    foreach ($permissions as $permKey) {
+                        $parsed = $this->parseCompositeKey($permKey);
+                        $vals = [$fkVal, $parsed[$cfg->perm_value_col] ?? ''];
+                        foreach ($compositeCols as $cc) {
+                            $vals[] = $parsed[$cc['col']] ?? '';
+                        }
+                        $ins->execute($vals);
+                    }
+                } else {
+                    $ins = $pdo->prepare("INSERT INTO {$table} ({$fkCol}, {$valCol}) VALUES (?, ?)");
+                    foreach ($permissions as $perm) {
+                        $ins->execute([$fkVal, $perm]);
+                    }
                 }
             }
 
