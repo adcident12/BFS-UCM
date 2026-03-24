@@ -24,6 +24,7 @@ $sections = [
     ['id' => 'connector',     'label' => 'Connector Wizard'],
     ['id' => 'client',        'label' => 'UCM Client (Legacy)'],
     ['id' => 'api',           'label' => 'API Authentication'],
+    ['id' => 'troubleshoot',  'label' => 'Troubleshooting'],
 ];
 @endphp
 
@@ -379,6 +380,10 @@ $sections = [
                     ['section' => 'UCM Settings', 'color' => 'amber', 'vars' => [
                         ['key' => 'UCM_ALLOWED_DEPARTMENT', 'val' => '"Systems Development and IT"', 'note' => 'แผนกที่อนุญาต Login (เว้นว่างเพื่ออนุญาตทุกแผนก)'],
                         ['key' => 'UCM_AUDIT_DEPARTMENTS', 'val' => '"Safety,Quality Assurance"', 'note' => 'แผนกที่ดู Audit Log ได้ (Read-Only) คั่นด้วย , เพิ่มแผนกได้ในอนาคต'],
+                    ]],
+                    ['section' => 'AI Schema Analysis (ทางเลือก)', 'color' => 'fuchsia', 'vars' => [
+                        ['key' => 'ANTHROPIC_API_KEY', 'val' => 'sk-ant-api03-...', 'note' => 'เว้นว่าง = ปิด AI ใช้ Rule-Based แทน'],
+                        ['key' => 'ANTHROPIC_MODEL', 'val' => 'claude-opus-4-6', 'note' => 'Model ที่ใช้ใน Connector Wizard'],
                     ]],
                     ['section' => 'Swagger / API Docs', 'color' => 'rose', 'vars' => [
                         ['key' => 'SWAGGER_GENERATE_ALWAYS', 'val' => 'false', 'note' => 'false = ใช้ cached JSON (แนะนำ)'],
@@ -826,6 +831,90 @@ $sections = [
             </div>
         </div>
 
+        {{-- ── Troubleshooting ── --}}
+        <div id="troubleshoot" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">Troubleshooting</h2>
+            </div>
+            <div class="px-6 py-5 space-y-4 text-sm">
+                @foreach ([
+                    [
+                        'title' => 'หน้าแรก / Homepage ตอบกลับ HTTP 405',
+                        'color' => 'red',
+                        'cause' => 'รัน php artisan route:cache หรือ optimize ไป ซึ่ง UCM ห้ามรันเนื่องจาก sub-path deployment',
+                        'fix'   => 'docker exec -w /var/www/html/user-centralized-managment php83 php artisan route:clear',
+                    ],
+                    [
+                        'title' => 'Queue Worker ยังรันโค้ดเก่าหลังแก้ไข Adapter/Job',
+                        'color' => 'amber',
+                        'cause' => 'PHP Worker โหลด code ไว้ใน memory — ต้อง restart ทุกครั้งที่แก้ไขไฟล์ Adapter หรือ Job',
+                        'fix'   => 'docker restart ucm-queue',
+                    ],
+                    [
+                        'title' => 'Login ล้มเหลว "Department not allowed"',
+                        'color' => 'amber',
+                        'cause' => 'UCM_ALLOWED_DEPARTMENT ไม่ตรงกับ department attribute ใน AD (case-sensitive)',
+                        'fix'   => 'แก้ .env: UCM_ALLOWED_DEPARTMENT="ชื่อแผนกตามจริงใน AD" หรือเว้นว่างเพื่ออนุญาตทุกแผนก',
+                    ],
+                    [
+                        'title' => 'Frontend ไม่อัปเดตหลังแก้ไข Blade / Tailwind class',
+                        'color' => 'sky',
+                        'cause' => 'Vite build ยังเป็นไฟล์เก่า',
+                        'fix'   => 'cd www/user-centralized-managment && npm run build',
+                    ],
+                    [
+                        'title' => 'Sync ล้มเหลว "Field \'xxx\' doesn\'t have a default value"',
+                        'color' => 'red',
+                        'cause' => 'Connector Wizard ตั้งค่า Composite Junction Mode ไม่ครบ หรือ user ไม่มี employee_number ทั้งที่ config ระบุ identifier=employee_number',
+                        'fix'   => 'ตรวจสอบ perm_composite_cols ใน Wizard และดู storage/logs/laravel.log',
+                    ],
+                    [
+                        'title' => 'AI Schema Analysis ไม่ทำงาน (Connector Wizard Step 2)',
+                        'color' => 'violet',
+                        'cause' => 'ANTHROPIC_API_KEY ไม่ได้ตั้งค่า หรือ key ไม่ถูกต้อง',
+                        'fix'   => 'เว้นว่าง ANTHROPIC_API_KEY เพื่อใช้ Rule-Based suggester แทน (ไม่ต้องการ API Key)',
+                    ],
+                    [
+                        'title' => 'Storage permission denied',
+                        'color' => 'slate',
+                        'cause' => 'Non-Docker: storage/bootstrap/cache ไม่มีสิทธิ์เขียน',
+                        'fix'   => 'sudo chown -R www-data:www-data storage bootstrap/cache && sudo chmod -R 775 storage bootstrap/cache',
+                    ],
+                    [
+                        'title' => 'Vite build ล้มเหลว "Node.js version"',
+                        'color' => 'lime',
+                        'cause' => 'Vite 8 ต้องการ Node.js ≥ 20 — เวอร์ชันต่ำกว่าจะ error',
+                        'fix'   => 'nvm install 22 && nvm use 22',
+                    ],
+                ] as $item)
+                    <div class="rounded-xl border border-{{ $item['color'] }}-100 overflow-hidden">
+                        <div class="flex items-center gap-2 px-4 py-2.5 bg-{{ $item['color'] }}-50 border-b border-{{ $item['color'] }}-100">
+                            <svg class="w-3.5 h-3.5 text-{{ $item['color'] }}-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            <span class="font-semibold text-{{ $item['color'] }}-800 text-xs">{{ $item['title'] }}</span>
+                        </div>
+                        <div class="px-4 py-3 space-y-2">
+                            <p class="text-xs text-slate-600"><span class="font-semibold text-slate-700">สาเหตุ:</span> {{ $item['cause'] }}</p>
+                            <div class="bg-slate-900 rounded-lg px-3 py-2 font-mono text-xs text-slate-300 overflow-x-auto">{{ $item['fix'] }}</div>
+                        </div>
+                    </div>
+                @endforeach
+
+                <div class="flex items-start gap-3 p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-800">
+                    <svg class="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>ดู log เพิ่มเติมได้ที่ <code class="font-mono bg-indigo-100 px-1 rounded">storage/logs/laravel.log</code> หรือ <code class="font-mono bg-indigo-100 px-1 rounded">docker logs ucm-queue --tail 100 -f</code></span>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -860,3 +949,4 @@ $sections = [
 </script>
 
 @endsection
+

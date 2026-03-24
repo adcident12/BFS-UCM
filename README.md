@@ -980,6 +980,54 @@ cd www/user-centralized-managment && npm run dev
 
 ---
 
+## Troubleshooting
+
+### หน้าเว็บแสดง 404 หลัง `npm run build`
+
+ตรวจสอบว่า `APP_URL` ตรงกับ sub-path จริง เช่น `https://your-domain.com/user-centralized-managment`
+Vite manifest อยู่ที่ `public/build/manifest.json` — ถ้าไม่มีให้รัน `npm run build` ใหม่
+
+### หน้าแรก Homepage ตอบกลับ HTTP 405
+
+ห้ามรัน `php artisan route:cache` ใน UCM เนื่องจาก sub-path deployment มีปัญหากับ Symfony routing
+ล้างด้วย: `php artisan route:clear` (Docker: `docker exec -w /var/www/html/user-centralized-managment php83 php artisan route:clear`)
+
+### Queue Worker ยังรันโค้ดเก่าหลังแก้ไข Adapter/Job
+
+Queue Worker โหลด PHP ไว้ใน memory — ต้อง restart หลังแก้ไขโค้ดเสมอ:
+```bash
+docker restart ucm-queue
+# หรือ Supervisor:
+sudo supervisorctl restart ucm-queue:*
+```
+
+### Login ล้มเหลว "Department not allowed"
+
+ตรวจสอบค่า `UCM_ALLOWED_DEPARTMENT` ใน `.env` ให้ตรงกับชื่อแผนกใน AD (case-sensitive)
+เว้นว่างเพื่ออนุญาตทุกแผนก: `UCM_ALLOWED_DEPARTMENT=""`
+
+### Sync ล้มเหลว "Field 'xxx' doesn't have a default value"
+
+เกิดขึ้นเมื่อ Connector Config กำหนด composite junction mode ไม่ครบ
+ตรวจสอบ `perm_composite_cols` ใน Connector Wizard ว่า column ทุกตัวถูกกำหนดครบถ้วน
+ดู logs: `docker logs ucm-queue --tail 50` หรือ `storage/logs/laravel.log`
+
+### AI Schema Analysis ไม่ทำงาน
+
+- ตรวจสอบ `ANTHROPIC_API_KEY` ใน `.env`
+- ถ้าไม่ต้องการ AI ให้เว้นว่าง — ระบบจะใช้ Rule-Based suggester แทนอัตโนมัติ
+
+### Tailwind CSS styles ไม่แสดงหลังแก้ไข Blade
+
+Tailwind ใช้ JIT ต้อง build ใหม่: `cd www/user-centralized-managment && npm run build`
+Dynamic class names (เช่น `bg-{{ $color }}-600`) ต้องเพิ่มใน `safelist` ของ `vite.config.js`
+
+### ตรวจสอบ DB Connection ของระบบปลายทาง
+
+ไปที่หน้า **ระบบ → รายละเอียด** กดปุ่ม **ทดสอบการเชื่อมต่อ** — ระบบจะรัน `testConnection()` ของ Adapter และแสดงผลทันที
+
+---
+
 ## เครื่องมือที่ใช้พัฒนา
 
 โปรเจคนี้พัฒนาด้วยความช่วยเหลือของ:

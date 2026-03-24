@@ -74,9 +74,11 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
     private function resolveUserIdentifier(UcmUser $user): string
     {
-        return $this->config->user_ucm_identifier === 'employee_number'
-            ? (string) $user->employee_number
-            : $user->username;
+        if ($this->config->user_ucm_identifier === 'employee_number') {
+            return filled($user->employee_number) ? (string) $user->employee_number : $user->username;
+        }
+
+        return $user->username;
     }
 
     /**
