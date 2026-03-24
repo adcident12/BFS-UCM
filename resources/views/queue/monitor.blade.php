@@ -179,11 +179,11 @@
                         Retry ทั้งหมด
                     </button>
                 </form>
-                <form method="POST" action="{{ route('queue.failed.flush') }}"
-                      onsubmit="return confirm('ล้าง Failed Jobs ทั้ง {{ $failedCount }} รายการ?\nไม่สามารถกู้คืนได้')">
+                <form id="form-flush-failed" method="POST" action="{{ route('queue.failed.flush') }}">
                     @csrf
                     @method('DELETE')
-                    <button type="submit"
+                    <button type="button"
+                            onclick="askConfirm('form-flush-failed', 'ล้าง Failed Jobs ทั้งหมด?', 'จำนวน {{ $failedCount }} รายการ — ไม่สามารถกู้คืนได้')"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 active:scale-95 text-red-500 text-xs font-bold rounded-xl transition-all">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -269,11 +269,11 @@
                                         </svg>
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ route('queue.failed.destroy', $job->uuid) }}">
+                                <form id="del-job-{{ $job->uuid }}" method="POST" action="{{ route('queue.failed.destroy', $job->uuid) }}">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" title="ลบ"
-                                            onclick="return confirm('ลบ failed job นี้?')"
+                                    <button type="button" title="ลบ"
+                                            onclick="askConfirm('del-job-{{ $job->uuid }}', 'ลบ Failed Job นี้?', '{{ addslashes($shortName) }}')"
                                             class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

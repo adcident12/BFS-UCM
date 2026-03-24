@@ -11,6 +11,9 @@
 
 @section('content')
 
+{{-- Health Check Flash Area — injected dynamically by JS --}}
+<div id="health-flash-area"></div>
+
 {{-- Header bar --}}
 <div class="flex flex-wrap items-center justify-between mb-7 gap-3">
     <div>
@@ -130,9 +133,6 @@
         </div>
     @endforelse
 </div>
-
-{{-- Health Check Flash Area — injected dynamically by JS --}}
-<div id="health-flash-area"></div>
 
 @push('scripts')
 <script>

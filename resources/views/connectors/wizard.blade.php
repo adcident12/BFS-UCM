@@ -25,7 +25,7 @@ $icn  = 'w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-
 $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center"><svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/></svg></div>';
 @endphp
 
-<div class="max-w-2xl mx-auto pb-16">
+<div class="max-w-3xl mx-auto pb-16">
 
     {{-- ── Step Indicator ── --}}
     @php
@@ -153,7 +153,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             </div>
         </div>
         <div class="flex items-center justify-between mt-5">
-            <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 1 จาก 5</span>
+            <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 1 จาก 6</span>
             <button class="{{ $btnP }}" onclick="wizNext(1)">
                 ถัดไป
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -305,7 +305,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 ย้อนกลับ
             </button>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 2 จาก 5</span>
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 2 จาก 6</span>
                 <button class="{{ $btnP }}" id="step2-next" onclick="wizNext(2)">
                     ถัดไป
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -456,7 +456,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                     </div>
                     <div id="status-val-wrap" class="hidden col-span-2 grid grid-cols-2 gap-4">
                         <div>
-                            <label class="{{ $lbl }}">ค่าที่หมายถึง "Active"</label>
+                            <label class="{{ $lbl }}">ค่าที่หมายถึง "Active" <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                             <input type="text" id="field_user_status_active_val" class="{{ $inp }}" placeholder="เช่น 1, Y, active, true"
                                 value="{{ isset($editConfig) ? ($editConfig->user_status_active_val ?? '') : '' }}">
                         </div>
@@ -489,7 +489,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 ย้อนกลับ
             </button>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 3 จาก 5</span>
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 3 จาก 6</span>
                 <button class="{{ $btnP }}" onclick="wizNext(3)">
                     ถัดไป
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -703,9 +703,9 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     <div class="wiz-step hidden" data-step="5">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200/60">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                <div class="bg-orange-100 w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200/60">
+                    <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
                     </svg>
                 </div>
                 <div>
@@ -730,64 +730,73 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
 
                     {{-- Definition Table --}}
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">ตาราง Permission Definitions <span class="text-rose-500">*</span></label>
-                        <p class="text-xs text-slate-400 mb-2">ตารางที่เก็บนิยาม Permission (ต่างจาก junction table ที่เก็บ user↔permission mapping)</p>
+                        <label class="{{ $lbl }}">ตาราง Permission Definitions <span class="text-rose-500">*</span></label>
+                        <p class="{{ $hint }} mb-2">ตารางที่เก็บนิยาม Permission (ต่างจาก junction table ที่เก็บ user↔permission mapping)</p>
                         <div class="flex gap-2">
-                            <select id="field_perm_def_table" name="perm_def_table" onchange="wizLoadDefColumns()"
-                                    class="flex-1 px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
-                                <option value="">— เลือกตาราง —</option>
-                                @if(isset($editConfig) && $editConfig->perm_def_table)
-                                    <option value="{{ $editConfig->perm_def_table }}" selected>{{ $editConfig->perm_def_table }}</option>
-                                @endif
-                            </select>
-                            <button type="button" onclick="wizLoadTables('perm_def_table', 'wizLoadDefColumns')"
-                                    class="px-3 py-2 text-xs font-semibold text-violet-600 bg-violet-50 border border-violet-200 rounded-xl hover:bg-violet-100 transition whitespace-nowrap">
+                            <div class="relative flex-1">
+                                <select id="field_perm_def_table" name="perm_def_table" onchange="wizLoadDefColumns()" class="{{ $sel }}">
+                                    <option value="">— เลือกตาราง —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_def_table)
+                                        <option value="{{ $editConfig->perm_def_table }}" selected>{{ $editConfig->perm_def_table }}</option>
+                                    @endif
+                                </select>
+                                {!! $arr !!}
+                            </div>
+                            <button type="button" onclick="wizLoadTables('perm_def_table', 'wizLoadDefColumns')" class="{{ $btnO }} flex-shrink-0">
                                 โหลดตาราง
                             </button>
                         </div>
                     </div>
 
                     {{-- Columns --}}
-                    <div id="def-columns-wrap" class="{{ (isset($editConfig) && $editConfig->perm_def_table) ? '' : 'hidden' }} grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div id="def-columns-wrap" class="{{ (isset($editConfig) && $editConfig->perm_def_table) ? '' : 'hidden' }} grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5">คอลัมน์ Key/Value <span class="text-rose-500">*</span></label>
-                            <select id="field_perm_def_value_col" name="perm_def_value_col"
-                                    class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
-                                <option value="">— เลือกคอลัมน์ —</option>
-                                @if(isset($editConfig) && $editConfig->perm_def_value_col)
-                                    <option value="{{ $editConfig->perm_def_value_col }}" selected>{{ $editConfig->perm_def_value_col }}</option>
-                                @endif
-                            </select>
+                            <label class="{{ $lbl }}">คอลัมน์ Key/Value <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_def_value_col" name="perm_def_value_col" class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_def_value_col)
+                                        <option value="{{ $editConfig->perm_def_value_col }}" selected>{{ $editConfig->perm_def_value_col }}</option>
+                                    @endif
+                                </select>
+                                {!! $arr !!}
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5">คอลัมน์ Primary Key</label>
-                            <select id="field_perm_def_pk_col" name="perm_def_pk_col"
-                                    class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
-                                <option value="">id (default)</option>
-                                @if(isset($editConfig) && $editConfig->perm_def_pk_col)
-                                    <option value="{{ $editConfig->perm_def_pk_col }}" selected>{{ $editConfig->perm_def_pk_col }}</option>
-                                @endif
-                            </select>
+                            <label class="{{ $lbl }}">คอลัมน์ Primary Key</label>
+                            <div class="relative">
+                                <select id="field_perm_def_pk_col" name="perm_def_pk_col" class="{{ $sel }}">
+                                    <option value="">id (default)</option>
+                                    @if(isset($editConfig) && $editConfig->perm_def_pk_col)
+                                        <option value="{{ $editConfig->perm_def_pk_col }}" selected>{{ $editConfig->perm_def_pk_col }}</option>
+                                    @endif
+                                </select>
+                                {!! $arr !!}
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5">คอลัมน์ Label <span class="text-slate-400 font-normal">(ไม่บังคับ)</span></label>
-                            <select id="field_perm_def_label_col" name="perm_def_label_col"
-                                    class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
-                                <option value="">(ไม่ระบุ)</option>
-                                @if(isset($editConfig) && $editConfig->perm_def_label_col)
-                                    <option value="{{ $editConfig->perm_def_label_col }}" selected>{{ $editConfig->perm_def_label_col }}</option>
-                                @endif
-                            </select>
+                            <label class="{{ $lbl }}">คอลัมน์ Label <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
+                            <div class="relative">
+                                <select id="field_perm_def_label_col" name="perm_def_label_col" class="{{ $sel }}">
+                                    <option value="">(ไม่ระบุ)</option>
+                                    @if(isset($editConfig) && $editConfig->perm_def_label_col)
+                                        <option value="{{ $editConfig->perm_def_label_col }}" selected>{{ $editConfig->perm_def_label_col }}</option>
+                                    @endif
+                                </select>
+                                {!! $arr !!}
+                            </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-600 mb-1.5">คอลัมน์ Group <span class="text-slate-400 font-normal">(ไม่บังคับ)</span></label>
-                            <select id="field_perm_def_group_col" name="perm_def_group_col"
-                                    class="w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-violet-500 transition">
-                                <option value="">(ไม่ระบุ)</option>
-                                @if(isset($editConfig) && $editConfig->perm_def_group_col)
-                                    <option value="{{ $editConfig->perm_def_group_col }}" selected>{{ $editConfig->perm_def_group_col }}</option>
-                                @endif
-                            </select>
+                            <label class="{{ $lbl }}">คอลัมน์ Group <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
+                            <div class="relative">
+                                <select id="field_perm_def_group_col" name="perm_def_group_col" class="{{ $sel }}">
+                                    <option value="">(ไม่ระบุ)</option>
+                                    @if(isset($editConfig) && $editConfig->perm_def_group_col)
+                                        <option value="{{ $editConfig->perm_def_group_col }}" selected>{{ $editConfig->perm_def_group_col }}</option>
+                                    @endif
+                                </select>
+                                {!! $arr !!}
+                            </div>
                         </div>
                     </div>
 
@@ -826,22 +835,24 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                     </div>
 
                     {{-- Soft delete fields --}}
-                    <div id="soft-delete-fields" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                        <div>
-                            <label class="block text-xs font-bold text-amber-700 mb-1.5">คอลัมน์ Soft Delete <span class="text-rose-500">*</span></label>
-                            <p class="text-xs text-amber-600 mb-1.5">คอลัมน์ที่จะ UPDATE เช่น <code class="font-mono bg-amber-100 px-1 rounded">is_deleted</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted_at</code></p>
-                            <input type="text" id="field_perm_def_soft_delete_col" name="perm_def_soft_delete_col"
-                                   value="{{ isset($editConfig) ? ($editConfig->perm_def_soft_delete_col ?? '') : '' }}"
-                                   placeholder="เช่น is_deleted"
-                                   class="w-full px-3 py-2 text-sm font-mono text-slate-800 bg-white border border-amber-200 rounded-xl focus:outline-none focus:border-amber-500 transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-amber-700 mb-1.5">ค่าที่หมายถึง "ลบแล้ว" <span class="text-rose-500">*</span></label>
-                            <p class="text-xs text-amber-600 mb-1.5">ค่าที่จะ SET เช่น <code class="font-mono bg-amber-100 px-1 rounded">1</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted</code></p>
-                            <input type="text" id="field_perm_def_soft_delete_val" name="perm_def_soft_delete_val"
-                                   value="{{ isset($editConfig) ? ($editConfig->perm_def_soft_delete_val ?? '1') : '1' }}"
-                                   placeholder="เช่น 1 หรือ deleted"
-                                   class="w-full px-3 py-2 text-sm font-mono text-slate-800 bg-white border border-amber-200 rounded-xl focus:outline-none focus:border-amber-500 transition">
+                    <div id="soft-delete-fields" class="hidden p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-amber-700 mb-1.5">คอลัมน์ Soft Delete <span class="text-rose-500">*</span></label>
+                                <p class="text-xs text-amber-600 mb-1.5">คอลัมน์ที่จะ UPDATE เช่น <code class="font-mono bg-amber-100 px-1 rounded">is_deleted</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted_at</code></p>
+                                <input type="text" id="field_perm_def_soft_delete_col" name="perm_def_soft_delete_col"
+                                       value="{{ isset($editConfig) ? ($editConfig->perm_def_soft_delete_col ?? '') : '' }}"
+                                       placeholder="เช่น is_deleted"
+                                       class="{{ $mono }} border-amber-200 focus:border-amber-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-amber-700 mb-1.5">ค่าที่หมายถึง "ลบแล้ว" <span class="text-rose-500">*</span></label>
+                                <p class="text-xs text-amber-600 mb-1.5">ค่าที่จะ SET เช่น <code class="font-mono bg-amber-100 px-1 rounded">1</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted</code></p>
+                                <input type="text" id="field_perm_def_soft_delete_val" name="perm_def_soft_delete_val"
+                                       value="{{ isset($editConfig) ? ($editConfig->perm_def_soft_delete_val ?? '1') : '1' }}"
+                                       placeholder="เช่น 1 หรือ deleted"
+                                       class="{{ $mono }} border-amber-200 focus:border-amber-500">
+                            </div>
                         </div>
                     </div>
 
