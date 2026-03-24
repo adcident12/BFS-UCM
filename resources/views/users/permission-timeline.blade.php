@@ -54,11 +54,11 @@
     </div>
 </div>
 
-{{-- 2-column layout: Matrix (left, sticky) + Timeline (right) --}}
+{{-- 2-column layout: Matrix (left) + Timeline (right, both fixed-height scroll) --}}
 <div class="grid grid-cols-1 xl:grid-cols-5 gap-6 items-start">
 
     {{-- ── Permission Matrix ────────────────────────────────────────── --}}
-    <div class="xl:col-span-2 xl:sticky xl:top-6">
+    <div class="xl:col-span-2 xl:sticky xl:top-6 order-2 xl:order-1">
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
                 <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -136,9 +136,9 @@
     </div>
 
     {{-- ── Permission Timeline ──────────────────────────────────────── --}}
-    <div class="xl:col-span-3">
-        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
-            <div class="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
+    <div class="xl:col-span-3 order-1 xl:order-2">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden xl:max-h-[calc(100vh-8rem)] xl:flex xl:flex-col">
+            <div class="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100 xl:flex-shrink-0">
                 <div class="w-7 h-7 bg-violet-100 rounded-lg flex items-center justify-center">
                     <svg class="w-3.5 h-3.5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -166,7 +166,7 @@
                 </div>
             @else
                 @php $systemsById = $systems->keyBy('id'); @endphp
-                <div class="px-5 py-5">
+                <div class="px-5 py-5 xl:overflow-y-auto xl:flex-1">
                     @foreach ($logs as $log)
                         @php
                             $isDiscovered   = $log->event_type === 'permissions_discovered';
