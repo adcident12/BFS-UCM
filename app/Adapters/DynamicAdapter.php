@@ -47,12 +47,12 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         $cfg = $this->config;
         $dsn = match ($cfg->db_driver) {
             'sqlsrv' => "sqlsrv:Server={$cfg->db_host},{$cfg->db_port};Database={$cfg->db_name};TrustServerCertificate=1;Encrypt=0",
-            'pgsql'  => "pgsql:host={$cfg->db_host};port={$cfg->db_port};dbname={$cfg->db_name}",
-            default  => "mysql:host={$cfg->db_host};port={$cfg->db_port};dbname={$cfg->db_name};charset=utf8mb4",
+            'pgsql' => "pgsql:host={$cfg->db_host};port={$cfg->db_port};dbname={$cfg->db_name}",
+            default => "mysql:host={$cfg->db_host};port={$cfg->db_port};dbname={$cfg->db_name};charset=utf8mb4",
         };
 
         $options = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ];
 
@@ -63,7 +63,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         try {
             $this->pdo = new PDO($dsn, $cfg->db_user, $cfg->db_password, $options);
         } catch (PDOException $e) {
-            Log::error("[DynamicAdapter:{$this->system->slug}] Connection failed: " . $e->getMessage());
+            Log::error("[DynamicAdapter:{$this->system->slug}] Connection failed: ".$e->getMessage());
             throw $e;
         }
 
@@ -89,7 +89,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
      */
     private function resolveUserFkValue(UcmUser $user): string
     {
-        $cfg        = $this->config;
+        $cfg = $this->config;
         $identifier = $this->resolveUserIdentifier($user);
 
         if (! filled($cfg->user_pk_col)) {
@@ -97,10 +97,10 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         }
 
         try {
-            $pdo       = $this->getConnection();
+            $pdo = $this->getConnection();
             $userTable = $this->quoteIdentifier($cfg->user_table);
-            $idCol     = $this->quoteIdentifier($cfg->user_identifier_col);
-            $pkCol     = $this->quoteIdentifier($cfg->user_pk_col);
+            $idCol = $this->quoteIdentifier($cfg->user_identifier_col);
+            $pkCol = $this->quoteIdentifier($cfg->user_pk_col);
 
             $stmt = $pdo->prepare("SELECT {$pkCol} FROM {$userTable} WHERE {$idCol} = ? LIMIT 1");
             $stmt->execute([$identifier]);
@@ -134,9 +134,9 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
     private function parseCompositeKey(string $key): array
     {
         $compositeCols = $this->config->perm_composite_cols ?? [];
-        $count         = 1 + count($compositeCols);
-        $parts         = explode(':', $key, $count);
-        $result        = [$this->config->perm_value_col => $parts[0] ?? ''];
+        $count = 1 + count($compositeCols);
+        $parts = explode(':', $key, $count);
+        $result = [$this->config->perm_value_col => $parts[0] ?? ''];
         foreach ($compositeCols as $i => $cc) {
             $result[$cc['col']] = $parts[$i + 1] ?? '';
         }
@@ -151,9 +151,11 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         try {
             $pdo = $this->getConnection();
             $pdo->query('SELECT 1');
+
             return ['ok' => true, 'message' => 'เชื่อมต่อสำเร็จ'];
         } catch (PDOException $e) {
-            Log::warning("[DynamicAdapter:{$this->system->slug}] testConnection failed: " . $e->getMessage());
+            Log::warning("[DynamicAdapter:{$this->system->slug}] testConnection failed: ".$e->getMessage());
+
             return ['ok' => false, 'message' => $e->getMessage()];
         }
     }
@@ -171,19 +173,19 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         }
 
         try {
-            $pdo    = $this->getConnection();
-            $table  = $this->quoteIdentifier($cfg->perm_table);
+            $pdo = $this->getConnection();
+            $table = $this->quoteIdentifier($cfg->perm_table);
             $valCol = $this->quoteIdentifier($cfg->perm_value_col);
 
             if ($this->isComposite()) {
                 $compositeCols = $cfg->perm_composite_cols;
-                $extraQuoted   = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
-                $allCols       = array_merge([$valCol], $extraQuoted);
-                $stmt          = $pdo->query('SELECT DISTINCT '.implode(', ', $allCols)." FROM {$table}");
-                $rows          = $stmt->fetchAll();
+                $extraQuoted = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
+                $allCols = array_merge([$valCol], $extraQuoted);
+                $stmt = $pdo->query('SELECT DISTINCT '.implode(', ', $allCols)." FROM {$table}");
+                $rows = $stmt->fetchAll();
 
                 return array_map(function ($row) use ($cfg, $compositeCols) {
-                    $key        = $this->buildCompositeKey($row);
+                    $key = $this->buildCompositeKey($row);
                     $labelParts = [(string) ($row[$cfg->perm_value_col] ?? '')];
                     foreach ($compositeCols as $cc) {
                         $labelParts[] = (string) ($row[$cc['col']] ?? '');
@@ -207,7 +209,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
             return array_map(function ($row) use ($cfg) {
                 return [
-                    'key'   => (string) $row[$cfg->perm_value_col],
+                    'key' => (string) $row[$cfg->perm_value_col],
                     'label' => $cfg->perm_label_col ? ($row[$cfg->perm_label_col] ?? '') : $row[$cfg->perm_value_col],
                     'group' => $cfg->perm_group_col ? ($row[$cfg->perm_group_col] ?? 'ทั่วไป') : 'ทั่วไป',
                 ];
@@ -221,7 +223,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
     public function getCurrentPermissions(UcmUser $user): array
     {
-        $cfg        = $this->config;
+        $cfg = $this->config;
         $identifier = $this->resolveUserFkValue($user);
 
         if ($cfg->permission_mode === 'manual') {
@@ -233,16 +235,16 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         }
 
         try {
-            $pdo    = $this->getConnection();
-            $table  = $this->quoteIdentifier($cfg->perm_table);
-            $fkCol  = $this->quoteIdentifier($cfg->perm_user_fk_col);
+            $pdo = $this->getConnection();
+            $table = $this->quoteIdentifier($cfg->perm_table);
+            $fkCol = $this->quoteIdentifier($cfg->perm_user_fk_col);
             $valCol = $this->quoteIdentifier($cfg->perm_value_col);
 
             if ($this->isComposite()) {
                 $compositeCols = $cfg->perm_composite_cols;
-                $extraQuoted   = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
-                $allCols       = array_merge([$valCol], $extraQuoted);
-                $stmt          = $pdo->prepare('SELECT '.implode(', ', $allCols)." FROM {$table} WHERE {$fkCol} = ?");
+                $extraQuoted = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
+                $allCols = array_merge([$valCol], $extraQuoted);
+                $stmt = $pdo->prepare('SELECT '.implode(', ', $allCols)." FROM {$table} WHERE {$fkCol} = ?");
                 $stmt->execute([$identifier]);
 
                 return array_map(fn ($row) => $this->buildCompositeKey($row), $stmt->fetchAll());
@@ -284,11 +286,11 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         try {
             // ตรวจสอบว่า user มีอยู่ใน user_table ไหม → ถ้าไม่มีให้สร้าง
             if ($cfg->user_table && $cfg->user_identifier_col) {
-                $identStr  = $this->resolveUserIdentifier($user);
+                $identStr = $this->resolveUserIdentifier($user);
                 $userTable = $this->quoteIdentifier($cfg->user_table);
-                $idCol     = $this->quoteIdentifier($cfg->user_identifier_col);
-                $pdo       = $this->getConnection();
-                $chk       = $pdo->prepare("SELECT 1 FROM {$userTable} WHERE {$idCol} = ? LIMIT 1");
+                $idCol = $this->quoteIdentifier($cfg->user_identifier_col);
+                $pdo = $this->getConnection();
+                $chk = $pdo->prepare("SELECT 1 FROM {$userTable} WHERE {$idCol} = ? LIMIT 1");
                 $chk->execute([$identStr]);
                 if (! $chk->fetchColumn()) {
                     Log::info("[DynamicAdapter:{$this->system->slug}] User {$identStr} ยังไม่มี → กำลังสร้าง...");
@@ -302,23 +304,23 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             }
 
             $identifier = $this->resolveUserFkValue($user);
-            $pdo        = $this->getConnection();
-            $table      = $this->quoteIdentifier($cfg->perm_table);
-            $fkCol      = $this->quoteIdentifier($cfg->perm_user_fk_col);
-            $valCol     = $this->quoteIdentifier($cfg->perm_value_col);
+            $pdo = $this->getConnection();
+            $table = $this->quoteIdentifier($cfg->perm_table);
+            $fkCol = $this->quoteIdentifier($cfg->perm_user_fk_col);
+            $valCol = $this->quoteIdentifier($cfg->perm_value_col);
 
             if ($this->isComposite()) {
                 $compositeCols = $cfg->perm_composite_cols;
-                $extraQuoted   = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
+                $extraQuoted = array_map(fn ($cc) => $this->quoteIdentifier($cc['col']), $compositeCols);
                 $allInsertCols = array_merge([$fkCol, $valCol], $extraQuoted);
-                $placeholders  = implode(', ', array_fill(0, count($allInsertCols), '?'));
+                $placeholders = implode(', ', array_fill(0, count($allInsertCols), '?'));
                 $pdo->beginTransaction();
                 $pdo->prepare("DELETE FROM {$table} WHERE {$fkCol} = ?")->execute([$identifier]);
                 if (! empty($permissions)) {
                     $ins = $pdo->prepare('INSERT INTO '.$table.' ('.implode(', ', $allInsertCols).') VALUES ('.$placeholders.')');
                     foreach ($permissions as $permKey) {
                         $parsed = $this->parseCompositeKey($permKey);
-                        $vals   = [$identifier, $parsed[$cfg->perm_value_col] ?? ''];
+                        $vals = [$identifier, $parsed[$cfg->perm_value_col] ?? ''];
                         foreach ($compositeCols as $cc) {
                             $vals[] = $parsed[$cc['col']] ?? '';
                         }
@@ -353,11 +355,11 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
     public function createUser(UcmUser $user, array $permissions): bool
     {
-        $cfg        = $this->config;
+        $cfg = $this->config;
         $identifier = $this->resolveUserIdentifier($user);
 
         try {
-            $pdo       = $this->getConnection();
+            $pdo = $this->getConnection();
             $userTable = $this->quoteIdentifier($cfg->user_table);
 
             // สร้าง column => value จาก UCM fields ที่ config ระบุ
@@ -379,7 +381,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 $data[$cfg->perm_value_col] = $permissions[0];
             }
 
-            $quotedCols   = implode(', ', array_map(fn ($c) => $this->quoteIdentifier($c), array_keys($data)));
+            $quotedCols = implode(', ', array_map(fn ($c) => $this->quoteIdentifier($c), array_keys($data)));
             $placeholders = implode(', ', array_fill(0, count($data), '?'));
 
             $pdo->prepare("INSERT INTO {$userTable} ({$quotedCols}) VALUES ({$placeholders})")
@@ -389,11 +391,11 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
             // junction mode — sync permissions เข้า perm_table หลัง INSERT user
             if ($cfg->permission_mode !== 'column' && $cfg->perm_table && $cfg->perm_user_fk_col && ! empty($permissions)) {
-                $fkVal  = filled($cfg->user_pk_col) ? ($pdo->lastInsertId() ?: $identifier) : $identifier;
-                $table  = $this->quoteIdentifier($cfg->perm_table);
-                $fkCol  = $this->quoteIdentifier($cfg->perm_user_fk_col);
+                $fkVal = filled($cfg->user_pk_col) ? ($pdo->lastInsertId() ?: $identifier) : $identifier;
+                $table = $this->quoteIdentifier($cfg->perm_table);
+                $fkCol = $this->quoteIdentifier($cfg->perm_user_fk_col);
                 $valCol = $this->quoteIdentifier($cfg->perm_value_col);
-                $ins    = $pdo->prepare("INSERT INTO {$table} ({$fkCol}, {$valCol}) VALUES (?, ?)");
+                $ins = $pdo->prepare("INSERT INTO {$table} ({$fkCol}, {$valCol}) VALUES (?, ?)");
                 foreach ($permissions as $perm) {
                     $ins->execute([$fkVal, $perm]);
                 }
@@ -409,15 +411,15 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
     private function syncColumnMode(UcmUser $user, array $permissions): bool
     {
-        $cfg        = $this->config;
+        $cfg = $this->config;
         $identifier = $this->resolveUserIdentifier($user);
 
         try {
-            $pdo    = $this->getConnection();
-            $table  = $this->quoteIdentifier($cfg->perm_table);
+            $pdo = $this->getConnection();
+            $table = $this->quoteIdentifier($cfg->perm_table);
             $valCol = $this->quoteIdentifier($cfg->perm_value_col);
-            $idCol  = $this->quoteIdentifier($cfg->user_identifier_col);
-            $val    = $permissions[0] ?? null;
+            $idCol = $this->quoteIdentifier($cfg->user_identifier_col);
+            $val = $permissions[0] ?? null;
 
             // ตรวจสอบว่า user มีอยู่ไหม
             $chk = $pdo->prepare("SELECT 1 FROM {$table} WHERE {$idCol} = ? LIMIT 1");
@@ -458,10 +460,10 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         }
 
         try {
-            $pdo   = $this->getConnection();
+            $pdo = $this->getConnection();
             $table = $this->quoteIdentifier($cfg->user_table);
 
-            $ucmUsers     = UcmUser::select('username', 'employee_number')->get();
+            $ucmUsers = UcmUser::select('username', 'employee_number')->get();
             $ucmUsernames = $ucmUsers->pluck('username')->toArray();
             $ucmEmployees = $ucmUsers->pluck('employee_number')->filter()->toArray();
 
@@ -473,22 +475,23 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 $inUcm = in_array($identifier, $ucmUsernames, true)
                     || in_array($identifier, $ucmEmployees, true);
 
-                $statusVal  = $cfg->user_status_col ? ($row[$cfg->user_status_col] ?? null) : null;
-                $isActive   = $cfg->user_status_active_val !== null
+                $statusVal = $cfg->user_status_col ? ($row[$cfg->user_status_col] ?? null) : null;
+                $isActive = $cfg->user_status_active_val !== null
                     ? ((string) $statusVal === (string) $cfg->user_status_active_val)
                     : true;
 
                 return [
-                    'username'   => $identifier,
-                    'name'       => $cfg->user_name_col ? ($row[$cfg->user_name_col] ?? '') : $identifier,
-                    'email'      => $cfg->user_email_col ? ($row[$cfg->user_email_col] ?? '') : '',
+                    'username' => $identifier,
+                    'name' => $cfg->user_name_col ? ($row[$cfg->user_name_col] ?? '') : $identifier,
+                    'email' => $cfg->user_email_col ? ($row[$cfg->user_email_col] ?? '') : '',
                     'department' => $cfg->user_dept_col ? ($row[$cfg->user_dept_col] ?? '') : '',
-                    'status'     => $isActive,
-                    'in_ucm'     => $inUcm,
+                    'status' => $isActive,
+                    'in_ucm' => $inUcm,
                 ];
             }, $rows);
         } catch (PDOException $e) {
-            Log::error("[DynamicAdapter:{$this->system->slug}] getSystemUsers: " . $e->getMessage());
+            Log::error("[DynamicAdapter:{$this->system->slug}] getSystemUsers: ".$e->getMessage());
+
             return [];
         }
     }
@@ -512,7 +515,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
      */
     public function discoverPermissions(): array
     {
-        $cfg     = $this->config;
+        $cfg = $this->config;
         $created = [];
 
         try {
@@ -522,7 +525,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             $rows = $this->fetchPermissionRows();
 
             foreach ($rows as $row) {
-                $key         = trim((string) ($row['key'] ?? ''));
+                $key = trim((string) ($row['key'] ?? ''));
                 $remoteValue = isset($row['remote_value']) && $row['remote_value'] !== '' ? $row['remote_value'] : null;
 
                 if ($key === '') {
@@ -544,14 +547,14 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 SystemPermission::firstOrCreate(
                     ['system_id' => $this->system->id, 'key' => $key],
                     [
-                        'label'        => $row['label'] ?? $key,
-                        'group'        => $row['group'] ?? null,
+                        'label' => $row['label'] ?? $key,
+                        'group' => $row['group'] ?? null,
                         'remote_value' => $remoteValue,
                     ]
                 );
 
                 $existingKeys[] = $key;
-                $created[]      = $key;
+                $created[] = $key;
 
                 Log::info("[DynamicAdapter:{$this->system->slug}] discoverPermissions: สร้าง '{$key}'");
             }
@@ -594,9 +597,9 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         // Manual mode — อ่านจาก config โดยตรง ไม่ต้องต่อ DB
         if ($cfg->permission_mode === 'manual') {
             return array_map(fn ($p) => [
-                'key'          => $p['key']   ?? '',
-                'label'        => $p['label'] ?? ($p['key'] ?? ''),
-                'group'        => $p['group'] ?? null,
+                'key' => $p['key'] ?? '',
+                'label' => $p['label'] ?? ($p['key'] ?? ''),
+                'group' => $p['group'] ?? null,
                 'remote_value' => null,
             ], (array) ($cfg->manual_permissions ?? []));
         }
@@ -606,8 +609,8 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         // มี perm_def_table → อ่าน canonical list (2-way sync)
         if (filled($cfg->perm_def_table) && filled($cfg->perm_def_value_col)) {
             $defTable = $this->quoteIdentifier($cfg->perm_def_table);
-            $valCol   = $this->quoteIdentifier($cfg->perm_def_value_col);
-            $pkCol    = $cfg->perm_def_pk_col ?: 'id';
+            $valCol = $this->quoteIdentifier($cfg->perm_def_value_col);
+            $pkCol = $cfg->perm_def_pk_col ?: 'id';
             $quotedPk = $this->quoteIdentifier($pkCol);
 
             // เลือก PK เสมอเพื่อใช้เป็น remote_value
@@ -620,11 +623,11 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             }
 
             // กรอง soft-deleted rows ออก ด้วย soft_col != soft_val
-            $where  = '';
+            $where = '';
             $params = [];
             if (filled($cfg->perm_def_soft_delete_col) && filled($cfg->perm_def_soft_delete_val)) {
-                $softCol  = $this->quoteIdentifier($cfg->perm_def_soft_delete_col);
-                $where    = " WHERE ({$softCol} IS NULL OR {$softCol} != ?)";
+                $softCol = $this->quoteIdentifier($cfg->perm_def_soft_delete_col);
+                $where = " WHERE ({$softCol} IS NULL OR {$softCol} != ?)";
                 $params[] = $cfg->perm_def_soft_delete_val;
             }
 
@@ -632,19 +635,58 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             $stmt->execute($params);
             $rows = $stmt->fetchAll();
 
+            // Composite mode: cross-join role_definitions × distinct values ของแต่ละ composite col
+            if ($this->isComposite() && ! empty($cfg->perm_composite_cols) && filled($cfg->perm_table)) {
+                $junctionTable = $this->quoteIdentifier($cfg->perm_table);
+                $siteValueSets = [];
+                foreach ($cfg->perm_composite_cols as $cc) {
+                    $ccQuoted = $this->quoteIdentifier($cc['col']);
+                    $s = $pdo->query("SELECT DISTINCT {$ccQuoted} FROM {$junctionTable} WHERE {$ccQuoted} IS NOT NULL ORDER BY {$ccQuoted}");
+                    $siteValueSets[$cc['col']] = $s->fetchAll(PDO::FETCH_COLUMN);
+                }
+
+                $result = [];
+                foreach ($rows as $row) {
+                    $roleKey = (string) $row[$cfg->perm_def_value_col];
+                    $roleLabel = $cfg->perm_def_label_col ? ($row[$cfg->perm_def_label_col] ?? $roleKey) : $roleKey;
+                    $roleGroup = $cfg->perm_def_group_col ? ($row[$cfg->perm_def_group_col] ?? null) : null;
+                    $remotePk = (string) $row[$pkCol];
+
+                    // สร้าง composite keys: role_key:site_val (รองรับ 1 composite col)
+                    $firstCc = $cfg->perm_composite_cols[0];
+                    $siteValues = $siteValueSets[$firstCc['col']] ?? [];
+
+                    if (empty($siteValues)) {
+                        // ไม่มีข้อมูล site ใน junction ให้ fallback เป็น plain key
+                        $result[] = ['key' => $roleKey, 'label' => $roleLabel, 'group' => $roleGroup, 'remote_value' => $remotePk];
+                    } else {
+                        foreach ($siteValues as $siteVal) {
+                            $result[] = [
+                                'key' => $roleKey.':'.$siteVal,
+                                'label' => $roleLabel.' · '.$siteVal,
+                                'group' => $roleGroup,
+                                'remote_value' => $remotePk,
+                            ];
+                        }
+                    }
+                }
+
+                return $result;
+            }
+
             return array_map(fn ($row) => [
-                'key'          => (string) $row[$cfg->perm_def_value_col],
-                'label'        => $cfg->perm_def_label_col ? ($row[$cfg->perm_def_label_col] ?? '') : $row[$cfg->perm_def_value_col],
-                'group'        => $cfg->perm_def_group_col ? ($row[$cfg->perm_def_group_col] ?? null) : null,
+                'key' => (string) $row[$cfg->perm_def_value_col],
+                'label' => $cfg->perm_def_label_col ? ($row[$cfg->perm_def_label_col] ?? '') : $row[$cfg->perm_def_value_col],
+                'group' => $cfg->perm_def_group_col ? ($row[$cfg->perm_def_group_col] ?? null) : null,
                 'remote_value' => (string) $row[$pkCol],
             ], $rows);
         }
 
         // ไม่มี perm_def_table → อ่าน distinct values จาก perm_table (ไม่มี PK ให้ track)
         return array_map(fn ($p) => [
-            'key'          => $p['key'],
-            'label'        => $p['label'] ?? $p['key'],
-            'group'        => $p['group'] ?? null,
+            'key' => $p['key'],
+            'label' => $p['label'] ?? $p['key'],
+            'group' => $p['group'] ?? null,
             'remote_value' => null,
         ], $this->getAvailablePermissions());
     }
@@ -664,10 +706,10 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         }
 
         try {
-            $pdo        = $this->getConnection();
-            $userTable  = $this->quoteIdentifier($cfg->user_table);
-            $idCol      = $this->quoteIdentifier($cfg->user_identifier_col);
-            $statusCol  = $this->quoteIdentifier($cfg->user_status_col);
+            $pdo = $this->getConnection();
+            $userTable = $this->quoteIdentifier($cfg->user_table);
+            $idCol = $this->quoteIdentifier($cfg->user_identifier_col);
+            $statusCol = $this->quoteIdentifier($cfg->user_status_col);
             $identifier = $this->resolveUserIdentifier($user);
 
             $stmt = $pdo->prepare("SELECT {$statusCol} FROM {$userTable} WHERE {$idCol} = ? LIMIT 1");
@@ -703,10 +745,10 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             : ($cfg->user_status_inactive_val ?? '0');
 
         try {
-            $pdo        = $this->getConnection();
-            $userTable  = $this->quoteIdentifier($cfg->user_table);
-            $idCol      = $this->quoteIdentifier($cfg->user_identifier_col);
-            $statusCol  = $this->quoteIdentifier($cfg->user_status_col);
+            $pdo = $this->getConnection();
+            $userTable = $this->quoteIdentifier($cfg->user_table);
+            $idCol = $this->quoteIdentifier($cfg->user_identifier_col);
+            $statusCol = $this->quoteIdentifier($cfg->user_status_col);
             $identifier = $this->resolveUserIdentifier($user);
 
             $pdo->prepare("UPDATE {$userTable} SET {$statusCol} = ? WHERE {$idCol} = ?")
@@ -735,10 +777,10 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         }
 
         try {
-            $pdo      = $this->getConnection();
+            $pdo = $this->getConnection();
             $defTable = $this->quoteIdentifier($cfg->perm_def_table);
-            $valCol   = $this->quoteIdentifier($cfg->perm_def_value_col);
-            $pkCol    = $cfg->perm_def_pk_col ?: 'id';
+            $valCol = $this->quoteIdentifier($cfg->perm_def_value_col);
+            $pkCol = $cfg->perm_def_pk_col ?: 'id';
             $quotedPk = $this->quoteIdentifier($pkCol);
 
             // ถ้ามีอยู่แล้วให้คืน PK ที่มีอยู่ (idempotent)
@@ -788,14 +830,14 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
      */
     public function deletePermission(string $remoteValue): bool
     {
-        $cfg  = $this->config;
+        $cfg = $this->config;
         $mode = $this->getPermissionDeleteMode();
 
         if ($mode === PermissionDeleteMode::DetachOnly || ! $cfg->perm_def_table) {
             return true;
         }
 
-        $pkCol    = $cfg->perm_def_pk_col ?: 'id';
+        $pkCol = $cfg->perm_def_pk_col ?: 'id';
         $defTable = $this->quoteIdentifier($cfg->perm_def_table);
         $quotedPk = $this->quoteIdentifier($pkCol);
 
@@ -847,7 +889,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         $quote = $this->config->db_driver === 'mysql' ? '`' : '"';
 
         return implode('.', array_map(
-            fn ($part) => $quote . str_replace($quote, '', $part) . $quote,
+            fn ($part) => $quote.str_replace($quote, '', $part).$quote,
             explode('.', $name)
         ));
     }
