@@ -765,8 +765,11 @@ $sections = [
                             <li>✅ <strong>ตรวจสอบ / นำเข้า</strong> ผู้ใช้จาก AD ได้</li>
                             <li>✅ <strong>Discover Permissions</strong> จากระบบภายนอกได้</li>
                             <li>✅ <strong>เพิ่ม</strong> Reference Data ได้</li>
+                            <li>✅ ดู <strong>Audit Log</strong> ได้ (อ่านอย่างเดียว)</li>
+                            <li>✅ ดู <strong>Permission Matrix</strong> ได้ (อ่านอย่างเดียว)</li>
                             <li>❌ แก้ไข / ลบ Reference Data ไม่ได้</li>
                             <li>❌ Toggle 2-way ไม่ได้</li>
+                            <li>❌ Queue Monitor / Connector Wizard / Notifications ไม่ได้</li>
                             <li>❌ จัดการสิทธิ์ Admin ไม่ได้</li>
                         </ul>
                     </div>
@@ -2684,7 +2687,7 @@ $sections = [
                     </svg>
                 </div>
                 <h2 class="font-bold text-slate-800">Permission Matrix Report</h2>
-                <span class="ml-auto text-xs font-semibold text-indigo-700 bg-indigo-100 px-2.5 py-1 rounded-full">Admin Only</span>
+                <span class="ml-auto text-xs font-semibold text-indigo-700 bg-indigo-100 px-2.5 py-1 rounded-full">Admin L1 ขึ้นไป</span>
             </div>
             <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
                 <p>รายงาน Permission Matrix แสดงสิทธิ์ของผู้ใช้ทุกคนในรูปแบบตารางครอสแทบ — แถวคือ User, คอลัมน์คือ Permission แต่ละรายการของแต่ละระบบ ช่วยให้เห็น "ใครมีสิทธิ์อะไรในระบบไหน" ในมุมมองเดียว</p>

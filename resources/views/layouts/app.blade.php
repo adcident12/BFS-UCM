@@ -7,10 +7,10 @@
     <title>@yield('title', 'UCM') — User Centralized Management</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+        body { font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif; }
         .sidebar-gradient { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%); }
         .nav-active { background: linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.1) 100%); }
         @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
@@ -131,8 +131,8 @@
                 @endforeach
             </div>
 
-            {{-- ── ผู้ดูแลระบบ (SuperAdmin only) ── --}}
-            @if (auth()->user()->isSuperAdmin())
+            {{-- ── ผู้ดูแลระบบ (Admin level 1+ เห็น Audit Log + Permission Matrix / level 2 เห็นทั้งหมด) ── --}}
+            @if (auth()->user()->isAdmin())
             <div class="h-px bg-white/5 mx-3 my-3"></div>
             <button type="button" onclick="navToggle('admin')"
                     class="w-full flex items-center justify-between px-3 py-1 mb-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors">
@@ -142,6 +142,39 @@
                 </svg>
             </button>
             <div id="nav-body-admin" class="nav-acc-body space-y-0.5">
+                @php
+                    $auditActive = request()->routeIs('audit.*');
+                    $auditDepts  = array_map('strtoupper', config('auth.audit_departments', []));
+                    $canSeeAudit = auth()->user()?->isAdmin() || in_array(strtoupper(auth()->user()?->department ?? ''), $auditDepts);
+                @endphp
+                @if ($canSeeAudit)
+                <a href="{{ route('audit.index') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                          {{ $auditActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $auditActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">Audit Log</span>
+                    @if ($auditActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
+                @endif
+                @php $reportActive = request()->routeIs('reports.*') @endphp
+                <a href="{{ route('reports.permission-matrix') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                          {{ $reportActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $reportActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">Permission Matrix</span>
+                    @if ($reportActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
+                @if (auth()->user()->isSuperAdmin())
                 @php $adminActive = request()->routeIs('admin.levels') @endphp
                 <a href="{{ route('admin.levels') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
@@ -168,25 +201,6 @@
                     <span class="truncate">Queue Monitor</span>
                     @if ($queueActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
-                @php
-                    $auditActive = request()->routeIs('audit.*');
-                    $auditDepts = array_map('strtoupper', config('auth.audit_departments', []));
-                    $canSeeAudit = auth()->user()?->isAdmin() || in_array(strtoupper(auth()->user()?->department ?? ''), $auditDepts);
-                @endphp
-                @if ($canSeeAudit)
-                <a href="{{ route('audit.index') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
-                          {{ $auditActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
-                                {{ $auditActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                        </svg>
-                    </div>
-                    <span class="truncate">Audit Log</span>
-                    @if ($auditActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
-                </a>
-                @endif
                 @php $connActive = request()->routeIs('connectors.*') @endphp
                 <a href="{{ route('connectors.index') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
@@ -213,19 +227,7 @@
                     <span class="truncate">Notifications</span>
                     @if ($notifActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
-                @php $reportActive = request()->routeIs('reports.*') @endphp
-                <a href="{{ route('reports.permission-matrix') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
-                          {{ $reportActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
-                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
-                                {{ $reportActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                        </svg>
-                    </div>
-                    <span class="truncate">Permission Matrix</span>
-                    @if ($reportActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
-                </a>
+                @endif
             </div>
             @endif
 

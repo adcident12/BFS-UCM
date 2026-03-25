@@ -18,13 +18,42 @@ button:not([disabled]),
 }
 
 @theme {
-    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+/* ── Scrollbar — UCM Theme ─────────────────────────────────────────────── */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+*:hover {
+    scrollbar-color: #94a3b8 transparent;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 99px;
+    transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+/* ── End Scrollbar ──────────────────────────────────────────────────────── */
+
 /* ── Flatpickr — UCM Theme Override ────────────────────────────────────── */
 .flatpickr-calendar {
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
     box-shadow: 0 10px 25px -5px rgb(0 0 0 / .08), 0 4px 10px -6px rgb(0 0 0 / .06);

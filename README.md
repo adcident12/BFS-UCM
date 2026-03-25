@@ -507,8 +507,8 @@ exit
 | `POST` | `/notifications` | สร้าง Notification Channel | L2 |
 | `PUT` | `/notifications/{id}` | แก้ไข Notification Channel | L2 |
 | `DELETE` | `/notifications/{id}` | ลบ Notification Channel | L2 |
-| `GET` | `/reports/permission-matrix` | Permission Matrix Report | L2 |
-| `GET` | `/reports/permission-matrix/export` | Export Permission Matrix เป็น CSV | L2 |
+| `GET` | `/reports/permission-matrix` | Permission Matrix Report | L1+ |
+| `GET` | `/reports/permission-matrix/export` | Export Permission Matrix เป็น CSV | L1+ |
 | `GET` | `/manual` | คู่มือผู้ใช้งาน | ทุกคน |
 | `GET` | `/install-guide` | Install Guide สำหรับนักพัฒนา | ทุกคน |
 | `GET` | `/api-docs` | API Documentation | ทุกคน |
@@ -582,7 +582,7 @@ curl -X POST https://ucm.example.com/api/permissions/check \
 | **Sync Activity (7 วัน)** | Stacked Bar | จำนวน Sync สำเร็จ / ล้มเหลว ใน 7 วันล่าสุด |
 | **Permissions per System** | Horizontal Bar | จำนวน Permission ที่ Active ในแต่ละระบบ (Top 8) |
 
-กราฟใช้สี Indigo/Violet ตาม design system ของ UCM และฟอนต์ Inter ทั้งหมด
+กราฟใช้สี Indigo/Violet ตาม design system ของ UCM และฟอนต์ Instrument Sans ทั้งหมด
 
 ---
 

@@ -112,12 +112,20 @@
                 เพิ่ม Reference Data
             </li>
             <li class="flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                ดู Audit Log <span class="text-slate-400 font-normal">(อ่านอย่างเดียว)</span>
+            </li>
+            <li class="flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                ดู Permission Matrix <span class="text-slate-400 font-normal">(อ่านอย่างเดียว)</span>
+            </li>
+            <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-slate-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 <span class="text-slate-300">แก้ไข / ลบ Reference, เปิด 2-way</span>
             </li>
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-slate-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                <span class="text-slate-300">จัดการสิทธิ์ Admin</span>
+                <span class="text-slate-300">จัดการสิทธิ์ Admin / Queue / Connector / Notifications</span>
             </li>
         </ul>
     </div>
