@@ -110,10 +110,10 @@ class ConnectorWizardController extends Controller
 
         $data = $request->validate([
             'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host' => 'required|string|max:255',
+            'db_host' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9][a-zA-Z0-9\-\.]*$/'],
             'db_port' => 'required|integer|min:1|max:65535',
-            'db_name' => 'required|string|max:100',
-            'db_user' => 'required|string|max:100',
+            'db_name' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.]+$/'],
+            'db_user' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.@\\\\]+$/'],
             'db_password' => 'nullable|string|max:255',
             'connector_config_id' => 'nullable|integer',
         ]);
@@ -138,10 +138,10 @@ class ConnectorWizardController extends Controller
 
         $data = $request->validate([
             'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host' => 'required|string|max:255',
+            'db_host' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9][a-zA-Z0-9\-\.]*$/'],
             'db_port' => 'required|integer|min:1|max:65535',
-            'db_name' => 'required|string|max:100',
-            'db_user' => 'required|string|max:100',
+            'db_name' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.]+$/'],
+            'db_user' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.@\\\\]+$/'],
             'db_password' => 'nullable|string|max:255',
             'connector_config_id' => 'nullable|integer',
         ]);
@@ -171,10 +171,10 @@ class ConnectorWizardController extends Controller
 
         $data = $request->validate([
             'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host' => 'required|string|max:255',
+            'db_host' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9][a-zA-Z0-9\-\.]*$/'],
             'db_port' => 'required|integer|min:1|max:65535',
-            'db_name' => 'required|string|max:100',
-            'db_user' => 'required|string|max:100',
+            'db_name' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.]+$/'],
+            'db_user' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.@\\\\]+$/'],
             'db_password' => 'nullable|string|max:255',
             'table' => 'required|string|regex:/^[\w.]+$/',
             'connector_config_id' => 'nullable|integer',
@@ -413,10 +413,10 @@ class ConnectorWizardController extends Controller
 
             // DB Connection
             'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host' => 'required|string|max:255',
+            'db_host' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9][a-zA-Z0-9\-\.]*$/'],
             'db_port' => 'required|integer|min:1|max:65535',
-            'db_name' => 'required|string|max:100',
-            'db_user' => 'required|string|max:100',
+            'db_name' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.]+$/'],
+            'db_user' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.@\\\\]+$/'],
             'db_password' => 'nullable|string|max:255',
 
             // User Table

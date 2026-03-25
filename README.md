@@ -213,7 +213,7 @@ resources/views/
     │   ├── api-endpoint.blade.php          # Reusable endpoint card สำหรับ API docs
     │   └── api-group.blade.php             # Reusable endpoint group สำหรับ API docs
     └── docs/
-        ├── manual.blade.php                # คู่มือผู้ใช้งาน (22 sections, sticky TOC)
+        ├── manual.blade.php                # คู่มือผู้ใช้งาน (23 sections, sticky TOC)
         └── install.blade.php               # Install Guide สำหรับนักพัฒนา (11 sections)
 ```
 
@@ -513,11 +513,11 @@ exit
 | `DELETE` | `/admin/ucm-access/{feature}/grants/{grant}` | ถอน Individual Grant | `canAccess('ucm_access')` |
 | `GET` | `/permissions` | Permission Center — จัดการ Permission Definition ทุกระบบในที่เดียว | `canAccess('permission_center')` (default L1) |
 | `GET` | `/audit-log` | Audit Log (filter ได้ตาม category/actor/date) | `canAccess('audit_log')` (default L1) / SQA / QA |
-| `GET` | `/queue/monitor` | Queue Monitor | L1+ |
-| `POST` | `/queue/monitor/retry/{uuid}` | Retry Failed Job | L2 |
-| `POST` | `/queue/monitor/retry-all` | Retry ทุก Failed Job | L2 |
-| `DELETE` | `/queue/monitor/failed/{uuid}` | ลบ Failed Job | L2 |
-| `POST` | `/queue/monitor/flush` | ล้าง Failed Jobs ทั้งหมด | L2 |
+| `GET` | `/queue/monitor` | Queue Monitor | `canAccess('queue_monitor')` (default L1) |
+| `POST` | `/queue/monitor/retry/{uuid}` | Retry Failed Job | `canAccess('queue_monitor')` (default L1) |
+| `POST` | `/queue/monitor/retry-all` | Retry ทุก Failed Job | `canAccess('queue_monitor')` (default L1) |
+| `DELETE` | `/queue/monitor/failed/{uuid}` | ลบ Failed Job | `canAccess('queue_monitor')` (default L1) |
+| `POST` | `/queue/monitor/flush` | ล้าง Failed Jobs ทั้งหมด | `canAccess('queue_monitor')` (default L1) |
 | `GET` | `/notifications` | Notification Channels | L2 |
 | `POST` | `/notifications` | สร้าง Notification Channel | L2 |
 | `PUT` | `/notifications/{id}` | แก้ไข Notification Channel | L2 |
@@ -677,7 +677,7 @@ X-UCM-Signature: <HMAC-SHA256(json_body, secret)>
 
 รายงานตารางครอสแทบแสดง **ใครมีสิทธิ์อะไรในระบบไหน** ในมุมมองเดียว
 
-เข้าถึงได้ที่ **ผู้ดูแลระบบ → Permission Matrix** (ต้องการ Admin L2)
+เข้าถึงได้ที่ **ผู้ดูแลระบบ → Permission Matrix** (ต้องการ `canAccess('permission_matrix')` — default L1)
 
 ### คุณสมบัติของตาราง
 
@@ -868,7 +868,7 @@ DynamicAdapter.syncPermissions()     DynamicAdapter.provisionPermission()
 | Level | บทบาท | ความสามารถ |
 |-------|-------|------------|
 | `0` | ผู้ใช้ทั่วไป | ดูข้อมูลและสิทธิ์ได้ (read-only) — ไม่สามารถแก้ไขได้ |
-| `1` | Admin L1 | จัดการสิทธิ์ผู้ใช้, นำเข้า AD, Discover Permissions, เพิ่ม Reference Data, ดู Queue Monitor |
+| `1` | Admin L1 | จัดการสิทธิ์ผู้ใช้, นำเข้า AD, Discover Permissions, เพิ่ม Reference Data, Queue Monitor (ดูและจัดการ Failed Jobs) |
 | `2` | Admin L2 (Super Admin) | ทุกอย่าง + จัดการระบบ, Connector Wizard, Toggle 2-way, แก้ไข/ลบ Reference Data, กำหนดระดับ Admin, Notifications, Reports |
 
 > Admin ระดับ 2 **ไม่สามารถลดระดับตัวเองได้** เพื่อป้องกันระบบไม่มีผู้ดูแล
@@ -902,7 +902,7 @@ docker exec -w /var/www/html/user-centralized-managment php83 php artisan queue:
 docker exec -w /var/www/html/user-centralized-managment php83 php artisan queue:flush
 ```
 
-Queue Monitor อยู่ที่ `/queue/monitor` — แสดงสถานะ queue แบบ real-time พร้อมปุ่ม Retry/Delete (ต้องการ Admin L1+)
+Queue Monitor อยู่ที่ `/queue/monitor` — แสดงสถานะ queue แบบ real-time พร้อมปุ่ม Retry/Delete (ต้องการ `canAccess('queue_monitor')` — default L1+)
 
 Job config: `tries=3`, `timeout=30s`, `backoff=10s`
 
@@ -953,7 +953,7 @@ UCM_AUDIT_DEPARTMENTS="Safety,Quality Assurance"
 - SQL Injection prevention: identifier ชื่อตาราง/คอลัมน์ผ่าน `qi()` helper + whitelist regex `[\w.]+`; ค่า parameter ทุกตัวผ่าน PDO prepared statement / `$pdo->quote()`
 - Session timeout 120 นาที (ปรับได้ใน `.env SESSION_LIFETIME`)
 - ข้อมูล `db_password` และ `api_token` ถูก hidden ใน Model `$hidden` — ไม่ถูกส่งออกใน JSON response
-- Authorization ทุก mutation route ใช้ `abort_unless()` ตามระดับที่เหมาะสม: `isAdmin()` สำหรับ L1 ขึ้นไป, `isSuperAdmin()` สำหรับ L2 (เช่น CRUD System, Notification Channels, Connector Wizard, จัดการ Admin)
+- Authorization ทุก route ใช้ `abort_unless($user->canAccess('feature_key'), 403)` — แต่ละ feature มี min_level กำหนดใน `config/ucm_features.php` (ปรับได้ผ่าน UCM Access Control) และรองรับ Individual Grant รายบุคคล
 - **API Permission Authorization** — Permission endpoints (`/users/{username}/permissions`, `/permissions/check`) ตรวจสอบ token scope: Admin token query ได้ทุก user, User token query ได้เฉพาะ username ของตัวเอง (ตอบ 403 ถ้าพยายาม query user อื่น)
 - UUID ของ Failed Job ถูก validate ด้วย `Str::isUuid()` ก่อนส่งให้ Artisan command
 - Webhook Secret ใช้ HMAC-SHA256 — ระบบปลายทางควรตรวจสอบ `X-UCM-Signature` header ก่อนประมวลผล payload

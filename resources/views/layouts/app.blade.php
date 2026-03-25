@@ -161,6 +161,7 @@
                     @if ($auditActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
                 @endif
+                @if (auth()->user()->canAccess('permission_matrix'))
                 @php $reportActive = request()->routeIs('reports.*') @endphp
                 <a href="{{ route('reports.permission-matrix') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
@@ -174,6 +175,8 @@
                     <span class="truncate">Permission Matrix</span>
                     @if ($reportActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
+                @endif
+                @if (auth()->user()->canAccess('permission_center'))
                 @php $permCenterActive = request()->routeIs('permissions.*') @endphp
                 <a href="{{ route('permissions.index') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
@@ -187,6 +190,7 @@
                     <span class="truncate">จัดการ Permissions</span>
                     @if ($permCenterActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
+                @endif
                 @if (auth()->user()->canAccess('admin_levels'))
                 @php $adminActive = request()->routeIs('admin.levels') @endphp
                 <a href="{{ route('admin.levels') }}" onclick="closeSidebar()"

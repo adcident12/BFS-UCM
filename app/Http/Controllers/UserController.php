@@ -58,6 +58,8 @@ class UserController extends Controller
 
     public function permissionTimeline(UcmUser $user): View
     {
+        abort_unless($this->authUser()?->canAccess('permission_timeline'), 403, 'คุณไม่มีสิทธิ์ดู Permission Timeline');
+
         $logs = AuditLog::where('subject_type', 'user')
             ->where('subject_id', $user->id)
             ->where('event_category', AuditLog::CATEGORY_PERMISSIONS)

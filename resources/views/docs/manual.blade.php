@@ -769,10 +769,11 @@ $sections = [
                             <li>✅ <strong>เพิ่ม</strong> Reference Data ได้</li>
                             <li>✅ ดู <strong>Audit Log</strong> ได้ (อ่านอย่างเดียว)</li>
                             <li>✅ ดู <strong>Permission Matrix</strong> ได้ (อ่านอย่างเดียว)</li>
+                            <li>✅ <strong>Queue Monitor</strong> (ดูและจัดการ Failed Jobs) ได้ <span class="text-indigo-500">(ค่าเริ่มต้น)</span></li>
                             <li>❌ แก้ไข / ลบ Reference Data ไม่ได้</li>
                             <li>❌ Toggle 2-way ไม่ได้</li>
-                            <li>❌ Queue Monitor / Connector Wizard / Notifications ไม่ได้</li>
-                            <li>❌ จัดการสิทธิ์ Admin ไม่ได้</li>
+                            <li>❌ Connector Wizard / Notifications ไม่ได้ <span class="text-indigo-500">(ค่าเริ่มต้น)</span></li>
+                            <li>❌ จัดการสิทธิ์ Admin / UCM Access ไม่ได้</li>
                         </ul>
                     </div>
                     <div class="p-4 bg-amber-50 rounded-xl border border-amber-200">
@@ -787,7 +788,8 @@ $sections = [
                             <li>✅ เปิด / ปิด Account ในระบบภายนอกได้</li>
                             <li>✅ <strong>จัดการสิทธิ์ Admin</strong> ของผู้ใช้อื่นได้</li>
                             <li>✅ <strong>สร้าง / แก้ไข / ลบ Notification Channel</strong> ได้</li>
-                            <li>✅ <strong>Retry / Flush Failed Jobs</strong> ใน Queue Monitor ได้</li>
+                            <li>✅ <strong>Connector Wizard</strong> (เชื่อมต่อฐานข้อมูลภายนอก) ได้</li>
+                            <li>✅ <strong>ปรับสิทธิ์ระบบ UCM</strong> (UCM Access Control) ได้</li>
                             <li>⚠️ ไม่สามารถลดระดับตัวเองได้</li>
                         </ul>
                     </div>
@@ -813,7 +815,7 @@ $sections = [
 
                 <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
                     <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-                    <span>หน้า "จัดการสิทธิ์ Admin" จะ<strong>ไม่ปรากฏ</strong>ในเมนูหากผู้ใช้ไม่ใช่ Admin ระดับ 2 และจะ return 403 หากเข้า URL โดยตรง — ระดับที่ต้องการสำหรับแต่ละฟีเจอร์สามารถปรับเพิ่มเติมได้ใน <strong>สิทธิ์ระบบ UCM</strong> (ดูหัวข้อถัดไป)</span>
+                    <span>ระดับสิทธิ์ที่แสดงในตารางนี้คือ <strong>ค่าเริ่มต้น</strong> — Admin L2 สามารถปรับค่าขั้นต่ำของแต่ละฟีเจอร์ได้ผ่านหน้า <strong>สิทธิ์ระบบ UCM</strong> (ดูหัวข้อถัดไป) รวมถึงมอบสิทธิ์พิเศษให้ผู้ใช้รายบุคคลโดยไม่ต้องเลื่อนระดับ Admin</span>
                 </div>
             </div>
         </div>
@@ -2478,7 +2480,7 @@ $sections = [
 
                 {{-- Failed Jobs Actions --}}
                 <div class="border-t border-slate-100 pt-4">
-                    <h3 class="font-bold text-slate-900 mb-3">การจัดการ Failed Jobs <span class="text-xs font-normal text-slate-400">(Admin ระดับ 2 เท่านั้น)</span></h3>
+                    <h3 class="font-bold text-slate-900 mb-3">การจัดการ Failed Jobs <span class="text-xs font-normal text-slate-400">(ผู้มีสิทธิ์ Queue Monitor)</span></h3>
                     <div class="space-y-2 text-xs">
                         <div class="flex items-start gap-3 p-3 bg-indigo-50 rounded-xl border border-indigo-100">
                             <svg class="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -2988,7 +2990,7 @@ $sections = [
                 </div>
                 <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
                     <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-                    <span>ต้องการสิทธิ์ Admin ระดับ 1 ขึ้นไปในการดู Timeline ข้อมูลประวัติจะถูกบันทึกตั้งแต่ระบบ Audit Log เริ่มทำงาน</span>
+                    <span>ต้องการสิทธิ์ <code class="font-mono bg-blue-100 px-1 rounded">permission_timeline</code> (ค่าเริ่มต้น: Admin ระดับ 1 ขึ้นไป) — ปรับระดับขั้นต่ำได้ผ่านหน้า <strong>สิทธิ์ระบบ UCM</strong> ข้อมูลประวัติจะถูกบันทึกตั้งแต่ระบบ Audit Log เริ่มทำงาน</span>
                 </div>
             </div>
         </div>

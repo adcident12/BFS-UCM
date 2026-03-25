@@ -593,7 +593,7 @@ $sections = [
                 <h2 class="font-bold text-slate-800">Connector Wizard — เชื่อมต่อฐานข้อมูลภายนอก</h2>
             </div>
             <div class="px-6 py-5 space-y-4 text-sm text-slate-700">
-                <p class="text-slate-600">Connector Wizard ช่วยสร้าง Dynamic Adapter สำหรับเชื่อมต่อฐานข้อมูลภายนอก (MySQL, PostgreSQL, SQL Server) โดยไม่ต้องเขียน PHP Adapter เอง เข้าใช้งานได้ที่ <strong>เมนู Connector Wizard</strong> (Admin L1+ เท่านั้น)</p>
+                <p class="text-slate-600">Connector Wizard ช่วยสร้าง Dynamic Adapter สำหรับเชื่อมต่อฐานข้อมูลภายนอก (MySQL, PostgreSQL, SQL Server) โดยไม่ต้องเขียน PHP Adapter เอง เข้าใช้งานได้ที่ <strong>เมนู Connector Wizard</strong> (<strong>Admin L2 เท่านั้น</strong> ค่าเริ่มต้น — ปรับได้ผ่าน UCM Access Control)</p>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     @foreach ([
