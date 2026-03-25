@@ -696,6 +696,11 @@
 
 @if (auth()->user()->isAdmin())
 <script>
+function _noPermAlert() {
+    window.showAlert('คุณไม่มีสิทธิ์ใช้งานฟีเจอร์นี้ กรุณาติดต่อผู้ดูแลระบบ', 'error');
+}
+</script>
+<script>
 (function () {
     // ─── AD Check Modal ──────────────────────────────────────────────────
     var CHECK_URL  = '{{ route("users.check-ad-status") }}';
@@ -739,6 +744,7 @@
 
         fetch(CHECK_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) {
+                if (r.status === 403) throw new Error('forbidden');
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 return r.json();
             })
@@ -755,6 +761,7 @@
             })
             .catch(function (err) {
                 showAdcState('idle');
+                if (err && err.message === 'forbidden') { _noPermAlert(); return; }
                 showAlert('ตรวจสอบ AD ไม่สำเร็จ: ' + err.message, 'error');
             });
     }
@@ -863,6 +870,7 @@
 
         fetch(REMOVE_URL, { method: 'POST', body: body, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
             .then(function (r) {
+                if (r.status === 403) throw new Error('forbidden');
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 return r.json();
             })
@@ -872,6 +880,7 @@
                 setTimeout(function () { window.location.reload(); }, 1500);
             })
             .catch(function (err) {
+                if (err && err.message === 'forbidden') { _noPermAlert(); return; }
                 showAlert('เกิดข้อผิดพลาด: ' + err.message, 'error');
             });
     }
@@ -959,13 +968,19 @@
         document.getElementById('ad-spinner').style.display = '';
         adTimer = setTimeout(function () {
             fetch(SEARCH_URL + '?q=' + encodeURIComponent(q))
-                .then(function (r) { return r.json(); })
+                .then(function (r) {
+                    if (r.status === 403) throw new Error('forbidden');
+                    return r.json();
+                })
                 .then(function (data) {
                     document.getElementById('ad-spinner').style.display = 'none';
                     adResults = Array.isArray(data) ? data : [];
                     renderAdList();
                 })
-                .catch(function () { document.getElementById('ad-spinner').style.display = 'none'; });
+                .catch(function (err) {
+                    document.getElementById('ad-spinner').style.display = 'none';
+                    if (err && err.message === 'forbidden') { _noPermAlert(); }
+                });
         }, 350);
     });
 
@@ -1080,6 +1095,7 @@
         showSysState('loading');
         fetch(systemUrls[currentSysId])
             .then(function (r) {
+                if (r.status === 403) throw new Error('forbidden');
                 if (!r.ok) return r.json().then(function (d) { throw new Error(d.error || 'HTTP ' + r.status); });
                 return r.json();
             })
@@ -1092,6 +1108,7 @@
             })
             .catch(function (err) {
                 if (icon) icon.classList.remove('animate-spin');
+                if (err && err.message === 'forbidden') { _noPermAlert(); return; }
                 var errEl = document.getElementById('sys-error');
                 if (errEl) errEl.textContent = 'โหลดไม่สำเร็จ: ' + err.message;
                 showSysState('error');
@@ -1269,6 +1286,7 @@
                 method: 'POST', body: fd,
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
+            if (res.status === 403) throw new Error('forbidden');
             if (!res.ok) {
                 var text = await res.text();
                 throw new Error('HTTP ' + res.status + ': ' + text.substring(0, 300));
@@ -1285,6 +1303,7 @@
             clearInterval(timer);
             overlay.style.display = 'none';
             window.removeEventListener('beforeunload', navHandler);
+            if (err && err.message === 'forbidden') { _noPermAlert(); return; }
             showAlert('เกิดข้อผิดพลาด: ' + err.message, 'error');
         }
     });

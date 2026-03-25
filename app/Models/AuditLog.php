@@ -90,6 +90,23 @@ class AuditLog extends Model
     // Event types — Reports
     const EVENT_REPORT_EXPORTED = 'report_exported';
 
+    // Categories — UCM Access Control
+    const CATEGORY_ACCESS = 'access_control';
+
+    // Event types — UCM Access Control
+    const EVENT_FEATURE_LEVEL_UPDATED = 'feature_level_updated';
+    const EVENT_FEATURE_GRANT_CREATED = 'feature_grant_created';
+    const EVENT_FEATURE_GRANT_DELETED = 'feature_grant_deleted';
+
+    // Categories — Queue
+    const CATEGORY_QUEUE = 'queue';
+
+    // Event types — Queue
+    const EVENT_QUEUE_JOB_RETRIED = 'queue_job_retried';
+    const EVENT_QUEUE_ALL_RETRIED = 'queue_all_retried';
+    const EVENT_QUEUE_JOB_DELETED = 'queue_job_deleted';
+    const EVENT_QUEUE_FLUSHED     = 'queue_flushed';
+
     public function actor(): BelongsTo
     {
         return $this->belongsTo(UcmUser::class, 'actor_id');

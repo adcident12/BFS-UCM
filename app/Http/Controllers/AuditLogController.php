@@ -16,7 +16,7 @@ class AuditLogController extends Controller
         $user = Auth::user();
         $allowedDepts = array_map('strtoupper', config('auth.audit_departments', []));
 
-        if (! $user->isAdmin() && ! in_array(strtoupper($user->department ?? ''), $allowedDepts)) {
+        if (! $user->canAccess('audit_log') && ! in_array(strtoupper($user->department ?? ''), $allowedDepts)) {
             abort(403, 'คุณไม่มีสิทธิ์เข้าถึงหน้านี้');
         }
 

@@ -14,6 +14,11 @@
 <span class="font-semibold text-slate-800 truncate">{{ $system->name }}</span>
 @endsection
 
+@php
+    $canManageSystems   = auth()->user()->canAccess('system_create_edit');
+    $canEditPermissions = auth()->user()->canAccess('permission_update');
+@endphp
+
 @section('content')
 
 {{-- Action bar --}}
@@ -29,7 +34,7 @@
         </div>
     </div>
     <div class="flex items-center gap-2 flex-wrap">
-        @if (\App\Adapters\AdapterFactory::hasAdapter($system) && auth()->user()->isAdmin())
+        @if (\App\Adapters\AdapterFactory::hasAdapter($system) && $canEditPermissions)
         <form method="POST" action="{{ route('systems.discover', $system) }}" class="inline">
             @csrf
             <button type="submit"
@@ -44,7 +49,7 @@
 
         {{-- 2-way toggle: แสดงเฉพาะ adapter ที่รองรับ --}}
         @if (\App\Adapters\AdapterFactory::adapterSupports2Way($system))
-        @if (auth()->user()->isSuperAdmin())
+        @if ($canManageSystems)
         {{-- Admin ระดับ 2: กดได้ --}}
         <form method="POST" action="{{ route('systems.toggle-2way', $system) }}" class="inline">
             @csrf
@@ -75,7 +80,7 @@
         @endif
         @endif
 
-        @if (auth()->user()->isSuperAdmin())
+        @if ($canManageSystems)
         <a href="{{ route('systems.edit', $system) }}"
             class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-sm transition-all hover:-translate-y-0.5">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,10 +92,10 @@
     </div>
 </div>
 
-<div class="grid grid-cols-1 {{ auth()->user()->isSuperAdmin() ? 'xl:grid-cols-3' : '' }} gap-6">
+<div class="grid grid-cols-1 {{ $canManageSystems ? 'xl:grid-cols-3' : '' }} gap-6">
 
     {{-- ── Left: Permission list ── --}}
-    <div class="{{ auth()->user()->isSuperAdmin() ? 'xl:col-span-2' : '' }} space-y-4">
+    <div class="{{ $canManageSystems ? 'xl:col-span-2' : '' }} space-y-4">
 
         {{-- Summary bar --}}
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 px-5 py-4 flex flex-wrap items-center gap-4">
@@ -188,7 +193,7 @@
                             <span class="text-xs text-slate-400">— {{ $perm->description }}</span>
                             @endif
                         </div>
-                        @if (auth()->user()->isAdmin())
+                        @if ($canEditPermissions)
                         <div class="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                             @if ($perm->remote_value && \App\Adapters\AdapterFactory::supports2WayPermissions($system))
                             <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full ring-1 ring-amber-200/70" title="ลบที่ UCM แล้วจะลบใน {{ $system->name }} ด้วย">
@@ -218,7 +223,7 @@
                     </div>
 
                     {{-- Edit mode (L1+) --}}
-                    @if (auth()->user()->isAdmin())
+                    @if ($canEditPermissions)
                     <div id="perm-edit-{{ $perm->id }}" style="display:none"
                         class="my-1 p-4 bg-indigo-50/60 rounded-xl border border-indigo-100">
                         <form method="POST" action="{{ route('systems.permissions.update', [$system, $perm]) }}">
@@ -271,7 +276,7 @@
     </div>
 
     {{-- ── Right: Add permission form (L2 only) ── --}}
-    @if (auth()->user()->isSuperAdmin())
+    @if ($canManageSystems)
     <div>
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden sticky top-20">
             <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
@@ -455,7 +460,7 @@
             </div>
 
             {{-- ── Add form: Admin ระดับ 1 ขึ้นไป ── --}}
-            @if (auth()->user()->isAdmin())
+            @if ($canEditPermissions)
             <div class="px-4 pt-3 pb-4 border-t border-slate-100 bg-slate-50/50">
                 <form method="POST" action="{{ route('systems.group-records.store', $system) }}"
                     class="space-y-2.5" onsubmit="return groupAddSubmit(this)">
@@ -520,8 +525,8 @@
     }
 
     // ── Managed Group CRUD ────────────────────────────────────────────────
-    var _isAdminL1 = {{ auth()->user()->isAdmin() ? 'true' : 'false' }}; // level 1+: เพิ่มได้
-    var _isAdminL2 = {{ auth()->user()->isSuperAdmin() ? 'true' : 'false' }}; // level 2: แก้ไข/ลบได้
+    var _isAdminL1 = {{ $canEditPermissions ? 'true' : 'false' }}; // level 1+: เพิ่มได้
+    var _isAdminL2 = {{ $canManageSystems ? 'true' : 'false' }}; // level 2: แก้ไข/ลบได้
     var _groupData = {};
     var _groupSchemas = @json($groupSchemas); // {'PageGroup': {priority:{...}, filename:{...}}, ...}
 

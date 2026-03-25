@@ -23,7 +23,7 @@ class SystemController extends Controller
 
     public function healthCheck(System $system): JsonResponse
     {
-        abort_unless($this->authUser()?->isAdmin(), 403);
+        abort_unless($this->authUser()?->canAccess('system_list'), 403);
 
         if (! AdapterFactory::hasAdapter($system)) {
             return response()->json(['ok' => false, 'message' => 'ระบบนี้ไม่มี Adapter']);
@@ -54,7 +54,7 @@ class SystemController extends Controller
 
     public function store(Request $request)
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่มระบบได้');
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่มระบบได้');
 
         $data = $request->validate([
             'name' => 'required|string|max:100',
@@ -119,14 +119,14 @@ class SystemController extends Controller
 
     public function edit(System $system)
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขระบบได้');
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขระบบได้');
 
         return view('systems.edit', compact('system'));
     }
 
     public function update(Request $request, System $system)
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขระบบได้');
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขระบบได้');
 
         $data = $request->validate([
             'name' => 'required|string|max:100',
@@ -176,7 +176,7 @@ class SystemController extends Controller
 
     public function destroy(System $system)
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบระบบได้');
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบระบบได้');
 
         $systemName = $system->name;
         $systemId = $system->id;
@@ -203,7 +203,7 @@ class SystemController extends Controller
 
     public function toggle2WayPermissions(System $system)
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเปิด/ปิด 2-way permission sync ได้');
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเปิด/ปิด 2-way permission sync ได้');
         abort_unless(AdapterFactory::adapterSupports2Way($system), 422, 'ระบบนี้ไม่รองรับ 2-way permission sync');
 
         $system->update(['two_way_permissions' => ! $system->two_way_permissions]);
@@ -231,7 +231,7 @@ class SystemController extends Controller
 
     public function storePermission(Request $request, System $system)
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่ม Permission ได้');
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่ม Permission ได้');
 
         $data = $request->validate([
             'key' => "required|string|max:100|unique:system_permissions,key,NULL,id,system_id,{$system->id}",
@@ -271,7 +271,7 @@ class SystemController extends Controller
 
     public function updatePermission(Request $request, System $system, SystemPermission $permission)
     {
-        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถแก้ไข Permission ได้');
+        abort_unless($this->authUser()?->canAccess('permission_update'), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถแก้ไข Permission ได้');
         abort_if($permission->system_id !== $system->id, 404);
 
         $data = $request->validate([
@@ -312,7 +312,7 @@ class SystemController extends Controller
 
     public function discoverPermissions(System $system)
     {
-        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถ Discover Permissions ได้');
+        abort_unless($this->authUser()?->canAccess('permission_update'), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถ Discover Permissions ได้');
 
         if (! AdapterFactory::hasAdapter($system)) {
             return back()->withErrors(['ระบบ '.$system->name.' ไม่มี adapter รองรับ discoverPermissions']);
@@ -339,7 +339,7 @@ class SystemController extends Controller
 
     public function destroyPermission(System $system, SystemPermission $permission)
     {
-        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถลบ Permission ได้');
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin ระดับ 1 ขึ้นไปเท่านั้นที่สามารถลบ Permission ได้');
         abort_if($permission->system_id !== $system->id, 404);
 
         // ลบ permission definition จากระบบภายนอก เฉพาะเมื่อ 2-way เปิดอยู่
@@ -380,7 +380,7 @@ class SystemController extends Controller
 
     public function storeGroupRecord(Request $request, System $system)
     {
-        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin เท่านั้นที่สามารถเพิ่มข้อมูล Reference ได้');
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin เท่านั้นที่สามารถเพิ่มข้อมูล Reference ได้');
         abort_unless(AdapterFactory::hasAdapter($system), 400);
 
         $data = $request->validate([
@@ -415,7 +415,7 @@ class SystemController extends Controller
 
     public function updateGroupRecord(Request $request, System $system, string $group, int $recordId)
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขข้อมูล Reference ได้');
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไขข้อมูล Reference ได้');
         abort_unless(AdapterFactory::hasAdapter($system), 400);
 
         $adapter = AdapterFactory::make($system);
@@ -452,7 +452,7 @@ class SystemController extends Controller
 
     public function destroyGroupRecord(System $system, string $group, int $recordId)
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบข้อมูล Reference ได้');
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบข้อมูล Reference ได้');
         abort_unless(AdapterFactory::hasAdapter($system), 400);
 
         $adapter = AdapterFactory::make($system);

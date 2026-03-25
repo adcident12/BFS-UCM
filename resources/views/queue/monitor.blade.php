@@ -9,6 +9,8 @@
 <span class="font-semibold text-slate-800 truncate">Queue Monitor</span>
 @endsection
 
+@php $canManageQueue = auth()->user()->canAccess('queue_monitor'); @endphp
+
 @section('content')
 
 {{-- ── Hero Banner ─────────────────────────────────────────────────────── --}}
@@ -164,7 +166,7 @@
                     <p class="text-xs text-slate-400 font-medium">Jobs ที่ล้มเหลวและรอ retry</p>
                 </div>
             </div>
-            @if ($failedCount > 0 && auth()->user()->isSuperAdmin())
+            @if ($failedCount > 0 && $canManageQueue)
             <div class="flex items-center gap-2 flex-shrink-0">
                 <form method="POST" action="{{ route('queue.failed.retry-all') }}">
                     @csrf
@@ -213,7 +215,7 @@
                         <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden md:table-cell">Queue</th>
                         <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">เวลาที่ล้มเหลว</th>
                         <th class="text-left px-3 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden lg:table-cell">Exception</th>
-                        @if (auth()->user()->isSuperAdmin())
+                        @if ($canManageQueue)
                         <th class="px-3 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
                         @endif
                     </tr>
@@ -254,7 +256,7 @@
                         <td class="px-3 py-3 hidden lg:table-cell">
                             <span class="text-[10px] font-mono text-slate-400 leading-relaxed line-clamp-2">{{ $exception }}</span>
                         </td>
-                        @if (auth()->user()->isSuperAdmin())
+                        @if ($canManageQueue)
                         <td class="px-3 py-3 text-right">
                             <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <form method="POST" action="{{ route('queue.failed.retry', $job->uuid) }}">
@@ -402,7 +404,7 @@
 (function () {
     var POLL_URL      = '{{ route('queue.monitor.poll') }}';
     var INTERVAL      = 4000;
-    var isSuperAdmin  = {{ auth()->user()->isSuperAdmin() ? 'true' : 'false' }};
+    var isSuperAdmin  = {{ $canManageQueue ? 'true' : 'false' }}; // canAccess('queue_monitor')
     var timer         = null;
     var lastFailedCount = {{ $failedCount }}; // จำนวนตอน page load
 

@@ -46,6 +46,29 @@ class UcmUser extends Authenticatable
         return $this->hasMany(SyncLog::class, 'user_id');
     }
 
+    public function featureGrants(): HasMany
+    {
+        return $this->hasMany(UcmUserFeatureGrant::class, 'user_id');
+    }
+
+    /**
+     * ตรวจสอบว่าผู้ใช้นี้สามารถเข้าถึงฟีเจอร์ UCM ได้หรือไม่
+     * ลำดับการตรวจ:
+     *   1. ดึง effective min_level (config default → DB override)
+     *   2. ถ้า is_admin >= min_level → ผ่าน
+     *   3. ถ้ามี individual grant สำหรับ feature นี้ → ผ่าน
+     */
+    public function canAccess(string $feature): bool
+    {
+        $minLevel = UcmFeatureOverride::getEffectiveLevel($feature);
+
+        if ($this->is_admin >= $minLevel) {
+            return true;
+        }
+
+        return $this->featureGrants()->where('feature_key', $feature)->exists();
+    }
+
     public function hasPermission(string $systemSlug, string $permissionKey): bool
     {
         return $this->systemPermissions()

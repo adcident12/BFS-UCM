@@ -82,9 +82,18 @@ $availableEvents = [
     'connector_created'    => 'สร้าง Connector',
     'connector_updated'    => 'แก้ไข Connector',
     'connector_deleted'    => 'ลบ Connector',
+    // UCM Access Control
+    'feature_level_updated' => 'เปลี่ยนระดับสิทธิ์ฟีเจอร์ UCM',
+    'feature_grant_created' => 'ให้สิทธิ์พิเศษฟีเจอร์ UCM',
+    'feature_grant_deleted' => 'ถอนสิทธิ์พิเศษฟีเจอร์ UCM',
+    // Queue Monitor
+    'queue_job_retried'     => 'Retry Failed Job',
+    'queue_all_retried'     => 'Retry Failed Jobs ทั้งหมด',
+    'queue_job_deleted'     => 'ลบ Failed Job',
+    'queue_flushed'         => 'Flush Failed Jobs ทั้งหมด',
     // Security / API
-    'login_failed'         => 'Login ล้มเหลว',
-    'api_token_issued'     => 'ออก API Token',
+    'login_failed'          => 'Login ล้มเหลว',
+    'api_token_issued'      => 'ออก API Token',
 ];
 @endphp
 

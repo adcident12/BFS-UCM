@@ -6,7 +6,9 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ConnectorWizardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PermissionCenterController;
 use App\Http\Controllers\QueueMonitorController;
+use App\Http\Controllers\UcmAccessController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SystemController;
 use App\Http\Controllers\UserController;
@@ -97,6 +99,16 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
     Route::put('/notifications/{notificationChannel}', [NotificationController::class, 'update'])->name('notifications.update');
     Route::delete('/notifications/{notificationChannel}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
+    // Permission Center (External systems)
+    Route::get('/permissions', [PermissionCenterController::class, 'index'])->name('permissions.index');
+
+    // UCM Internal Feature Access Control
+    Route::get('/admin/ucm-access', [UcmAccessController::class, 'index'])->name('ucm-access.index');
+    Route::post('/admin/ucm-access/{feature}/level', [UcmAccessController::class, 'updateLevel'])->name('ucm-access.level.update');
+    Route::post('/admin/ucm-access/{feature}/grants', [UcmAccessController::class, 'storeGrant'])->name('ucm-access.grant.store');
+    Route::delete('/admin/ucm-access/{feature}/grants/{grant}', [UcmAccessController::class, 'destroyGrant'])->name('ucm-access.grant.destroy');
+    Route::get('/admin/ucm-access/search-users', [UcmAccessController::class, 'searchUsers'])->name('ucm-access.search-users');
 
     // Reports
     Route::get('/reports/permission-matrix', [ReportController::class, 'permissionMatrix'])->name('reports.permission-matrix');

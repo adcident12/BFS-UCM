@@ -20,7 +20,7 @@ class NotificationController extends Controller
 
     public function index(): View
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเข้าถึง Notification Channels ได้');
+        abort_unless($this->authUser()?->canAccess('notifications'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเข้าถึง Notification Channels ได้');
 
         $channels = NotificationChannel::latest()->get();
 
@@ -29,7 +29,7 @@ class NotificationController extends Controller
 
     public function store(StoreNotificationChannelRequest $request): RedirectResponse
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่ม Notification Channel ได้');
+        abort_unless($this->authUser()?->canAccess('notifications'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่ม Notification Channel ได้');
 
         $data = $request->validated();
 
@@ -62,7 +62,7 @@ class NotificationController extends Controller
 
     public function update(StoreNotificationChannelRequest $request, NotificationChannel $notificationChannel): RedirectResponse
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไข Notification Channel ได้');
+        abort_unless($this->authUser()?->canAccess('notifications'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถแก้ไข Notification Channel ได้');
 
         $data = $request->validated();
 
@@ -94,7 +94,7 @@ class NotificationController extends Controller
 
     public function destroy(NotificationChannel $notificationChannel): RedirectResponse
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบ Notification Channel ได้');
+        abort_unless($this->authUser()?->canAccess('notifications'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถลบ Notification Channel ได้');
 
         $channelId   = $notificationChannel->id;
         $channelName = $notificationChannel->name;

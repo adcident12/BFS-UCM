@@ -35,7 +35,7 @@ class ConnectorWizardController extends Controller
 
     private function requireSuperAdmin(): void
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถใช้งาน Connector Wizard ได้');
+        abort_unless($this->authUser()?->canAccess('connector_wizard'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถใช้งาน Connector Wizard ได้');
     }
 
     // ── Pages ──────────────────────────────────────────────────────────────

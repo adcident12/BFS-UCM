@@ -13,8 +13,16 @@ use Illuminate\View\View;
 
 class ReportController extends Controller
 {
+    private function authUser(): ?UcmUser
+    {
+        /** @var UcmUser|null */
+        return Auth::user();
+    }
+
     public function permissionMatrix(Request $request): View
     {
+        abort_unless($this->authUser()?->canAccess('permission_matrix'), 403, 'คุณไม่มีสิทธิ์เข้าถึงรายงานนี้');
+
         $systems = System::where('is_active', true)
             ->with('permissions')
             ->orderBy('name')
@@ -47,6 +55,8 @@ class ReportController extends Controller
 
     public function exportPermissionMatrix(Request $request): Response
     {
+        abort_unless($this->authUser()?->canAccess('permission_matrix'), 403, 'คุณไม่มีสิทธิ์ export รายงานนี้');
+
         $systems = System::where('is_active', true)
             ->with('permissions')
             ->orderBy('name')

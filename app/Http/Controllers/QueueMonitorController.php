@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditLog;
 use App\Models\SyncLog;
 use App\Models\UcmUser;
+use App\Services\AuditLogger;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Artisan;
@@ -22,7 +25,7 @@ class QueueMonitorController extends Controller
 
     public function index(): View
     {
-        abort_unless($this->authUser()?->isAdmin(), 403, 'เฉพาะ Admin เท่านั้น');
+        abort_unless($this->authUser()?->canAccess('queue_monitor'), 403, 'เฉพาะ Admin เท่านั้น');
 
         $pendingJobs    = DB::table('jobs')->whereNull('reserved_at')->count();
         $processingJobs = DB::table('jobs')->whereNotNull('reserved_at')->count();
@@ -50,7 +53,7 @@ class QueueMonitorController extends Controller
 
     public function poll(): JsonResponse
     {
-        abort_unless($this->authUser()?->isAdmin(), 403);
+        abort_unless($this->authUser()?->canAccess('queue_monitor'), 403);
 
         $pendingJobs    = DB::table('jobs')->whereNull('reserved_at')->count();
         $processingJobs = DB::table('jobs')->whereNotNull('reserved_at')->count();
@@ -106,39 +109,96 @@ class QueueMonitorController extends Controller
 
     public function retryFailed(string $uuid): RedirectResponse
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
+        abort_unless($this->authUser()?->canAccess('queue_monitor'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
         abort_unless(Str::isUuid($uuid), 422, 'Job ID ไม่ถูกต้อง');
 
         Artisan::call('queue:retry', ['id' => [$uuid]]);
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_QUEUE,
+            AuditLog::EVENT_QUEUE_JOB_RETRIED,
+            "Retry failed job: {$uuid}",
+            ['uuid' => $uuid],
+            $this->authUser(),
+        );
+
+        app(NotificationService::class)->dispatch('queue_job_retried', [
+            'description' => "Retry failed job: {$uuid}",
+            'uuid'        => $uuid,
+            'actor'       => $this->authUser()?->name,
+        ]);
 
         return back()->with('success', "ส่ง retry job สำเร็จ");
     }
 
     public function retryAll(): RedirectResponse
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
+        abort_unless($this->authUser()?->canAccess('queue_monitor'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
 
         $count = DB::table('failed_jobs')->count();
         Artisan::call('queue:retry', ['id' => ['all']]);
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_QUEUE,
+            AuditLog::EVENT_QUEUE_ALL_RETRIED,
+            "Retry failed jobs ทั้งหมด {$count} jobs",
+            ['count' => $count],
+            $this->authUser(),
+        );
+
+        app(NotificationService::class)->dispatch('queue_all_retried', [
+            'description' => "Retry failed jobs ทั้งหมด {$count} jobs",
+            'count'       => $count,
+            'actor'       => $this->authUser()?->name,
+        ]);
 
         return back()->with('success', "ส่ง retry {$count} jobs สำเร็จ");
     }
 
     public function destroyFailed(string $uuid): RedirectResponse
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
+        abort_unless($this->authUser()?->canAccess('queue_monitor'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
         abort_unless(Str::isUuid($uuid), 422, 'Job ID ไม่ถูกต้อง');
 
         Artisan::call('queue:forget', ['id' => $uuid]);
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_QUEUE,
+            AuditLog::EVENT_QUEUE_JOB_DELETED,
+            "ลบ failed job: {$uuid}",
+            ['uuid' => $uuid],
+            $this->authUser(),
+        );
+
+        app(NotificationService::class)->dispatch('queue_job_deleted', [
+            'description' => "ลบ failed job: {$uuid}",
+            'uuid'        => $uuid,
+            'actor'       => $this->authUser()?->name,
+        ]);
 
         return back()->with('success', "ลบ failed job เรียบร้อย");
     }
 
     public function flushFailed(): RedirectResponse
     {
-        abort_unless($this->authUser()?->isSuperAdmin(), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
+        abort_unless($this->authUser()?->canAccess('queue_monitor'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้น');
 
+        $count = DB::table('failed_jobs')->count();
         Artisan::call('queue:flush');
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_QUEUE,
+            AuditLog::EVENT_QUEUE_FLUSHED,
+            "ล้าง failed jobs ทั้งหมด {$count} jobs",
+            ['count' => $count],
+            $this->authUser(),
+        );
+
+        app(NotificationService::class)->dispatch('queue_flushed', [
+            'description' => "ล้าง failed jobs ทั้งหมด {$count} jobs",
+            'count'       => $count,
+            'actor'       => $this->authUser()?->name,
+        ]);
 
         return back()->with('success', "ล้าง failed jobs ทั้งหมดเรียบร้อย");
     }

@@ -23,6 +23,7 @@ $sections = [
     ['id' => 'ref-data',          'label' => 'ข้อมูล Reference'],
     ['id' => 'twoway-sync',       'label' => '2-Way Sync'],
     ['id' => 'admin-levels',      'label' => 'สิทธิ์ Admin'],
+    ['id' => 'ucm-access',        'label' => 'สิทธิ์ระบบ UCM'],
     ['id' => 'ad-check',          'label' => 'ตรวจสอบ AD'],
     ['id' => 'sync',              'label' => 'การ Sync สิทธิ์'],
     ['id' => 'connector-wizard',  'label' => 'Connector Wizard'],
@@ -30,6 +31,7 @@ $sections = [
     ['id' => 'queue-monitor',         'label' => 'Queue Monitor'],
     ['id' => 'audit-log',             'label' => 'Audit Log'],
     ['id' => 'notification-channels', 'label' => 'Notification Channels'],
+    ['id' => 'permission-center',     'label' => 'Permission Center'],
     ['id' => 'permission-matrix',     'label' => 'Permission Matrix'],
     ['id' => 'permission-timeline',   'label' => 'Permission Timeline'],
     ['id' => 'inactive-users',        'label' => 'ผู้ใช้ไม่ได้ใช้งาน'],
@@ -811,7 +813,118 @@ $sections = [
 
                 <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
                     <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-                    <span>หน้า "จัดการสิทธิ์ Admin" จะ<strong>ไม่ปรากฏ</strong>ในเมนูหากผู้ใช้ไม่ใช่ Admin ระดับ 2 และจะ return 403 หากเข้า URL โดยตรง</span>
+                    <span>หน้า "จัดการสิทธิ์ Admin" จะ<strong>ไม่ปรากฏ</strong>ในเมนูหากผู้ใช้ไม่ใช่ Admin ระดับ 2 และจะ return 403 หากเข้า URL โดยตรง — ระดับที่ต้องการสำหรับแต่ละฟีเจอร์สามารถปรับเพิ่มเติมได้ใน <strong>สิทธิ์ระบบ UCM</strong> (ดูหัวข้อถัดไป)</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── สิทธิ์ระบบ UCM ── --}}
+        <div id="ucm-access" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-slate-800">สิทธิ์ระบบ UCM (UCM Access Control)</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">ควบคุมการเข้าถึงฟีเจอร์ภายใน UCM แบบ Fine-Grained</p>
+                </div>
+                <span class="ml-auto text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Admin L2 เท่านั้น</span>
+            </div>
+            <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+
+                <p>ระบบ <strong>UCM Access Control</strong> ช่วยให้ผู้ดูแลระดับ 2 กำหนดว่าผู้ใช้แต่ละระดับ (L0/L1/L2) สามารถเข้าถึงฟีเจอร์ใดของ UCM ได้บ้าง และสามารถมอบสิทธิ์พิเศษให้ผู้ใช้รายบุคคลได้โดยไม่ต้องเลื่อนระดับ Admin</p>
+
+                <div class="grid sm:grid-cols-2 gap-3 text-xs">
+                    <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                        <p class="font-semibold text-indigo-900 mb-1">ปรับ Min Level ต่อ Feature</p>
+                        <p class="text-indigo-800">เปลี่ยน Level ขั้นต่ำที่ต้องการสำหรับแต่ละฟีเจอร์ เช่น เปิดให้ L1 เข้า Queue Monitor หรือล็อก Connector Wizard ไว้ที่ L2 เท่านั้น</p>
+                    </div>
+                    <div class="p-4 bg-violet-50 rounded-xl border border-violet-100">
+                        <p class="font-semibold text-violet-900 mb-1">Individual Grant</p>
+                        <p class="text-violet-800">มอบสิทธิ์เฉพาะฟีเจอร์ให้ผู้ใช้รายบุคคล โดยไม่ต้องเพิ่ม Admin Level — เหมาะสำหรับการเปิดสิทธิ์ชั่วคราวหรือตามหน้าที่</p>
+                    </div>
+                </div>
+
+                {{-- ฟีเจอร์ที่ควบคุมได้ --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">ฟีเจอร์ที่ควบคุมได้</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50">
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">Feature Key</th>
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">ชื่อ</th>
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">Default Level</th>
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">หมวด</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ([
+                                    ['key' => 'dashboard',           'name' => 'Dashboard',                       'level' => 'L0', 'group' => 'ทั่วไป'],
+                                    ['key' => 'user_list',           'name' => 'ดูรายชื่อผู้ใช้',                  'level' => 'L0', 'group' => 'ทั่วไป'],
+                                    ['key' => 'user_detail',         'name' => 'ดูรายละเอียดผู้ใช้',              'level' => 'L0', 'group' => 'ทั่วไป'],
+                                    ['key' => 'system_list',         'name' => 'ดูรายชื่อระบบที่เชื่อมต่อ',       'level' => 'L0', 'group' => 'ทั่วไป'],
+                                    ['key' => 'user_import_ldap',    'name' => 'Import ผู้ใช้จาก LDAP/AD',        'level' => 'L1', 'group' => 'ผู้ใช้'],
+                                    ['key' => 'user_info_edit',      'name' => 'แก้ไขข้อมูลผู้ใช้',               'level' => 'L2', 'group' => 'ผู้ใช้'],
+                                    ['key' => 'user_remove',         'name' => 'ลบ/ถอนผู้ใช้ออกจากระบบ',          'level' => 'L2', 'group' => 'ผู้ใช้'],
+                                    ['key' => 'user_inactive_report','name' => 'รายงาน Inactive Users',            'level' => 'L1', 'group' => 'ผู้ใช้'],
+                                    ['key' => 'permission_timeline', 'name' => 'Permission Timeline ของผู้ใช้',    'level' => 'L1', 'group' => 'ผู้ใช้'],
+                                    ['key' => 'permission_update',   'name' => 'แก้ไขสิทธิ์ผู้ใช้ในระบบ',         'level' => 'L1', 'group' => 'สิทธิ์'],
+                                    ['key' => 'permission_matrix',   'name' => 'Permission Matrix Report',         'level' => 'L1', 'group' => 'สิทธิ์'],
+                                    ['key' => 'permission_center',   'name' => 'จัดการ Permissions (Permission Center)', 'level' => 'L1', 'group' => 'สิทธิ์'],
+                                    ['key' => 'audit_log',           'name' => 'Audit Log',                        'level' => 'L1', 'group' => 'รายงาน'],
+                                    ['key' => 'admin_levels',        'name' => 'จัดการสิทธิ์ Admin',               'level' => 'L2', 'group' => 'ผู้ดูแลระบบ'],
+                                    ['key' => 'ucm_access',          'name' => 'จัดการสิทธิ์ระบบ UCM',             'level' => 'L2', 'group' => 'ผู้ดูแลระบบ'],
+                                    ['key' => 'queue_monitor',       'name' => 'Queue Monitor',                    'level' => 'L1', 'group' => 'ผู้ดูแลระบบ'],
+                                    ['key' => 'connector_wizard',    'name' => 'Connector Wizard',                 'level' => 'L2', 'group' => 'ผู้ดูแลระบบ'],
+                                    ['key' => 'notifications',       'name' => 'Notification Channels',            'level' => 'L2', 'group' => 'ผู้ดูแลระบบ'],
+                                    ['key' => 'system_create_edit',  'name' => 'เพิ่ม/แก้ไขระบบที่เชื่อมต่อ',     'level' => 'L2', 'group' => 'ผู้ดูแลระบบ'],
+                                ] as $row)
+                                <tr class="border border-slate-100">
+                                    <td class="px-3 py-2 font-mono font-semibold text-indigo-700 bg-slate-50/50 whitespace-nowrap">{{ $row['key'] }}</td>
+                                    <td class="px-3 py-2 text-slate-700">{{ $row['name'] }}</td>
+                                    <td class="px-3 py-2 whitespace-nowrap">
+                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded
+                                            {{ match($row['level']) {
+                                                'L0' => 'bg-emerald-100 text-emerald-700',
+                                                'L1' => 'bg-indigo-100 text-indigo-700',
+                                                'L2' => 'bg-amber-100 text-amber-700',
+                                                default => 'bg-slate-100 text-slate-600',
+                                            } }}">{{ $row['level'] }}</span>
+                                    </td>
+                                    <td class="px-3 py-2 text-slate-500">{{ $row['group'] }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">ฟีเจอร์ที่ <code class="font-mono bg-slate-100 px-1 rounded">lockable = false</code> ไม่สามารถลด Level ลงต่ำกว่าค่าเดิมได้ (เพื่อป้องกันการล็อคตัวเอง)</p>
+                </div>
+
+                {{-- วิธีใช้งาน --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">วิธีใช้งาน</h3>
+                    <div class="space-y-2">
+                        @foreach ([
+                            'เข้าเมนู <strong>ผู้ดูแลระบบ → สิทธิ์ระบบ UCM</strong> ในแถบนำทางด้านซ้าย (มองเห็นเฉพาะ Admin ระดับ 2)',
+                            'หน้าจะแสดงรายการฟีเจอร์ทั้งหมดพร้อม Level ขั้นต่ำปัจจุบัน และรายชื่อ Individual Grants',
+                            'กดปุ่ม <strong>L0</strong>, <strong>L1</strong> หรือ <strong>L2</strong> ที่แถวฟีเจอร์เพื่อเปลี่ยน Min Level ทันที',
+                            'กด <strong>+ ให้สิทธิ์พิเศษ</strong> แล้วค้นหาผู้ใช้ที่ต้องการมอบ Individual Grant',
+                            'กด <strong>ถอน</strong> ที่ Individual Grant เพื่อลบสิทธิ์พิเศษของผู้ใช้คนนั้น',
+                        ] as $i => $text)
+                            <div class="flex items-start gap-3">
+                                <span class="w-5 h-5 bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">{{ $i+1 }}</span>
+                                <p>{!! $text !!}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
+                    <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                    <span>การเปลี่ยน Level จะมีผลทันทีสำหรับ request ถัดไป — ค่าถูก Cache ไว้ 5 นาที การเปลี่ยน Level จะล้าง Cache ให้อัตโนมัติ</span>
                 </div>
             </div>
         </div>
@@ -2452,13 +2565,15 @@ $sections = [
                     <h3 class="font-bold text-slate-900 mb-3">ประเภทเหตุการณ์ (Category)</h3>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                         @foreach ([
-                            ['label' => 'Auth', 'color' => 'sky', 'desc' => 'Login / Logout / Login Failed'],
-                            ['label' => 'Users', 'color' => 'indigo', 'desc' => 'Import, อัปเดต, ลบผู้ใช้'],
+                            ['label' => 'Auth',        'color' => 'sky',    'desc' => 'Login / Logout / Login Failed'],
+                            ['label' => 'Users',       'color' => 'indigo', 'desc' => 'Import, อัปเดต, ลบผู้ใช้'],
                             ['label' => 'Permissions', 'color' => 'violet', 'desc' => 'เพิ่ม/ลบ/เปลี่ยน สิทธิ์ผู้ใช้ และ Account Status'],
-                            ['label' => 'Systems', 'color' => 'emerald', 'desc' => 'สร้าง/แก้ไข/ลบ ระบบ, Permission Definition และข้อมูล Reference'],
-                            ['label' => 'Connectors', 'color' => 'amber', 'desc' => 'สร้าง/แก้ไข/ลบ Connector Wizard'],
-                            ['label' => 'Notifications', 'color' => 'teal', 'desc' => 'สร้าง/แก้ไข/ลบ Notification Channel'],
-                            ['label' => 'API', 'color' => 'rose', 'desc' => 'ออก Token / Revoke / User Login ผ่าน API'],
+                            ['label' => 'Systems',     'color' => 'emerald','desc' => 'สร้าง/แก้ไข/ลบ ระบบ, Permission Definition และข้อมูล Reference'],
+                            ['label' => 'Connectors',  'color' => 'orange', 'desc' => 'สร้าง/แก้ไข/ลบ Connector Wizard'],
+                            ['label' => 'Notifications','color' => 'teal',  'desc' => 'สร้าง/แก้ไข/ลบ Notification Channel'],
+                            ['label' => 'UCM Access',  'color' => 'purple', 'desc' => 'เปลี่ยน Feature Level / มอบ/ถอน Individual Grant'],
+                            ['label' => 'Queue',       'color' => 'amber',  'desc' => 'Retry / Delete / Flush Failed Jobs'],
+                            ['label' => 'API',         'color' => 'rose',   'desc' => 'ออก Token / Revoke / User Login ผ่าน API'],
                         ] as $item)
                         <div class="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
                             <div class="w-2 h-2 rounded-full bg-{{ $item['color'] }}-500 mt-1 flex-shrink-0"></div>
@@ -2479,7 +2594,7 @@ $sections = [
                             <svg class="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a2 2 0 012-2z"/></svg>
                             <div>
                                 <p class="font-semibold text-indigo-800">กรองตามประเภท</p>
-                                <p class="text-slate-600 mt-0.5">คลิกแท็บ Auth / Users / Permissions / Systems / Connectors / Notifications / API เพื่อกรองเฉพาะหมวดนั้น</p>
+                                <p class="text-slate-600 mt-0.5">คลิกแท็บ Auth / Users / Permissions / Systems / Connectors / Notifications / UCM Access / Queue / API เพื่อกรองเฉพาะหมวดนั้น</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
@@ -2520,7 +2635,7 @@ $sections = [
                             </thead>
                             <tbody>
                                 @foreach ([
-                                    ['col' => 'ประเภท', 'desc' => 'หมวดหมู่เหตุการณ์ (Auth / Users / Permissions / Systems / Connectors / Notifications / API)'],
+                                    ['col' => 'ประเภท', 'desc' => 'หมวดหมู่เหตุการณ์ (Auth / Users / Permissions / Systems / Connectors / Notifications / UCM Access / Queue / API)'],
                                     ['col' => 'เหตุการณ์', 'desc' => 'ชื่อ Event เช่น Login, Update Permissions, Create System'],
                                     ['col' => 'ผู้กระทำ', 'desc' => 'Username ของผู้ดำเนินการ (หรือ System หากเกิดจาก API)'],
                                     ['col' => 'เป้าหมาย', 'desc' => 'ข้อมูลที่ถูกกระทำ เช่น ชื่อผู้ใช้ ชื่อระบบ'],
@@ -2628,6 +2743,15 @@ $sections = [
                                     ['event' => 'connector_created',     'group' => 'Connectors', 'desc' => 'เมื่อสร้าง Connector Wizard ใหม่'],
                                     ['event' => 'connector_updated',     'group' => 'Connectors', 'desc' => 'เมื่อแก้ไข Connector Wizard'],
                                     ['event' => 'connector_deleted',     'group' => 'Connectors', 'desc' => 'เมื่อลบ Connector Wizard'],
+                                    // UCM Access Control
+                                    ['event' => 'feature_level_updated', 'group' => 'UCM Access', 'desc' => 'เมื่อมีการเปลี่ยน Min Level ของ Feature ใน UCM'],
+                                    ['event' => 'feature_grant_created', 'group' => 'UCM Access', 'desc' => 'เมื่อมอบสิทธิ์พิเศษ (Individual Grant) ให้ผู้ใช้'],
+                                    ['event' => 'feature_grant_deleted', 'group' => 'UCM Access', 'desc' => 'เมื่อถอนสิทธิ์พิเศษ (Individual Grant) จากผู้ใช้'],
+                                    // Queue Monitor
+                                    ['event' => 'queue_job_retried',     'group' => 'Queue', 'desc' => 'เมื่อ Retry Failed Job รายการเดียว'],
+                                    ['event' => 'queue_all_retried',     'group' => 'Queue', 'desc' => 'เมื่อ Retry Failed Jobs ทั้งหมด'],
+                                    ['event' => 'queue_job_deleted',     'group' => 'Queue', 'desc' => 'เมื่อลบ Failed Job รายการเดียว'],
+                                    ['event' => 'queue_flushed',         'group' => 'Queue', 'desc' => 'เมื่อ Flush Failed Jobs ทั้งหมด'],
                                     // Security / API
                                     ['event' => 'login_failed',          'group' => 'Security', 'desc' => 'เมื่อมีการ Login ล้มเหลว (รหัสผ่านผิด หรือแผนกไม่มีสิทธิ์)'],
                                     ['event' => 'api_token_issued',      'group' => 'Security', 'desc' => 'เมื่อมีการออก API Token (admin credentials ผ่าน /api/auth/token)'],
@@ -2642,7 +2766,9 @@ $sections = [
                                                 {{ match($row['group']) {
                                                     'Users'      => 'bg-indigo-100 text-indigo-700',
                                                     'Systems'    => 'bg-emerald-100 text-emerald-700',
-                                                    'Connectors' => 'bg-amber-100 text-amber-700',
+                                                    'Connectors' => 'bg-orange-100 text-orange-700',
+                                                    'UCM Access' => 'bg-purple-100 text-purple-700',
+                                                    'Queue'      => 'bg-amber-100 text-amber-700',
                                                     'Security'   => 'bg-rose-100 text-rose-700',
                                                     default      => 'bg-slate-100 text-slate-600',
                                                 } }}">{{ $row['group'] }}</span>
@@ -2674,6 +2800,72 @@ $sections = [
 }</pre>
                     </div>
                     <p class="text-xs text-slate-500 mt-2">Header <code class="font-mono bg-slate-100 px-1 rounded">X-UCM-Signature</code> = HMAC-SHA256 ของ JSON body (มีเฉพาะเมื่อตั้งค่า Secret)</p>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Permission Center ── --}}
+        <div id="permission-center" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-violet-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8h6m-6 4h6"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="font-bold text-slate-800">Permission Center (จัดการ Permissions)</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">จัดการนิยาม Permission ของทุกระบบในที่เดียว</p>
+                </div>
+                <span class="ml-auto text-[10px] font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">Admin L1+</span>
+            </div>
+            <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+
+                <p><strong>Permission Center</strong> เป็นหน้าจัดการ Permission Definition แบบรวมศูนย์ — สามารถดู เพิ่ม แก้ไข และลบ Permission ของทุกระบบที่เชื่อมต่อได้ในหน้าเดียว โดยไม่ต้องเข้าไปแต่ละระบบแยกกัน</p>
+
+                <div class="grid sm:grid-cols-2 gap-3 text-xs">
+                    <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                        <p class="font-semibold text-indigo-900 mb-1">ต่างจากหน้าจัดการสิทธิ์ผู้ใช้อย่างไร?</p>
+                        <ul class="text-indigo-800 space-y-1">
+                            <li>• <strong>Permission Center</strong> — จัดการ <em>นิยาม</em> (Permission Definition) ว่ามี Permission อะไรในระบบบ้าง</li>
+                            <li>• <strong>หน้าผู้ใช้ (Users → Profile)</strong> — มอบ/ถอน Permission ที่กำหนดไว้แล้วให้ผู้ใช้คนนั้น</li>
+                        </ul>
+                    </div>
+                    <div class="p-4 bg-violet-50 rounded-xl border border-violet-100">
+                        <p class="font-semibold text-violet-900 mb-1">ฟีเจอร์หลัก</p>
+                        <ul class="text-violet-800 space-y-1">
+                            <li>• Sidebar เลือกระบบ พร้อมค้นหาชื่อระบบ</li>
+                            <li>• ดู Permission ทั้งหมด พร้อมจำนวน Assignments</li>
+                            <li>• เพิ่ม/แก้ไข/ลบ Permission Definition</li>
+                            <li>• Discover Permissions จากระบบปลายทาง</li>
+                            <li>• ลิงก์ไป Permission Matrix Report โดยตรง</li>
+                        </ul>
+                    </div>
+                </div>
+
+                {{-- วิธีใช้งาน --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">วิธีใช้งาน</h3>
+                    <div class="space-y-2">
+                        @foreach ([
+                            'เข้าเมนู <strong>จัดการ Permissions</strong> ในแถบนำทางด้านซ้าย',
+                            'เลือกระบบจาก Sidebar ทางซ้าย (ค้นหาชื่อระบบได้)',
+                            'เนื้อหาทางขวาจะแสดง Permission ทั้งหมดของระบบนั้น พร้อมจำนวนผู้ใช้ที่ได้รับแต่ละสิทธิ์',
+                            'กด <strong>+ เพิ่ม Permission</strong> เพื่อนิยาม Permission ใหม่',
+                            'กด <strong>แก้ไข</strong> เพื่อปรับ Display Name หรือ <code class="font-mono bg-slate-100 px-1 rounded text-xs">permission_key</code>',
+                            'กด <strong>ลบ</strong> เพื่อลบ Permission (จะถามยืนยัน)',
+                            'กด <strong>Discover</strong> เพื่อดึง Permission จากระบบปลายทางอัตโนมัติ',
+                        ] as $i => $text)
+                            <div class="flex items-start gap-3">
+                                <span class="w-5 h-5 bg-violet-100 text-violet-700 text-xs font-bold rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">{{ $i+1 }}</span>
+                                <p>{!! $text !!}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-800">
+                    <svg class="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    <span>การลบ Permission จะลบ Assignment ของผู้ใช้ทุกคนสำหรับ Permission นั้นด้วย — กระบวนการนี้ย้อนกลับไม่ได้</span>
                 </div>
             </div>
         </div>

@@ -145,7 +145,7 @@
                 @php
                     $auditActive = request()->routeIs('audit.*');
                     $auditDepts  = array_map('strtoupper', config('auth.audit_departments', []));
-                    $canSeeAudit = auth()->user()?->isAdmin() || in_array(strtoupper(auth()->user()?->department ?? ''), $auditDepts);
+                    $canSeeAudit = auth()->user()?->canAccess('audit_log') || in_array(strtoupper(auth()->user()?->department ?? ''), $auditDepts);
                 @endphp
                 @if ($canSeeAudit)
                 <a href="{{ route('audit.index') }}" onclick="closeSidebar()"
@@ -174,7 +174,20 @@
                     <span class="truncate">Permission Matrix</span>
                     @if ($reportActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
-                @if (auth()->user()->isSuperAdmin())
+                @php $permCenterActive = request()->routeIs('permissions.*') @endphp
+                <a href="{{ route('permissions.index') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                          {{ $permCenterActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $permCenterActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">จัดการ Permissions</span>
+                    @if ($permCenterActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
+                @if (auth()->user()->canAccess('admin_levels'))
                 @php $adminActive = request()->routeIs('admin.levels') @endphp
                 <a href="{{ route('admin.levels') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
@@ -187,6 +200,19 @@
                     </div>
                     <span class="truncate">จัดการสิทธิ์ Admin</span>
                     @if ($adminActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
+                @php $ucmAccessActive = request()->routeIs('ucm-access.*') @endphp
+                <a href="{{ route('ucm-access.index') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                          {{ $ucmAccessActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $ucmAccessActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">สิทธิ์ระบบ UCM</span>
+                    @if ($ucmAccessActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
                 @php $queueActive = request()->routeIs('queue.monitor') @endphp
                 <a href="{{ route('queue.monitor') }}" onclick="closeSidebar()"

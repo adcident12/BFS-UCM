@@ -9,6 +9,11 @@
     <span class="font-semibold text-slate-800 truncate">ระบบที่เชื่อมต่อ</span>
 @endsection
 
+@php
+    $canManageSystems = auth()->user()->canAccess('system_create_edit');
+    $canEditPermissions = auth()->user()->canAccess('permission_update');
+@endphp
+
 @section('content')
 
 {{-- Health Check Flash Area — injected dynamically by JS --}}
@@ -19,7 +24,7 @@
     <div>
         <p class="text-sm text-slate-500 font-medium">ระบบทั้งหมด {{ $systems->count() }} ระบบ</p>
     </div>
-    @if (auth()->user()->isSuperAdmin())
+    @if ($canManageSystems)
     <a href="{{ route('systems.create') }}"
        class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm shadow-indigo-200 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,7 +88,7 @@
                        class="flex-1 text-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors duration-150">
                         ดูรายละเอียด
                     </a>
-                    @if (auth()->user()->isAdmin())
+                    @if ($canEditPermissions)
                     <button type="button"
                             onclick="healthCheck(this)"
                             data-health-url="{{ route('systems.health-check', $system) }}"
@@ -95,7 +100,7 @@
                         ทดสอบ
                     </button>
                     @endif
-                    @if (auth()->user()->isSuperAdmin())
+                    @if ($canManageSystems)
                     <a href="{{ route('systems.edit', $system) }}"
                        class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl transition-colors duration-150">
                         แก้ไข
@@ -121,7 +126,7 @@
             </div>
             <h3 class="text-base font-bold text-slate-700 mb-1">ยังไม่มีระบบ</h3>
             <p class="text-sm text-slate-400 mb-6">เพิ่มระบบแรกเพื่อเริ่มจัดการสิทธิ์ผู้ใช้</p>
-            @if (auth()->user()->isSuperAdmin())
+            @if ($canManageSystems)
             <a href="{{ route('systems.create') }}"
                class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm shadow-indigo-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
