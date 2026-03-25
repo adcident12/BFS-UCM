@@ -131,8 +131,8 @@
                 @endforeach
             </div>
 
-            {{-- ── ผู้ดูแลระบบ (Admin level 1+ เห็น Audit Log + Permission Matrix / level 2 เห็นทั้งหมด) ── --}}
-            @if (auth()->user()->isAdmin())
+            {{-- ── ผู้ดูแลระบบ (Admin L1+ หรือ มีสิทธิ์พิเศษ) ── --}}
+            @if (auth()->user()->isAdmin() || auth()->user()->featureGrants()->exists())
             <div class="h-px bg-white/5 mx-3 my-3"></div>
             <button type="button" onclick="navToggle('admin')"
                     class="w-full flex items-center justify-between px-3 py-1 mb-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors">
@@ -201,6 +201,8 @@
                     <span class="truncate">จัดการสิทธิ์ Admin</span>
                     @if ($adminActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
+                @endif
+                @if (auth()->user()->canAccess('ucm_access'))
                 @php $ucmAccessActive = request()->routeIs('ucm-access.*') @endphp
                 <a href="{{ route('ucm-access.index') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
@@ -214,6 +216,8 @@
                     <span class="truncate">สิทธิ์ระบบ UCM</span>
                     @if ($ucmAccessActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
+                @endif
+                @if (auth()->user()->canAccess('queue_monitor'))
                 @php $queueActive = request()->routeIs('queue.monitor') @endphp
                 <a href="{{ route('queue.monitor') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
@@ -227,6 +231,8 @@
                     <span class="truncate">Queue Monitor</span>
                     @if ($queueActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
+                @endif
+                @if (auth()->user()->canAccess('connector_wizard'))
                 @php $connActive = request()->routeIs('connectors.*') @endphp
                 <a href="{{ route('connectors.index') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
@@ -240,6 +246,8 @@
                     <span class="truncate">Connector Wizard</span>
                     @if ($connActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
+                @endif
+                @if (auth()->user()->canAccess('notifications'))
                 @php $notifActive = request()->routeIs('notifications.*') @endphp
                 <a href="{{ route('notifications.index') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group

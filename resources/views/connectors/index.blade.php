@@ -9,6 +9,11 @@
 @endsection
 
 @section('content')
+
+@php
+    $canManageConnectors = auth()->user()->canAccess('connector_wizard');
+@endphp
+
 <div class="max-w-5xl mx-auto">
 
     {{-- Header --}}
@@ -17,7 +22,7 @@
             <h1 class="text-xl font-bold text-slate-900">Connector Wizard</h1>
             <p class="text-sm text-slate-500 mt-0.5">เชื่อมต่อฐานข้อมูลระบบภายนอกเข้ากับ UCM แบบ No-Code</p>
         </div>
-        @if(auth()->user()->isSuperAdmin())
+        @if($canManageConnectors)
         <a href="{{ route('connectors.create') }}"
            class="inline-flex items-center gap-2 text-sm font-semibold text-white bg-gradient-to-br from-indigo-500 to-violet-600 px-4 py-2.5 rounded-xl shadow-md shadow-indigo-200 hover:opacity-90 active:scale-95 transition-all whitespace-nowrap">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,10 +38,14 @@
 
     {{-- Empty State --}}
     <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-16 text-center">
-        <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">🔌</div>
+        <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+        </div>
         <h2 class="text-base font-bold text-slate-700 mb-1">ยังไม่มี Connector</h2>
         <p class="text-sm text-slate-500 mb-5">สร้าง Connector เพื่อเชื่อมต่อฐานข้อมูลระบบภายนอกกับ UCM</p>
-        @if(auth()->user()->isSuperAdmin())
+        @if($canManageConnectors)
         <a href="{{ route('connectors.create') }}"
            class="inline-flex items-center gap-2 text-sm font-semibold text-white bg-gradient-to-br from-indigo-500 to-violet-600 px-5 py-2.5 rounded-xl shadow-md shadow-indigo-200 hover:opacity-90 transition-all">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,7 +125,7 @@
             </div>
 
             {{-- Actions --}}
-            @if(auth()->user()->isSuperAdmin())
+            @if($canManageConnectors)
             <div class="flex items-center px-4 py-2.5 border-t border-slate-100 bg-slate-50/60 gap-0.5">
                 @if($system)
                 <a href="{{ route('systems.show', $system) }}"

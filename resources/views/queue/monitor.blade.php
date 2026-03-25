@@ -404,7 +404,7 @@
 (function () {
     var POLL_URL      = '{{ route('queue.monitor.poll') }}';
     var INTERVAL      = 4000;
-    var isSuperAdmin  = {{ $canManageQueue ? 'true' : 'false' }}; // canAccess('queue_monitor')
+    var canManageQueue = {{ $canManageQueue ? 'true' : 'false' }}; // canAccess('queue_monitor')
     var timer         = null;
     var lastFailedCount = {{ $failedCount }}; // จำนวนตอน page load
 

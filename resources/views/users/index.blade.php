@@ -11,6 +11,13 @@
 
 @section('content')
 
+@php
+    $canImportLdap      = auth()->user()->canAccess('user_import_ldap');
+    $canInactiveReport  = auth()->user()->canAccess('user_inactive_report');
+    $canRemoveUser      = auth()->user()->canAccess('user_remove');
+    $canEditPermissions = auth()->user()->canAccess('permission_update');
+@endphp
+
 {{-- Export form (hidden, submitted by JS) --}}
 <form id="export-form" method="GET" action="{{ route('users.export') }}" style="display:none">
     <div id="export-ids-container"></div>
@@ -47,8 +54,9 @@
     </form>
 
     {{-- AD Management (admin only) — global actions, not related to row selection --}}
-    @if (auth()->user()->isAdmin())
+    @if ($canImportLdap || $canInactiveReport)
     <div class="flex items-center gap-2 flex-shrink-0">
+        @if ($canInactiveReport)
         <a href="{{ route('users.inactive') }}"
            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-sm font-semibold rounded-xl transition-all duration-150 whitespace-nowrap">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,6 +64,8 @@
             </svg>
             ไม่ได้ใช้งาน
         </a>
+        @endif
+        @if ($canImportLdap)
         <button id="btn-check-ad"
                 class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-sm font-semibold rounded-xl transition-all duration-150 whitespace-nowrap cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -70,6 +80,7 @@
             </svg>
             นำเข้าจาก AD
         </button>
+        @endif
     </div>
     @endif
 </div>
@@ -694,7 +705,7 @@
 })();
 </script>
 
-@if (auth()->user()->isAdmin())
+@if ($canImportLdap)
 <script>
 function _noPermAlert() {
     window.showAlert('คุณไม่มีสิทธิ์ใช้งานฟีเจอร์นี้ กรุณาติดต่อผู้ดูแลระบบ', 'error');

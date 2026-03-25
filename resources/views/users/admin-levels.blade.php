@@ -125,7 +125,7 @@
             </li>
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-slate-200 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                <span class="text-slate-300">จัดการสิทธิ์ Admin / Queue / Connector / Notifications</span>
+                <span class="text-slate-300">Queue / Connector / Notifications / UCM Access <span class="text-[10px] font-normal">(ค่าเริ่มต้น — ปรับได้)</span></span>
             </li>
         </ul>
     </div>
@@ -160,6 +160,10 @@
             <li class="flex items-center gap-2">
                 <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                 <strong>จัดการสิทธิ์ Admin</strong> ของผู้ใช้อื่น
+            </li>
+            <li class="flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                Queue / Connector / Notifications / UCM Access <span class="text-slate-400 font-normal">(ค่าเริ่มต้น)</span>
             </li>
         </ul>
     </div>

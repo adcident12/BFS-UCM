@@ -13,6 +13,13 @@
 
 @section('content')
 
+@php
+    $canEdit          = auth()->user()->canAccess('permission_update');
+    $canInfoEdit      = auth()->user()->canAccess('user_info_edit');
+    $canImportLdap    = auth()->user()->canAccess('user_import_ldap');
+    $canManageSystems = auth()->user()->canAccess('system_create_edit');
+@endphp
+
 {{-- User Profile Card --}}
 <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden mb-6">
     <div class="h-1.5 w-full" style="background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4)"></div>
@@ -44,7 +51,7 @@
             <div class="mt-3 flex flex-wrap items-center gap-2">
                 <span class="text-xs text-slate-400 font-medium">รหัสพนักงาน:</span>
                 <span id="emp-view" class="text-sm font-mono font-semibold text-slate-700">{{ $user->employee_number ?: '—' }}</span>
-                @if (auth()->user()->isSuperAdmin())
+                @if ($canInfoEdit)
                 <button id="emp-edit-btn" onclick="empEdit()"
                         class="text-xs font-semibold text-indigo-500 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-lg transition-colors cursor-pointer">แก้ไข</button>
                 <form id="emp-form" style="display:none"
@@ -67,7 +74,7 @@
                 </svg>
                 Permission Timeline
             </a>
-            @if (auth()->user()->isAdmin())
+            @if ($canImportLdap)
             <form action="{{ route('users.import') }}" method="POST">
                 @csrf
                 <input type="hidden" name="username" value="{{ $user->username }}">
@@ -136,7 +143,7 @@
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full ring-1 ring-emerald-200/60">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active
                         </span>
-                        @if (auth()->user()->isSuperAdmin())
+                        @if ($canEdit)
                         <form id="form-disable-{{ $system->id }}" action="{{ route('users.system.status', [$user, $system]) }}" method="POST" class="hidden">
                             @csrf <input type="hidden" name="active" value="0">
                         </form>
@@ -150,7 +157,7 @@
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 bg-red-50 px-2.5 py-1 rounded-full ring-1 ring-red-200/60">
                             <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Disabled
                         </span>
-                        @if (auth()->user()->isSuperAdmin())
+                        @if ($canEdit)
                         <form id="form-enable-{{ $system->id }}" action="{{ route('users.system.status', [$user, $system]) }}" method="POST" class="hidden">
                             @csrf <input type="hidden" name="active" value="1">
                         </form>
@@ -169,7 +176,7 @@
                             <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
                             Out of Sync
                         </span>
-                        @if (auth()->user()->isAdmin())
+                        @if ($canEdit)
                         <form id="form-discover-{{ $system->id }}"
                               action="{{ route('users.system.discover', [$user, $system]) }}"
                               method="POST" class="hidden">
@@ -229,7 +236,7 @@
                     </span>
                 </div>
             @else
-                @if (auth()->user()->isAdmin())
+                @if ($canEdit)
                 {{-- ── Editable permission form (L1+) ── --}}
                 <form method="POST" action="{{ route('users.permissions.update', $user) }}">
                     @csrf
@@ -466,7 +473,7 @@
                 </svg>
             </div>
             <p class="text-sm font-semibold text-slate-400 mb-1">ยังไม่มีระบบที่เชื่อมต่อ</p>
-            @if (auth()->user()->isSuperAdmin())
+            @if ($canManageSystems)
             <a href="{{ route('systems.create') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:underline">เพิ่มระบบ →</a>
             @endif
         </div>
