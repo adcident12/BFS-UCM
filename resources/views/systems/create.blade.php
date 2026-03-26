@@ -11,7 +11,7 @@
 @endsection
 
 @section('content')
-<div class="max-w-2xl">
+<div class="max-w-full">
 
     <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
         <form method="POST" action="{{ route('systems.store') }}">

@@ -891,6 +891,222 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         }
     }
 
+    // ── Managed Group CRUD (Master Tables) ─────────────────────────────────
+
+    public function getManagedGroups(): array
+    {
+        $tables = $this->config->master_tables ?? [];
+
+        return array_column($tables, 'label');
+    }
+
+    public function getGroupDeleteMode(string $group): string
+    {
+        $cfg = $this->getMasterTableConfig($group);
+
+        return $cfg['delete_mode'] ?? 'hard';
+    }
+
+    public function getGroupSchema(string $group): array
+    {
+        $cfg = $this->getMasterTableConfig($group);
+
+        if (! $cfg) {
+            return [];
+        }
+
+        $schema = [];
+        foreach ($cfg['extra_cols'] ?? [] as $col) {
+            $schema[$col['col']] = [
+                'label'    => $col['label'] ?? $col['col'],
+                'type'     => $col['type'] ?? 'text',
+                'required' => (bool) ($col['required'] ?? false),
+            ];
+        }
+
+        return $schema;
+    }
+
+    public function getGroupRecords(string $group): array
+    {
+        $cfg = $this->getMasterTableConfig($group);
+
+        if (! $cfg) {
+            return [];
+        }
+
+        try {
+            $pdo      = $this->getConnection();
+            $table    = $this->quoteIdentifier($cfg['table']);
+            $pk       = $this->quoteIdentifier($cfg['pk_col']);
+            $labelCol = $this->quoteIdentifier($cfg['label_col']);
+
+            $extraCols = '';
+            foreach ($cfg['extra_cols'] ?? [] as $col) {
+                $extraCols .= ', ' . $this->quoteIdentifier($col['col']);
+            }
+
+            $where = '';
+            if (($cfg['delete_mode'] ?? 'hard') === 'soft' && ! empty($cfg['soft_delete_col'])) {
+                $softCol   = $this->quoteIdentifier($cfg['soft_delete_col']);
+                $softVal   = $cfg['soft_delete_val'] ?? '1';
+                $where     = " WHERE {$softCol} != " . $pdo->quote((string) $softVal);
+            }
+
+            $sql  = "SELECT {$pk} AS id, {$labelCol} AS name{$extraCols} FROM {$table}{$where}";
+            $stmt = $pdo->query($sql);
+
+            return $stmt->fetchAll();
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] getGroupRecords({$group}): ".$e->getMessage());
+
+            return [];
+        }
+    }
+
+    public function addGroupRecord(string $group, string $name, array $extra = []): array|false
+    {
+        $cfg = $this->getMasterTableConfig($group);
+
+        if (! $cfg) {
+            return false;
+        }
+
+        try {
+            $pdo      = $this->getConnection();
+            $table    = $this->quoteIdentifier($cfg['table']);
+            $labelCol = $this->quoteIdentifier($cfg['label_col']);
+
+            $cols   = [$labelCol];
+            $values = [$name];
+
+            foreach ($cfg['extra_cols'] ?? [] as $col) {
+                if (array_key_exists($col['col'], $extra)) {
+                    $cols[]   = $this->quoteIdentifier($col['col']);
+                    $values[] = $extra[$col['col']];
+                }
+            }
+
+            $placeholders = implode(', ', array_fill(0, count($cols), '?'));
+            $colList      = implode(', ', $cols);
+
+            $pdo->prepare("INSERT INTO {$table} ({$colList}) VALUES ({$placeholders})")
+                ->execute($values);
+
+            $newId = (int) $pdo->lastInsertId();
+
+            Log::info("[DynamicAdapter:{$this->system->slug}] addGroupRecord({$group}): id={$newId}");
+
+            $records = $this->getGroupRecords($group);
+            foreach ($records as $record) {
+                if ((int) $record['id'] === $newId) {
+                    return $record;
+                }
+            }
+
+            return ['id' => $newId, 'name' => $name];
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] addGroupRecord({$group}): ".$e->getMessage());
+
+            return false;
+        }
+    }
+
+    public function updateGroupRecord(string $group, int $id, string $name, array $extra = []): bool
+    {
+        $cfg = $this->getMasterTableConfig($group);
+
+        if (! $cfg) {
+            return false;
+        }
+
+        try {
+            $pdo      = $this->getConnection();
+            $table    = $this->quoteIdentifier($cfg['table']);
+            $pk       = $this->quoteIdentifier($cfg['pk_col']);
+            $labelCol = $this->quoteIdentifier($cfg['label_col']);
+
+            $setParts = ["{$labelCol} = ?"];
+            $bindings = [$name];
+
+            foreach ($cfg['extra_cols'] ?? [] as $col) {
+                if (array_key_exists($col['col'], $extra)) {
+                    $setParts[] = $this->quoteIdentifier($col['col']) . ' = ?';
+                    $bindings[] = $extra[$col['col']];
+                }
+            }
+
+            $bindings[] = $id;
+            $setClause  = implode(', ', $setParts);
+
+            $pdo->prepare("UPDATE {$table} SET {$setClause} WHERE {$pk} = ?")
+                ->execute($bindings);
+
+            Log::info("[DynamicAdapter:{$this->system->slug}] updateGroupRecord({$group}): id={$id}");
+
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] updateGroupRecord({$group}, {$id}): ".$e->getMessage());
+
+            return false;
+        }
+    }
+
+    public function deleteGroupRecord(string $group, int $id): bool
+    {
+        $cfg = $this->getMasterTableConfig($group);
+
+        if (! $cfg) {
+            return false;
+        }
+
+        try {
+            $pdo   = $this->getConnection();
+            $table = $this->quoteIdentifier($cfg['table']);
+            $pk    = $this->quoteIdentifier($cfg['pk_col']);
+
+            if (($cfg['delete_mode'] ?? 'hard') === 'soft') {
+                $softCol = $cfg['soft_delete_col'] ?? null;
+                $softVal = $cfg['soft_delete_val'] ?? '1';
+
+                if (! $softCol) {
+                    return false;
+                }
+
+                $quotedSoftCol = $this->quoteIdentifier($softCol);
+                $pdo->prepare("UPDATE {$table} SET {$quotedSoftCol} = ? WHERE {$pk} = ?")
+                    ->execute([$softVal, $id]);
+
+                Log::info("[DynamicAdapter:{$this->system->slug}] deleteGroupRecord({$group}, soft): id={$id}");
+            } else {
+                $pdo->prepare("DELETE FROM {$table} WHERE {$pk} = ?")
+                    ->execute([$id]);
+
+                Log::info("[DynamicAdapter:{$this->system->slug}] deleteGroupRecord({$group}, hard): id={$id}");
+            }
+
+            return true;
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] deleteGroupRecord({$group}, {$id}): ".$e->getMessage());
+
+            return false;
+        }
+    }
+
+    /**
+     * ค้นหา master table config โดย label
+     */
+    private function getMasterTableConfig(string $group): ?array
+    {
+        foreach ($this->config->master_tables ?? [] as $entry) {
+            if (($entry['label'] ?? '') === $group) {
+                return $entry;
+            }
+        }
+
+        return null;
+    }
+
     // ── Utility ────────────────────────────────────────────────────────────
 
     /**

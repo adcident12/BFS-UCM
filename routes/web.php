@@ -127,4 +127,5 @@ Route::middleware('auth')->group(function () {
     Route::post('/systems/{system}/group-records', [SystemController::class, 'storeGroupRecord'])->name('systems.group-records.store');
     Route::put('/systems/{system}/group-records/{group}/{recordId}', [SystemController::class, 'updateGroupRecord'])->name('systems.group-records.update');
     Route::delete('/systems/{system}/group-records/{group}/{recordId}', [SystemController::class, 'destroyGroupRecord'])->name('systems.group-records.destroy');
+    Route::post('/systems/{system}/group-records/{group}/discover', [SystemController::class, 'discoverGroupRecords'])->name('systems.group-records.discover');
 });

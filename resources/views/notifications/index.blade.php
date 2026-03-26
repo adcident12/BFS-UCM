@@ -67,33 +67,48 @@
 @php
 $availableEvents = [
     // Users
-    'permissions_updated'  => 'สิทธิ์เปลี่ยนแปลง',
-    'account_status_changed' => 'เปลี่ยน Status ผู้ใช้ในระบบ',
-    'user_imported'        => 'Import ผู้ใช้',
-    'user_bulk_imported'   => 'Import ผู้ใช้ Bulk',
-    'user_removed'         => 'ลบผู้ใช้',
-    'admin_level_updated'  => 'เปลี่ยน Admin Level',
+    'permissions_updated'     => 'สิทธิ์เปลี่ยนแปลง',
+    'permissions_discovered'  => 'Discover สิทธิ์จากระบบ',
+    'account_status_changed'  => 'เปลี่ยน Status ผู้ใช้ในระบบ',
+    'user_imported'           => 'Import ผู้ใช้',
+    'user_bulk_imported'      => 'Import ผู้ใช้ Bulk',
+    'user_removed'            => 'ลบผู้ใช้',
+    'admin_level_updated'     => 'เปลี่ยน Admin Level',
     // Systems
-    'system_created'       => 'เพิ่ม System',
-    'system_updated'       => 'แก้ไข System',
-    'system_deleted'       => 'ลบ System',
-    'system_2way_toggled'  => 'Toggle 2-Way Sync',
+    'system_created'          => 'เพิ่ม System',
+    'system_updated'          => 'แก้ไข System',
+    'system_deleted'          => 'ลบ System',
+    'system_2way_toggled'     => 'Toggle 2-Way Sync',
+    // Permission Definitions
+    'perm_def_created'        => 'เพิ่ม Permission Definition',
+    'perm_def_updated'        => 'แก้ไข Permission Definition',
+    'perm_def_deleted'        => 'ลบ Permission Definition',
+    'perm_def_discovered'     => 'Discover Permission Definitions',
+    // Reference Data (Group Records)
+    'group_record_created'    => 'เพิ่ม Reference Data',
+    'group_record_updated'    => 'แก้ไข Reference Data',
+    'group_record_deleted'    => 'ลบ Reference Data',
+    'group_records_discovered' => 'Discover Reference Data',
     // Connectors
-    'connector_created'    => 'สร้าง Connector',
-    'connector_updated'    => 'แก้ไข Connector',
-    'connector_deleted'    => 'ลบ Connector',
+    'connector_created'       => 'สร้าง Connector',
+    'connector_updated'       => 'แก้ไข Connector',
+    'connector_deleted'       => 'ลบ Connector',
     // UCM Access Control
-    'feature_level_updated' => 'เปลี่ยนระดับสิทธิ์ฟีเจอร์ UCM',
-    'feature_grant_created' => 'ให้สิทธิ์พิเศษฟีเจอร์ UCM',
-    'feature_grant_deleted' => 'ถอนสิทธิ์พิเศษฟีเจอร์ UCM',
+    'feature_level_updated'   => 'เปลี่ยนระดับสิทธิ์ฟีเจอร์ UCM',
+    'feature_grant_created'   => 'ให้สิทธิ์พิเศษฟีเจอร์ UCM',
+    'feature_grant_deleted'   => 'ถอนสิทธิ์พิเศษฟีเจอร์ UCM',
+    // Notifications
+    'notification_channel_created' => 'เพิ่ม Notification Channel',
+    'notification_channel_updated' => 'แก้ไข Notification Channel',
+    'notification_channel_deleted' => 'ลบ Notification Channel',
     // Queue Monitor
-    'queue_job_retried'     => 'Retry Failed Job',
-    'queue_all_retried'     => 'Retry Failed Jobs ทั้งหมด',
-    'queue_job_deleted'     => 'ลบ Failed Job',
-    'queue_flushed'         => 'Flush Failed Jobs ทั้งหมด',
+    'queue_job_retried'       => 'Retry Failed Job',
+    'queue_all_retried'       => 'Retry Failed Jobs ทั้งหมด',
+    'queue_job_deleted'       => 'ลบ Failed Job',
+    'queue_flushed'           => 'Flush Failed Jobs ทั้งหมด',
     // Security / API
-    'login_failed'          => 'Login ล้มเหลว',
-    'api_token_issued'      => 'ออก API Token',
+    'login_failed'            => 'Login ล้มเหลว',
+    'api_token_issued'        => 'ออก API Token',
 ];
 @endphp
 

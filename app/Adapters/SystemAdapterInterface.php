@@ -167,4 +167,9 @@ interface SystemAdapterInterface
      * ลบ record ออกจากกลุ่มที่ระบุ
      */
     public function deleteGroupRecord(string $group, int $id): bool;
+
+    /**
+     * วิธีลบ record ของกลุ่มที่ระบุ: 'hard' หรือ 'soft'
+     */
+    public function getGroupDeleteMode(string $group): string;
 }

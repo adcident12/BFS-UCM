@@ -51,13 +51,15 @@ class AuthController extends Controller
         // Revoke existing token with same name to avoid duplicates
         $user->tokens()->where('name', $request->token_name)->delete();
 
-        $token = $user->createToken($request->token_name);
+        $ttlDays = (int) config('ucm.admin_token_ttl_days', 90);
+        $expiresAt = $ttlDays > 0 ? now()->addDays($ttlDays) : null;
+        $token = $user->createToken($request->token_name, ['*'], $expiresAt);
 
         AuditLogger::log(
             AuditLog::CATEGORY_API,
             AuditLog::EVENT_API_TOKEN_ISSUED,
             "ออก API Token '{$request->token_name}' สำหรับ {$user->username} ({$user->name})",
-            ['token_name' => $request->token_name, 'username' => $user->username],
+            ['token_name' => $request->token_name, 'username' => $user->username, 'expires_at' => $expiresAt?->toIso8601String()],
             $user,
             null, null, null,
             $request,
@@ -76,6 +78,7 @@ class AuthController extends Controller
         return response()->json([
             'token' => $token->plainTextToken,
             'type' => 'Bearer',
+            'expires_at' => $expiresAt?->toIso8601String(),
         ]);
     }
 

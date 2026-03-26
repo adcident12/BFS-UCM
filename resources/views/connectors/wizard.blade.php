@@ -35,6 +35,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         ['label' => 'ตาราง Users'],
         ['label' => 'Permissions'],
         ['label' => '2-Way Sync'],
+        ['label' => 'Master Tables'],
         ['label' => 'ยืนยัน'],
     ];
     @endphp
@@ -704,7 +705,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="bg-orange-100 w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200/60">
-                    <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
                     </svg>
                 </div>
@@ -875,9 +876,56 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     </div>
 
     {{-- ══════════════════════════════════════════════════
-         STEP 6 — Confirm
+         STEP 6 — Master Data Tables
     ══════════════════════════════════════════════════ --}}
     <div class="wiz-step hidden" data-step="6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-cyan-500 to-teal-600 shadow-lg shadow-cyan-200/60">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-800">Master Data Tables <span class="text-xs font-normal text-slate-400 ml-1">(ไม่บังคับ)</span></h2>
+                    <p class="text-xs text-slate-400 mt-0.5">กำหนดตาราง Reference Data ที่ต้องการจัดการ CRUD ผ่าน UCM โดยตรง เช่น แผนก, หมวดหมู่เอกสาร</p>
+                </div>
+            </div>
+            <div class="px-6 py-6 space-y-4">
+                <div id="master-table-list" class="space-y-4"></div>
+                <div id="master-table-empty" class="flex flex-col items-center justify-center py-8 text-center">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mb-2">
+                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                        </svg>
+                    </div>
+                    <p class="text-sm text-slate-400">ยังไม่มีตาราง Master Data — กด "+ เพิ่มตาราง" เพื่อเพิ่ม</p>
+                </div>
+                <button type="button" id="master-add-btn" onclick="wizAddMasterTable()" class="{{ $btnO }}">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    เพิ่มตาราง
+                </button>
+            </div>
+        </div>
+        <div class="flex items-center justify-between mt-5">
+            <button class="{{ $btnG }}" onclick="wizPrev(6)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                ย้อนกลับ
+            </button>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 6 จาก 7</span>
+                <button class="{{ $btnP }}" onclick="wizNext(6)">
+                    ถัดไป
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════════════
+         STEP 7 — Confirm
+    ══════════════════════════════════════════════════ --}}
+    <div class="wiz-step hidden" data-step="7">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-200/60">
@@ -895,12 +943,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             </div>
         </div>
         <div class="flex items-center justify-between mt-5">
-            <button class="{{ $btnG }}" onclick="wizPrev(6)">
+            <button class="{{ $btnG }}" onclick="wizPrev(7)">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 ย้อนกลับ
             </button>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 6 จาก 6</span>
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 7 จาก 7</span>
                 <button class="inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-md shadow-emerald-200 hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all" id="submit-btn" onclick="wizSubmit()">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                     {{ isset($editConfig) ? 'บันทึกการเปลี่ยนแปลง' : 'สร้าง Connector' }}
@@ -995,7 +1043,8 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         if (! wizValidate(from)) return;
         showStep(from + 1);
         if (from + 1 === 4) { wizApplyPermSuggestion(); }
-        if (from + 1 === 6) { wizBuildSummary(); }
+        if (from + 1 === 6) { wizInitMasterTablesStep(); }
+        if (from + 1 === 7) { wizBuildSummary(); }
     };
 
     window.wizPrev = function (from) {
@@ -1007,7 +1056,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         document.querySelectorAll('.wiz-step').forEach(function (el) {
             el.classList.toggle('hidden', parseInt(el.dataset.step) !== n);
         });
-        for (var i = 1; i <= 6; i++) {
+        for (var i = 1; i <= 7; i++) {
             var circle = document.querySelector('[data-step-circle="' + i + '"]');
             var label  = document.querySelector('[data-step-label="' + i + '"]');
             var line   = document.querySelector('[data-step-line="' + i + '"]');
@@ -1444,6 +1493,260 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         return result;
     }
 
+    // ── Master Data Tables ─────────────────────────────────────────────────
+
+    function wizInitMasterTablesStep() {
+        // Ensure tables are loaded (connection was tested in step 2)
+        if (tables.length === 0) {
+            var addBtn = document.getElementById('master-add-btn');
+            if (addBtn) {
+                addBtn.disabled = true;
+                addBtn.innerHTML = '<svg style="width:0.875rem;height:0.875rem;animation:spin 1s linear infinite" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> กำลังโหลด...';
+            }
+            wizFetchTablesInternal(function () {
+                if (addBtn) {
+                    addBtn.disabled = false;
+                    addBtn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg> + เพิ่มตาราง';
+                }
+                // Re-populate table selects in any cards added while tables were loading
+                document.querySelectorAll('.master-table-card').forEach(function (card) {
+                    var sel = card.querySelector('.mt-table-select');
+                    if (! sel || sel.options.length > 1) { return; }
+                    var opts = '<option value="">— เลือกตาราง —</option>';
+                    tables.forEach(function (t) { opts += '<option value="' + escHtml(t) + '">' + escHtml(t) + '</option>'; });
+                    sel.innerHTML = opts;
+                });
+            });
+        }
+    }
+
+    window.wizAddMasterTable = function (preset) {
+        preset = preset || {};
+        var list  = document.getElementById('master-table-list');
+        var empty = document.getElementById('master-table-empty');
+        if (empty) empty.style.display = 'none';
+
+        var selCls  = 'w-full pl-3 pr-8 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg appearance-none focus:outline-none focus:border-indigo-500 transition';
+        var inpCls  = 'w-full px-2.5 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 transition';
+
+        var tableOpts = '<option value="">— เลือกตาราง —</option>';
+        tables.forEach(function (t) {
+            tableOpts += '<option value="' + escHtml(t) + '"' + (t === (preset.table || '') ? ' selected' : '') + '>' + escHtml(t) + '</option>';
+        });
+
+        var card = document.createElement('div');
+        card.className = 'master-table-card border border-slate-200 rounded-xl bg-slate-50/50 overflow-hidden';
+
+        var deleteMode = preset.delete_mode || 'hard';
+        var softChecked = deleteMode === 'soft' ? 'checked' : '';
+
+        card.innerHTML = [
+            '<div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-white">',
+            '  <span class="text-xs font-bold text-slate-600">ตาราง Master Data</span>',
+            '  <button type="button" onclick="wizRemoveMasterTable(this)" class="w-6 h-6 flex items-center justify-center rounded text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition">',
+            '    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+            '  </button>',
+            '</div>',
+            '<div class="px-4 py-3 grid grid-cols-2 gap-3">',
+            '  <div>',
+            '    <label class="block text-[11px] font-semibold text-slate-500 mb-1">ชื่อที่แสดงใน UCM <span class="text-rose-500">*</span></label>',
+            '    <input type="text" class="mt-label-input ' + inpCls + '" placeholder="เช่น Department" value="' + escAttr(preset.label || '') + '">',
+            '  </div>',
+            '  <div>',
+            '    <label class="block text-[11px] font-semibold text-slate-500 mb-1">ตาราง <span class="text-rose-500">*</span></label>',
+            '    <div class="relative"><select class="mt-table-select ' + selCls + '" onchange="wizMasterTableChanged(this)">' + tableOpts + '</select>',
+            '    <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center"><svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/></svg></div>',
+            '    </div>',
+            '  </div>',
+            '  <div>',
+            '    <label class="block text-[11px] font-semibold text-slate-500 mb-1">Primary Key Column <span class="text-rose-500">*</span></label>',
+            '    <div class="relative"><select class="mt-pk-select ' + selCls + '"><option value="">— โหลดคอลัมน์ —</option></select>',
+            '    <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center"><svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/></svg></div>',
+            '    </div>',
+            '  </div>',
+            '  <div>',
+            '    <label class="block text-[11px] font-semibold text-slate-500 mb-1">Label Column <span class="text-rose-500">*</span></label>',
+            '    <div class="relative"><select class="mt-label-col-select ' + selCls + '"><option value="">— โหลดคอลัมน์ —</option></select>',
+            '    <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center"><svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/></svg></div>',
+            '    </div>',
+            '  </div>',
+            '</div>',
+            '<div class="px-4 pb-3">',
+            '  <div class="flex items-center justify-between mb-2">',
+            '    <span class="text-[11px] font-bold text-slate-500">Extra Columns (ไม่บังคับ)</span>',
+            '    <button type="button" onclick="wizAddMasterExtraCol(this)" class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 transition">+ เพิ่ม Column</button>',
+            '  </div>',
+            '  <div class="mt-extra-col-list space-y-2"></div>',
+            '</div>',
+            '<div class="px-4 pb-4 border-t border-slate-100 pt-3">',
+            '  <span class="block text-[11px] font-bold text-slate-500 mb-2">Delete Mode</span>',
+            '  <div class="flex items-center gap-4">',
+            '    <label class="flex items-center gap-2 cursor-pointer">',
+            '      <input type="radio" name="mt-delete-mode-' + list.children.length + '" class="mt-delete-mode-radio" value="hard" ' + (deleteMode === 'hard' ? 'checked' : '') + ' onchange="wizMasterDeleteModeChange(this)">',
+            '      <span class="text-xs font-semibold text-slate-700">Hard Delete</span>',
+            '      <span class="text-[10px] text-slate-400">ลบถาวร</span>',
+            '    </label>',
+            '    <label class="flex items-center gap-2 cursor-pointer">',
+            '      <input type="radio" name="mt-delete-mode-' + list.children.length + '" class="mt-delete-mode-radio" value="soft" ' + (deleteMode === 'soft' ? 'checked' : '') + ' onchange="wizMasterDeleteModeChange(this)">',
+            '      <span class="text-xs font-semibold text-slate-700">Soft Delete</span>',
+            '      <span class="text-[10px] text-slate-400">ซ่อนข้อมูล</span>',
+            '    </label>',
+            '  </div>',
+            '  <div class="mt-soft-delete-fields mt-2 grid grid-cols-2 gap-3" style="display:' + (deleteMode === 'soft' ? '' : 'none') + '">',
+            '    <div>',
+            '      <label class="block text-[11px] font-semibold text-slate-500 mb-1">Soft Delete Column</label>',
+            '      <div class="relative"><select class="mt-soft-col-select ' + selCls + '"><option value="">— โหลดคอลัมน์ —</option></select>',
+            '      <div class="pointer-events-none absolute inset-y-0 right-2.5 flex items-center"><svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 8l4 4 4-4"/></svg></div>',
+            '      </div>',
+            '    </div>',
+            '    <div>',
+            '      <label class="block text-[11px] font-semibold text-slate-500 mb-1">Soft Delete Value</label>',
+            '      <input type="text" class="mt-soft-val-input ' + inpCls + '" placeholder="เช่น 1, deleted" value="' + escAttr(preset.soft_delete_val || '1') + '">',
+            '    </div>',
+            '  </div>',
+            '</div>',
+        ].join('');
+
+        list.appendChild(card);
+
+        // If preset has a table, load columns immediately (extra cols are added inside the callback)
+        if (preset.table) {
+            var tableSelect = card.querySelector('.mt-table-select');
+            tableSelect.value = preset.table;
+            wizMasterLoadColumns(card, preset.table, preset);
+        }
+    };
+
+    window.wizRemoveMasterTable = function (btn) {
+        var card  = btn.closest('.master-table-card');
+        var list  = document.getElementById('master-table-list');
+        var empty = document.getElementById('master-table-empty');
+        if (card) card.remove();
+        if (empty && list && list.children.length === 0) empty.style.display = '';
+    };
+
+    window.wizMasterTableChanged = function (sel) {
+        var card = sel.closest('.master-table-card');
+        wizMasterLoadColumns(card, sel.value, null);
+    };
+
+    function wizMasterLoadColumns(card, tableName, preset) {
+        if (! tableName) { return; }
+        var data = Object.assign(connData(), { table: tableName });
+        post('{{ route("connectors.ajax.fetch-columns") }}', data, function (res) {
+            if (! res.ok) { return; }
+            var cols = res.columns || [];
+            var colOpts  = '<option value="">(ไม่ระบุ)</option>';
+            var colOptsR = '<option value="">— เลือกคอลัมน์ —</option>';
+            cols.forEach(function (c) { colOpts += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>'; colOptsR += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>'; });
+
+            var pkSel      = card.querySelector('.mt-pk-select');
+            var labelSel   = card.querySelector('.mt-label-col-select');
+            var softColSel = card.querySelector('.mt-soft-col-select');
+
+            if (pkSel)      { pkSel.innerHTML      = colOptsR; if (preset && preset.pk_col)         pkSel.value      = preset.pk_col; }
+            if (labelSel)   { labelSel.innerHTML    = colOptsR; if (preset && preset.label_col)      labelSel.value   = preset.label_col; }
+            if (softColSel) { softColSel.innerHTML  = colOpts;  if (preset && preset.soft_delete_col) softColSel.value = preset.soft_delete_col; }
+
+            // Also populate existing extra col's column selects (when user changes table after adding extra cols)
+            card.querySelectorAll('.mt-extra-col-row').forEach(function (row) {
+                var ecSel = row.querySelector('.mt-extra-col-select');
+                if (! ecSel) { return; }
+                var current = ecSel.value;
+                ecSel.innerHTML = colOpts;
+                if (current) { ecSel.value = current; }
+            });
+
+            // Pre-populate extra cols from preset (first load only — columns must be ready first)
+            if (preset && preset.extra_cols && preset.extra_cols.length > 0 && card.querySelectorAll('.mt-extra-col-row').length === 0) {
+                preset.extra_cols.forEach(function (ec) { wizAddMasterExtraColToCard(card, ec); });
+            }
+        });
+    }
+
+    window.wizMasterDeleteModeChange = function (radio) {
+        var card       = radio.closest('.master-table-card');
+        var softFields = card.querySelector('.mt-soft-delete-fields');
+        if (softFields) { softFields.style.display = radio.value === 'soft' ? '' : 'none'; }
+    };
+
+    window.wizAddMasterExtraCol = function (btn) {
+        var card = btn.closest('.master-table-card');
+        wizAddMasterExtraColToCard(card, null);
+    };
+
+    function wizAddMasterExtraColToCard(card, preset) {
+        preset = preset || {};
+        var list    = card.querySelector('.mt-extra-col-list');
+        var inpCls  = 'w-full px-2 py-1 text-xs text-slate-800 bg-white border border-slate-200 rounded focus:outline-none focus:border-indigo-500 transition';
+        var selCls  = 'w-full px-2 py-1 text-xs text-slate-800 bg-white border border-slate-200 rounded appearance-none focus:outline-none focus:border-indigo-500 transition';
+
+        // Build column options from the table's already-loaded selects
+        var existingLabelSel = card.querySelector('.mt-label-col-select');
+        var colOpts = '<option value="">(ไม่ระบุ)</option>';
+        if (existingLabelSel) {
+            for (var i = 0; i < existingLabelSel.options.length; i++) {
+                var o = existingLabelSel.options[i];
+                if (o.value) colOpts += '<option value="' + escHtml(o.value) + '"' + (o.value === (preset.col || '') ? ' selected' : '') + '>' + escHtml(o.value) + '</option>';
+            }
+        }
+
+        var row = document.createElement('div');
+        row.className = 'mt-extra-col-row grid gap-1.5 items-center bg-white border border-slate-200 rounded-lg px-2 py-2';
+        row.style.gridTemplateColumns = '1fr 1fr 5rem 4rem auto';
+
+        row.innerHTML = [
+            '<div><label class="block text-[10px] text-slate-400 mb-0.5">Column</label><div class="relative"><select class="mt-extra-col-select ' + selCls + '">' + colOpts + '</select></div></div>',
+            '<div><label class="block text-[10px] text-slate-400 mb-0.5">Label</label><input type="text" class="mt-extra-label-input ' + inpCls + '" placeholder="ชื่อที่แสดง" value="' + escAttr(preset.label || '') + '"></div>',
+            '<div><label class="block text-[10px] text-slate-400 mb-0.5">Type</label><select class="mt-extra-type-select ' + selCls + '"><option value="text"' + (preset.type === 'text' ? ' selected' : '') + '>text</option><option value="number"' + (preset.type === 'number' ? ' selected' : '') + '>number</option></select></div>',
+            '<div><label class="block text-[10px] text-slate-400 mb-0.5">Required</label><div class="flex justify-center mt-1"><input type="checkbox" class="mt-extra-required-check" ' + (preset.required ? 'checked' : '') + '></div></div>',
+            '<button type="button" onclick="wizRemoveMasterExtraCol(this)" class="mt-1 text-slate-400 hover:text-rose-500 transition flex-shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>',
+        ].join('');
+
+        list.appendChild(row);
+    }
+
+    window.wizRemoveMasterExtraCol = function (btn) {
+        btn.closest('.mt-extra-col-row').remove();
+    };
+
+    function getMasterTables() {
+        var result = [];
+        document.querySelectorAll('.master-table-card').forEach(function (card) {
+            var label     = card.querySelector('.mt-label-input')?.value.trim() || '';
+            var table     = card.querySelector('.mt-table-select')?.value || '';
+            var pkCol     = card.querySelector('.mt-pk-select')?.value || '';
+            var labelCol  = card.querySelector('.mt-label-col-select')?.value || '';
+            var deleteMode = (card.querySelector('.mt-delete-mode-radio:checked')?.value) || 'hard';
+
+            if (! table || ! label) { return; }
+
+            var entry = { label: label, table: table, pk_col: pkCol, label_col: labelCol, delete_mode: deleteMode };
+
+            if (deleteMode === 'soft') {
+                entry.soft_delete_col = card.querySelector('.mt-soft-col-select')?.value || '';
+                entry.soft_delete_val = card.querySelector('.mt-soft-val-input')?.value.trim() || '1';
+            }
+
+            var extraCols = [];
+            card.querySelectorAll('.mt-extra-col-row').forEach(function (row) {
+                var col = row.querySelector('.mt-extra-col-select')?.value || '';
+                if (! col) { return; }
+                extraCols.push({
+                    col:      col,
+                    label:    row.querySelector('.mt-extra-label-input')?.value.trim() || col,
+                    type:     row.querySelector('.mt-extra-type-select')?.value || 'text',
+                    required: row.querySelector('.mt-extra-required-check')?.checked || false,
+                });
+            });
+
+            entry.extra_cols = extraCols;
+            result.push(entry);
+        });
+
+        return result;
+    }
+
     // ── Confirm Summary ────────────────────────────────────────────────────
 
     window.wizBuildSummary = function () {
@@ -1500,6 +1803,17 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         rows.push(['Soft Delete Value', val('perm_def_soft_delete_val') || '1']);
                     }
                     return rows;
+                })(),
+            },
+            {
+                title: 'Master Data Tables',
+                rows: (function() {
+                    var mts = getMasterTables();
+                    if (! mts.length) return [['ตาราง', 'ไม่ได้กำหนด']];
+                    return mts.map(function (mt) {
+                        var deleteLabel = mt.delete_mode === 'soft' ? 'Soft Delete' : 'Hard Delete';
+                        return [mt.label || mt.table, mt.table + ' · ' + deleteLabel + (mt.extra_cols && mt.extra_cols.length ? ' · ' + mt.extra_cols.length + ' extra col(s)' : '')];
+                    });
                 })(),
             },
         ];
@@ -1562,6 +1876,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             perm_delete_mode:         twoWayEnabled ? (radioVal('perm_delete_mode') || (IS_EDIT ? EDIT_CONFIG?.perm_delete_mode || null : null) || 'detach_only') : null,
             perm_def_soft_delete_col: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? (val('perm_def_soft_delete_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_soft_delete_col || null : null)) : null,
             perm_def_soft_delete_val: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? (val('perm_def_soft_delete_val') || (IS_EDIT ? EDIT_CONFIG?.perm_def_soft_delete_val || null : null)) : null,
+            master_tables: JSON.stringify(getMasterTables()),
         });
 
         var submitUrl    = IS_EDIT ? EDIT_UPDATE_URL : '{{ route("connectors.store") }}';
@@ -1997,6 +2312,11 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 setTimeout(function () {
                     EDIT_CONFIG.perm_composite_cols.forEach(function (cc) { wizAddCompositeCol(cc); });
                 }, 800);
+            }
+
+            // Restore master tables after tables list is ready so dropdown has options
+            if (EDIT_CONFIG.master_tables && EDIT_CONFIG.master_tables.length > 0) {
+                EDIT_CONFIG.master_tables.forEach(function (mt) { wizAddMasterTable(mt); });
             }
         });
     }

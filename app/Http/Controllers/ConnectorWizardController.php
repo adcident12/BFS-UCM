@@ -126,7 +126,7 @@ class ConnectorWizardController extends Controller
 
             return response()->json(['ok' => true, 'message' => 'เชื่อมต่อสำเร็จ']);
         } catch (PDOException $e) {
-            return response()->json(['ok' => false, 'message' => $e->getMessage()]);
+            return response()->json(['ok' => false, 'message' => $this->sanitizePdoError($e)]);
         }
     }
 
@@ -159,7 +159,7 @@ class ConnectorWizardController extends Controller
 
             return response()->json(['ok' => true, 'tables' => $tables]);
         } catch (PDOException $e) {
-            return response()->json(['ok' => false, 'message' => $e->getMessage()]);
+            return response()->json(['ok' => false, 'message' => $this->sanitizePdoError($e)]);
         }
     }
 
@@ -203,7 +203,7 @@ class ConnectorWizardController extends Controller
 
             return response()->json(['ok' => true, 'columns' => $columns]);
         } catch (PDOException $e) {
-            return response()->json(['ok' => false, 'message' => $e->getMessage()]);
+            return response()->json(['ok' => false, 'message' => $this->sanitizePdoError($e)]);
         }
     }
 
@@ -215,10 +215,10 @@ class ConnectorWizardController extends Controller
 
         $data = $request->validate([
             'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host' => 'required|string|max:255',
+            'db_host' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9][a-zA-Z0-9\-\.]*$/'],
             'db_port' => 'required|integer|min:1|max:65535',
-            'db_name' => 'required|string|max:100',
-            'db_user' => 'required|string|max:100',
+            'db_name' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.]+$/'],
+            'db_user' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.@\\\\]+$/'],
             'db_password' => 'nullable|string|max:255',
             'user_table' => 'required|string|regex:/^[\w.]+$/',
             'user_identifier_col' => 'required|string|regex:/^[\w.]+$/',
@@ -247,7 +247,7 @@ class ConnectorWizardController extends Controller
 
             return response()->json(['ok' => true, 'rows' => $rows]);
         } catch (PDOException $e) {
-            return response()->json(['ok' => false, 'message' => $e->getMessage()]);
+            return response()->json(['ok' => false, 'message' => $this->sanitizePdoError($e)]);
         }
     }
 
@@ -259,10 +259,10 @@ class ConnectorWizardController extends Controller
 
         $data = $request->validate([
             'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host' => 'required|string|max:255',
+            'db_host' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9][a-zA-Z0-9\-\.]*$/'],
             'db_port' => 'required|integer|min:1|max:65535',
-            'db_name' => 'required|string|max:100',
-            'db_user' => 'required|string|max:100',
+            'db_name' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.]+$/'],
+            'db_user' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.@\\\\]+$/'],
             'db_password' => 'nullable|string|max:255',
             'perm_table' => 'required|string|regex:/^[\w.]+$/',
             'perm_value_col' => 'required|string|regex:/^[\w.]+$/',
@@ -295,7 +295,7 @@ class ConnectorWizardController extends Controller
 
             return response()->json(['ok' => true, 'rows' => $rows]);
         } catch (PDOException $e) {
-            return response()->json(['ok' => false, 'message' => $e->getMessage()]);
+            return response()->json(['ok' => false, 'message' => $this->sanitizePdoError($e)]);
         }
     }
 
@@ -307,10 +307,10 @@ class ConnectorWizardController extends Controller
 
         $data = $request->validate([
             'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host' => 'required|string|max:255',
+            'db_host' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9][a-zA-Z0-9\-\.]*$/'],
             'db_port' => 'required|integer|min:1|max:65535',
-            'db_name' => 'required|string|max:100',
-            'db_user' => 'required|string|max:100',
+            'db_name' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.]+$/'],
+            'db_user' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.@\\\\]+$/'],
             'db_password' => 'nullable|string|max:255',
             'use_ai' => 'nullable|boolean',
             'connector_config_id' => 'nullable|integer',
@@ -343,7 +343,9 @@ class ConnectorWizardController extends Controller
                 'schema_keys' => array_keys($schema),
             ]);
         } catch (\Throwable $e) {
-            return response()->json(['ok' => false, 'message' => $e->getMessage()]);
+            Log::error('[ConnectorWizard] analyzeSchema error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+
+            return response()->json(['ok' => false, 'message' => 'วิเคราะห์ schema ล้มเหลว: '.class_basename($e)]);
         }
     }
 
@@ -355,10 +357,10 @@ class ConnectorWizardController extends Controller
 
         $data = $request->validate([
             'db_driver' => 'required|in:mysql,pgsql,sqlsrv',
-            'db_host' => 'required|string|max:255',
+            'db_host' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z0-9][a-zA-Z0-9\-\.]*$/'],
             'db_port' => 'required|integer|min:1|max:65535',
-            'db_name' => 'required|string|max:100',
-            'db_user' => 'required|string|max:100',
+            'db_name' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.]+$/'],
+            'db_user' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.@\\\\]+$/'],
             'db_password' => 'nullable|string|max:255',
             'source_zip' => 'required|file|mimes:zip|max:51200',
             'connector_config_id' => 'nullable|integer',
@@ -392,7 +394,9 @@ class ConnectorWizardController extends Controller
                 'framework' => $zipResult['framework'],
             ]);
         } catch (\Throwable $e) {
-            return response()->json(['ok' => false, 'message' => $e->getMessage()]);
+            Log::error('[ConnectorWizard] analyzeZip error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+
+            return response()->json(['ok' => false, 'message' => 'วิเคราะห์ ZIP ล้มเหลว: '.class_basename($e)]);
         }
     }
 
@@ -450,6 +454,9 @@ class ConnectorWizardController extends Controller
             'perm_delete_mode' => 'nullable|in:hard,soft,detach_only',
             'perm_def_soft_delete_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'perm_def_soft_delete_val' => 'nullable|string|max:100',
+
+            // Master Tables
+            'master_tables' => 'nullable|json',
         ]);
 
         $isNew = ! isset($data['system_id']);
@@ -530,6 +537,9 @@ class ConnectorWizardController extends Controller
                 'perm_delete_mode' => $data['perm_delete_mode'] ?? null,
                 'perm_def_soft_delete_col' => $data['perm_def_soft_delete_col'] ?? null,
                 'perm_def_soft_delete_val' => $data['perm_def_soft_delete_val'] ?? null,
+                'master_tables' => isset($data['master_tables'])
+                    ? (is_array($decoded = json_decode($data['master_tables'], true)) ? $decoded : null)
+                    : null,
             ];
 
             ConnectorConfig::updateOrCreate(
@@ -600,7 +610,9 @@ class ConnectorWizardController extends Controller
             'redirect' => route('systems.show', $system),
         ]);
         } catch (\Throwable $e) {
-            return response()->json(['ok' => false, 'message' => $e->getMessage()], 422);
+            Log::error('[ConnectorWizard] store error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+
+            return response()->json(['ok' => false, 'message' => 'บันทึก Connector ล้มเหลว กรุณาตรวจสอบข้อมูลและลองใหม่อีกครั้ง'], 422);
         }
     }
 
@@ -675,5 +687,25 @@ class ConnectorWizardController extends Controller
             fn ($p) => $q.str_replace($q, '', $p).$q,
             explode('.', $name)
         ));
+    }
+
+    /**
+     * ทำความสะอาด PDOException message ก่อนส่งให้ client
+     * ลบข้อมูล sensitive: host, user, password ที่อาจปรากฏใน error string
+     */
+    private function sanitizePdoError(PDOException $e): string
+    {
+        $msg = $e->getMessage();
+
+        // ซ่อน IP / hostname ใน error message
+        $msg = preg_replace('/\b(?:\d{1,3}\.){3}\d{1,3}\b/', '[host]', $msg);
+        // ซ่อน hostname อักขระทั่วไป (เช่น server.domain.com)
+        $msg = preg_replace("/host '([^']+)'/i", "host '[hidden]'", $msg);
+        // ซ่อน user ใน "Access denied for user 'xxx'@..."
+        $msg = preg_replace("/user '([^']+)'/i", "user '[hidden]'", $msg);
+        // ซ่อนหลัง @ ใน "Access denied for user 'x'@'host'"
+        $msg = preg_replace("/@'[^']+'/", "@'[hidden]'", $msg);
+
+        return $msg;
     }
 }

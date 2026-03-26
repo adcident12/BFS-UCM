@@ -73,6 +73,7 @@ class AuditLog extends Model
     const EVENT_GROUP_RECORD_CREATED = 'group_record_created';
     const EVENT_GROUP_RECORD_UPDATED = 'group_record_updated';
     const EVENT_GROUP_RECORD_DELETED = 'group_record_deleted';
+    const EVENT_GROUP_RECORDS_DISCOVERED = 'group_records_discovered';
 
     // Event types — API
     const EVENT_API_TOKEN_ISSUED = 'api_token_issued';

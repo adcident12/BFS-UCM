@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\NotificationChannel;
 use App\Models\UcmUser;
 use App\Services\AuditLogger;
+use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -57,6 +58,13 @@ class NotificationController extends Controller
             'notification_channel', $channel->id, $channel->name,
         );
 
+        app(NotificationService::class)->dispatch('notification_channel_created', [
+            'channel_name' => $channel->name,
+            'type' => $channel->type,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "เพิ่ม Notification Channel '{$channel->name}' ประเภท {$channel->type}",
+        ]);
+
         return redirect()->route('notifications.index')->with('success', 'เพิ่ม Notification Channel สำเร็จ');
     }
 
@@ -89,6 +97,13 @@ class NotificationController extends Controller
             'notification_channel', $notificationChannel->id, $notificationChannel->name,
         );
 
+        app(NotificationService::class)->dispatch('notification_channel_updated', [
+            'channel_name' => $notificationChannel->name,
+            'type' => $notificationChannel->type,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "แก้ไข Notification Channel '{$notificationChannel->name}' ประเภท {$notificationChannel->type}",
+        ]);
+
         return redirect()->route('notifications.index')->with('success', 'แก้ไข Notification Channel สำเร็จ');
     }
 
@@ -110,6 +125,13 @@ class NotificationController extends Controller
             $this->authUser(),
             'notification_channel', $channelId, $channelName,
         );
+
+        app(NotificationService::class)->dispatch('notification_channel_deleted', [
+            'channel_name' => $channelName,
+            'type' => $channelType,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "ลบ Notification Channel '{$channelName}' ประเภท {$channelType}",
+        ]);
 
         return redirect()->route('notifications.index')->with('success', 'ลบ Notification Channel สำเร็จ');
     }

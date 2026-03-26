@@ -7,7 +7,7 @@
 @source '../**/*.js';
 
 /* Safelist — dynamic color classes (e.g. bg-{{ $color }}-600 in manual.blade.php) */
-@source inline("{bg,text,border,ring}-{indigo,violet,emerald,sky,cyan,amber,fuchsia}-{50,100,200,500,600,700,800,900}");
+@source inline("{bg,text,border,ring}-{indigo,violet,emerald,sky,cyan,amber,fuchsia,teal}-{50,100,200,500,600,700,800,900}");
 
 /* Global: ทุก button ที่ไม่ disabled ให้แสดง pointer cursor */
 button:not([disabled]),

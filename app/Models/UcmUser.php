@@ -51,12 +51,15 @@ class UcmUser extends Authenticatable
         return $this->hasMany(UcmUserFeatureGrant::class, 'user_id');
     }
 
+    /** @var array<string, bool> Per-request grant cache (reset per object instance) */
+    private array $grantCache = [];
+
     /**
      * ตรวจสอบว่าผู้ใช้นี้สามารถเข้าถึงฟีเจอร์ UCM ได้หรือไม่
      * ลำดับการตรวจ:
-     *   1. ดึง effective min_level (config default → DB override)
+     *   1. ดึง effective min_level (config default → DB override with 5-min cache)
      *   2. ถ้า is_admin >= min_level → ผ่าน
-     *   3. ถ้ามี individual grant สำหรับ feature นี้ → ผ่าน
+     *   3. ถ้ามี individual grant สำหรับ feature นี้ → ผ่าน (cached per request)
      */
     public function canAccess(string $feature): bool
     {
@@ -66,7 +69,23 @@ class UcmUser extends Authenticatable
             return true;
         }
 
-        return $this->featureGrants()->where('feature_key', $feature)->exists();
+        if (! array_key_exists($feature, $this->grantCache)) {
+            $this->grantCache[$feature] = $this->featureGrants()
+                ->where('feature_key', $feature)
+                ->exists();
+        }
+
+        return $this->grantCache[$feature];
+    }
+
+    /** ล้าง grant cache (ใช้หลัง grant/revoke เพื่อให้ค่าใหม่มีผลทันที) */
+    public function clearGrantCache(?string $feature = null): void
+    {
+        if ($feature !== null) {
+            unset($this->grantCache[$feature]);
+        } else {
+            $this->grantCache = [];
+        }
     }
 
     public function hasPermission(string $systemSlug, string $permissionKey): bool

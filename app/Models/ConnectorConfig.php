@@ -41,14 +41,17 @@ class ConnectorConfig extends Model
         'perm_delete_mode',
         'perm_def_soft_delete_col',
         'perm_def_soft_delete_val',
+        'master_tables',
     ];
 
     protected $hidden = ['db_password'];
 
     protected $casts = [
         'db_port' => 'integer',
+        'db_password' => 'encrypted',
         'manual_permissions' => 'array',
         'perm_composite_cols' => 'array',
+        'master_tables' => 'array',
     ];
 
     public function system(): BelongsTo

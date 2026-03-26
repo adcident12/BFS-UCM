@@ -99,11 +99,12 @@ class SystemController extends Controller
     {
         $system->load(['permissions' => fn ($q) => $q->orderBy('group')->orderBy('sort_order')]);
 
-        $managedGroups = [];
-        $groupSchemas = [];
+        $managedGroups    = [];
+        $groupSchemas     = [];
+        $groupDeleteModes = [];
 
         if (AdapterFactory::hasAdapter($system)) {
-            $adapter = AdapterFactory::make($system);
+            $adapter       = AdapterFactory::make($system);
             $managedGroups = $adapter->getManagedGroups();
 
             foreach ($managedGroups as $g) {
@@ -111,10 +112,12 @@ class SystemController extends Controller
                 if (! empty($schema)) {
                     $groupSchemas[$g] = $schema;
                 }
+
+                $groupDeleteModes[$g] = $adapter->getGroupDeleteMode($g);
             }
         }
 
-        return view('systems.show', compact('system', 'managedGroups', 'groupSchemas'));
+        return view('systems.show', compact('system', 'managedGroups', 'groupSchemas', 'groupDeleteModes'));
     }
 
     public function edit(System $system)
@@ -266,6 +269,14 @@ class SystemController extends Controller
             'system', $system->id, $system->name,
         );
 
+        app(NotificationService::class)->dispatch('perm_def_created', [
+            'system' => $system->name,
+            'key' => $perm->key,
+            'label' => $perm->label,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "เพิ่ม permission key '{$perm->key}' ({$perm->label}) ในระบบ {$system->name}",
+        ]);
+
         return back()->with('success', "เพิ่ม permission '{$data['label']}' เรียบร้อย");
     }
 
@@ -295,6 +306,14 @@ class SystemController extends Controller
             $this->authUser(),
             'system', $system->id, $system->name,
         );
+
+        app(NotificationService::class)->dispatch('perm_def_updated', [
+            'system' => $system->name,
+            'key' => $permission->key,
+            'label' => $permission->label,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "อัปเดต permission key '{$permission->key}' ({$permission->label}) ในระบบ {$system->name}",
+        ]);
 
         return back()->with('success', "อัปเดต permission '{$permission->key}' เรียบร้อย");
     }
@@ -334,6 +353,14 @@ class SystemController extends Controller
             'system', $system->id, $system->name,
         );
 
+        app(NotificationService::class)->dispatch('perm_def_discovered', [
+            'system' => $system->name,
+            'count' => count($created),
+            'keys' => $created,
+            'performed_by' => $this->authUser()?->username,
+            'description' => 'Discover permission definitions จากระบบ '.$system->name.': '.count($created).' รายการ',
+        ]);
+
         return back()->with('success', 'พบ '.count($created).' permission ใหม่จาก '.$system->name.': '.implode(', ', $created));
     }
 
@@ -360,6 +387,14 @@ class SystemController extends Controller
             'system', $system->id, $system->name,
         );
 
+        app(NotificationService::class)->dispatch('perm_def_deleted', [
+            'system' => $system->name,
+            'key' => $permKey,
+            'label' => $permLabel,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "ลบ permission key '{$permKey}' ({$permLabel}) ออกจากระบบ {$system->name}",
+        ]);
+
         return back()->with('success', 'ลบ permission เรียบร้อย');
     }
 
@@ -367,6 +402,8 @@ class SystemController extends Controller
 
     public function groupRecords(System $system, string $group)
     {
+        abort_unless($this->authUser()?->canAccess('system_list'), 403);
+
         if (! AdapterFactory::hasAdapter($system)) {
             return response()->json(['error' => 'ระบบนี้ไม่มี adapter'], 400);
         }
@@ -383,34 +420,50 @@ class SystemController extends Controller
         abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin เท่านั้นที่สามารถเพิ่มข้อมูล Reference ได้');
         abort_unless(AdapterFactory::hasAdapter($system), 400);
 
-        $data = $request->validate([
-            'group' => 'required|string|max:100',
-            'name' => 'required|string|max:255',
-            'priority' => 'nullable|integer|min:1',
-            'filename' => 'nullable|string|max:255',
-        ]);
+        $adapter = AdapterFactory::make($system);
 
-        $extra = array_filter([
-            'priority' => $data['priority'] ?? null,
-            'filename' => $data['filename'] ?? null,
-        ], fn ($v) => $v !== null);
+        $groupName = $request->validate(['group' => 'required|string|max:100'])['group'];
+        abort_unless(in_array($groupName, $adapter->getManagedGroups(), true), 404);
 
-        $result = AdapterFactory::make($system)->addGroupRecord($data['group'], $data['name'], $extra);
+        $schema = $adapter->getGroupSchema($groupName);
+
+        $rules = ['name' => 'required|string|max:255'];
+        foreach ($schema as $col => $def) {
+            $colRules = $def['required'] ? 'required' : 'nullable';
+            $colRules .= match ($def['type'] ?? 'text') {
+                'number' => '|numeric',
+                default  => '|string|max:255',
+            };
+            $rules[$col] = $colRules;
+        }
+
+        $data  = $request->validate($rules);
+        $extra = array_intersect_key($data, $schema);
+
+        $result = $adapter->addGroupRecord($groupName, $data['name'], $extra);
 
         if ($result === false) {
-            return back()->withErrors(['เพิ่ม '.$data['group'].' ล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ']);
+            return back()->withErrors(['เพิ่ม '.$groupName.' ล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ']);
         }
 
         AuditLogger::log(
             AuditLog::CATEGORY_SYSTEMS,
             AuditLog::EVENT_GROUP_RECORD_CREATED,
-            "เพิ่ม {$data['group']} '{$data['name']}' ในระบบ {$system->name}",
-            ['system_id' => $system->id, 'group' => $data['group'], 'name' => $data['name']],
+            "เพิ่ม {$groupName} '{$data['name']}' ในระบบ {$system->name}",
+            ['system_id' => $system->id, 'group' => $groupName, 'name' => $data['name']],
             $this->authUser(),
             'system', $system->id, $system->name,
         );
 
-        return back()->with('success', "เพิ่ม {$data['group']} '{$data['name']}' เรียบร้อย");
+        app(NotificationService::class)->dispatch('group_record_created', [
+            'system' => $system->name,
+            'group' => $groupName,
+            'name' => $data['name'],
+            'performed_by' => $this->authUser()?->username,
+            'description' => "เพิ่ม {$groupName} '{$data['name']}' ในระบบ {$system->name}",
+        ]);
+
+        return back()->with('success', "เพิ่ม {$groupName} '{$data['name']}' เรียบร้อย");
     }
 
     public function updateGroupRecord(Request $request, System $system, string $group, int $recordId)
@@ -421,16 +474,20 @@ class SystemController extends Controller
         $adapter = AdapterFactory::make($system);
         abort_unless(in_array($group, $adapter->getManagedGroups(), true), 404);
 
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'priority' => 'nullable|integer|min:1',
-            'filename' => 'nullable|string|max:255',
-        ]);
+        $schema = $adapter->getGroupSchema($group);
 
-        $extra = [
-            'priority' => $data['priority'] ?? null,
-            'filename' => $data['filename'] ?? null,
-        ];
+        $rules = ['name' => 'required|string|max:255'];
+        foreach ($schema as $col => $def) {
+            $colRules = $def['required'] ? 'required' : 'nullable';
+            $colRules .= match ($def['type'] ?? 'text') {
+                'number' => '|numeric',
+                default  => '|string|max:255',
+            };
+            $rules[$col] = $colRules;
+        }
+
+        $data  = $request->validate($rules);
+        $extra = array_intersect_key($data, $schema);
 
         $ok = $adapter->updateGroupRecord($group, $recordId, $data['name'], $extra);
 
@@ -447,7 +504,47 @@ class SystemController extends Controller
             'system', $system->id, $system->name,
         );
 
+        app(NotificationService::class)->dispatch('group_record_updated', [
+            'system' => $system->name,
+            'group' => $group,
+            'record_id' => $recordId,
+            'name' => $data['name'],
+            'performed_by' => $this->authUser()?->username,
+            'description' => "อัปเดต {$group} #{$recordId} '{$data['name']}' ในระบบ {$system->name}",
+        ]);
+
         return back()->with('success', "อัปเดต {$group} เรียบร้อย");
+    }
+
+    public function discoverGroupRecords(System $system, string $group)
+    {
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403);
+        abort_unless(AdapterFactory::hasAdapter($system), 400);
+
+        $adapter = AdapterFactory::make($system);
+        abort_unless(in_array($group, $adapter->getManagedGroups(), true), 404);
+
+        $records = $adapter->getGroupRecords($group);
+        $count   = count($records);
+
+        AuditLogger::log(
+            AuditLog::CATEGORY_SYSTEMS,
+            AuditLog::EVENT_GROUP_RECORDS_DISCOVERED,
+            "Discover {$group} ในระบบ {$system->name}: {$count} รายการ",
+            ['system_id' => $system->id, 'group' => $group, 'count' => $count],
+            $this->authUser(),
+            'system', $system->id, $system->name,
+        );
+
+        app(NotificationService::class)->dispatch('group_records_discovered', [
+            'system' => $system->name,
+            'group' => $group,
+            'count' => $count,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "Discover {$group} ในระบบ {$system->name}: {$count} รายการ",
+        ]);
+
+        return back()->with('success', "Discover {$group}: พบ {$count} รายการ");
     }
 
     public function destroyGroupRecord(System $system, string $group, int $recordId)
@@ -472,6 +569,14 @@ class SystemController extends Controller
             $this->authUser(),
             'system', $system->id, $system->name,
         );
+
+        app(NotificationService::class)->dispatch('group_record_deleted', [
+            'system' => $system->name,
+            'group' => $group,
+            'record_id' => $recordId,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "ลบ {$group} #{$recordId} ในระบบ {$system->name}",
+        ]);
 
         return back()->with('success', "ลบ {$group} เรียบร้อย");
     }

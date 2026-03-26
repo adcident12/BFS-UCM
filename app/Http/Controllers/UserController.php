@@ -376,6 +376,15 @@ class UserController extends Controller
             'user', $user->id, $user->username,
         );
 
+        app(NotificationService::class)->dispatch('permissions_discovered', [
+            'user' => $user->username,
+            'user_name' => $user->name,
+            'system' => $system->name,
+            'count' => $count,
+            'performed_by' => $this->authUser()?->username,
+            'description' => "Discover สิทธิ์ {$user->name} ({$user->username}) จากระบบ {$system->name}: {$count} สิทธิ์",
+        ]);
+
         return back()->with('success', "Discover สิทธิ์ {$user->name} จาก {$system->name} เรียบร้อย ({$count} สิทธิ์)");
     }
 

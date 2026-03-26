@@ -406,8 +406,9 @@
     <div class="grid grid-cols-1 {{ count($managedGroups) > 1 ? 'lg:grid-cols-2' : 'max-w-xl' }} gap-5">
         @foreach ($managedGroups as $group)
         @php
-        $groupSlug = 'grp-' . preg_replace('/[^a-z0-9]/', '-', strtolower($group));
-        $schema = $groupSchemas[$group] ?? [];
+        $groupSlug   = 'grp-' . preg_replace('/[^a-z0-9]/', '-', strtolower($group));
+        $schema      = $groupSchemas[$group] ?? [];
+        $deleteMode  = $groupDeleteModes[$group] ?? 'hard';
         @endphp
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden flex flex-col">
 
@@ -435,9 +436,34 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2 flex-shrink-0">
+                    {{-- Delete mode badge --}}
+                    @if ($deleteMode === 'soft')
+                    <span class="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">Soft</span>
+                    @else
+                    <span class="text-[10px] font-bold text-red-500 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">Hard</span>
+                    @endif
+
                     <span id="{{ $groupSlug }}-count"
                         class="hidden text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full tabular-nums">
                     </span>
+
+                    {{-- Discover button (admin only) --}}
+                    @if ($canEditPermissions)
+                    <form method="POST" action="{{ route('systems.group-records.discover', [$system, $group]) }}"
+                        style="display:inline">
+                        @csrf
+                        <button type="submit"
+                            class="inline-flex items-center gap-1 text-[10px] font-bold text-cyan-600 bg-cyan-50 border border-cyan-200 px-2 py-1 rounded-lg hover:bg-cyan-100 transition-colors cursor-pointer"
+                            title="Discover — ดึงข้อมูลจากระบบภายนอก">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            Discover
+                        </button>
+                    </form>
+                    @endif
+
                     <button type="button" onclick="groupReload('{{ $group }}', '{{ $groupSlug }}')"
                         class="w-7 h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                         title="รีโหลด">
@@ -527,8 +553,9 @@
     // ── Managed Group CRUD ────────────────────────────────────────────────
     var _isAdminL1 = {{ $canEditPermissions ? 'true' : 'false' }}; // level 1+: เพิ่มได้
     var _isAdminL2 = {{ $canManageSystems ? 'true' : 'false' }}; // level 2: แก้ไข/ลบได้
-    var _groupData = {};
-    var _groupSchemas = @json($groupSchemas); // {'PageGroup': {priority:{...}, filename:{...}}, ...}
+    var _groupData        = {};
+    var _groupSchemas     = @json($groupSchemas);
+    var _groupDeleteModes = @json($groupDeleteModes); // {'PageGroup': 'hard', 'Department': 'soft', ...}
 
     function groupSlugOf(group) {
         return 'grp-' + group.toLowerCase().replace(/[^a-z0-9]/g, '-');
@@ -690,10 +717,15 @@
         form.innerHTML = '<input type="hidden" name="_token" value="{{ csrf_token() }}"><input type="hidden" name="_method" value="DELETE">';
         document.body.appendChild(form);
 
+        var isSoft   = (_groupDeleteModes[group] || 'hard') === 'soft';
+        var subtitle = isSoft
+            ? 'ข้อมูลจะถูกซ่อน (Soft Delete) ในฐานข้อมูลของ {{ $system->name }} — ยังคงอยู่แต่ UCM จะไม่แสดง'
+            : 'ข้อมูลจะถูกลบถาวรออกจากฐานข้อมูลของ {{ $system->name }} และไม่สามารถกู้คืนได้';
+
         askConfirm(
             formId,
             'ลบ "' + name + '" ออกจาก ' + group + ' ?',
-            'ข้อมูลนี้จะถูกลบออกจากฐานข้อมูลของ {{ $system->name }} โดยตรงและไม่สามารถกู้คืนได้'
+            subtitle
         );
     }
 

@@ -165,6 +165,11 @@ abstract class BaseAdapter implements SystemAdapterInterface
         return false;
     }
 
+    public function getGroupDeleteMode(string $group): string
+    {
+        return 'hard';
+    }
+
     public function __destruct()
     {
         $this->pdo = null;
