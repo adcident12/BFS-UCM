@@ -87,7 +87,9 @@
             ];
             $pm = $permModes[$config->permission_mode] ?? ['label' => $config->permission_mode, 'bg' => 'bg-slate-100', 'text' => 'text-slate-600'];
         @endphp
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        <div class="bg-white rounded-2xl ring-1 ring-slate-100 shadow-sm overflow-hidden flex flex-col group hover:shadow-md hover:-translate-y-0.5 hover:ring-indigo-100 transition-all duration-200">
+            {{-- Top color bar --}}
+            <div class="h-1.5 w-full" style="background: linear-gradient(90deg, {{ $color }}, {{ $color }}aa)"></div>
 
             {{-- Card Header --}}
             <div class="flex items-center gap-3.5 px-5 py-4 border-b border-slate-100">

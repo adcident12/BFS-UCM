@@ -21,24 +21,40 @@
 
 @section('content')
 
-{{-- Action bar --}}
-<div class="flex flex-wrap items-center gap-2 justify-between mb-6">
-    <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm"
-            style="background-color: {{ $system->color }}20">
-            <div class="w-3.5 h-3.5 rounded-md" style="background-color: {{ $system->color }}"></div>
-        </div>
-        <div>
-            <p class="text-xs text-slate-400 font-medium">จัดการ Permissions</p>
-            <p class="text-sm font-bold text-slate-700">{{ $system->name }}</p>
-        </div>
+{{-- Hero Banner --}}
+<div class="mb-6 relative overflow-hidden rounded-2xl"
+     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-72 h-72 rounded-full blur-2xl opacity-30"
+             style="background-color: {{ $system->color }}"></div>
+        <div class="absolute -bottom-16 left-24 w-56 h-56 bg-indigo-400/5 rounded-full blur-2xl"></div>
+        <div class="absolute inset-0"
+             style="background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:28px 28px"></div>
     </div>
-    <div class="flex items-center gap-2 flex-wrap">
+    <div class="relative px-6 md:px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-white/8 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/10">
+                <div class="w-5 h-5 rounded-lg shadow-lg" style="background-color: {{ $system->color }}"></div>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-lg font-bold text-white">{{ $system->name }}</h2>
+                    @if (! $system->is_active)
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/30 text-slate-400 border border-slate-500/30">ปิด</span>
+                    @endif
+                    @if ($system->two_way_permissions)
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/25">2-way</span>
+                    @endif
+                </div>
+                <p class="text-slate-400 text-xs font-medium mt-0.5">{{ $system->slug }} · จัดการ Permissions ของระบบนี้</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
         @if (\App\Adapters\AdapterFactory::hasAdapter($system) && $canEditPermissions)
         <form method="POST" action="{{ route('systems.discover', $system) }}" class="inline">
             @csrf
             <button type="submit"
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-sm shadow-emerald-100 transition-all hover:-translate-y-0.5">
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/25 text-emerald-300 hover:text-emerald-200 text-xs font-semibold rounded-xl transition-all">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -54,10 +70,10 @@
         <form method="POST" action="{{ route('systems.toggle-2way', $system) }}" class="inline">
             @csrf
             <button type="submit"
-                class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl shadow-sm transition-all hover:-translate-y-0.5
+                class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl transition-all
                                    {{ $system->two_way_permissions
-                                      ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-amber-100'
-                                      : 'bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 hover:border-amber-300' }}"
+                                      ? 'bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 hover:text-amber-200'
+                                      : 'bg-white/8 hover:bg-white/12 border border-white/15 text-slate-300 hover:text-white' }}"
                 title="{{ $system->two_way_permissions ? 'คลิกเพื่อปิด 2-way permission sync' : 'คลิกเพื่อเปิด 2-way permission sync' }}">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
@@ -67,10 +83,10 @@
         </form>
         @else
         {{-- Admin ระดับ 1 / ทั่วไป: เห็น status แต่กดไม่ได้ --}}
-        <span class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-not-allowed
+        <span class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl cursor-not-allowed opacity-60
                              {{ $system->two_way_permissions
-                                ? 'bg-amber-100 text-amber-500'
-                                : 'bg-slate-100 text-slate-400 border border-slate-200' }}"
+                                ? 'bg-amber-500/15 text-amber-300 border border-amber-500/20'
+                                : 'bg-white/5 text-slate-400 border border-white/10' }}"
             title="เฉพาะ Admin ระดับ 2 เท่านั้นที่เปลี่ยน 2-way ได้">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -82,15 +98,16 @@
 
         @if ($canManageSystems)
         <a href="{{ route('systems.edit', $system) }}"
-            class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-700 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl shadow-sm transition-all hover:-translate-y-0.5">
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white/8 hover:bg-white/15 border border-white/15 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition-all">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             แก้ไขระบบ
         </a>
         @endif
-    </div>
-</div>
+        </div>{{-- /buttons --}}
+    </div>{{-- /content row --}}
+</div>{{-- /banner --}}
 
 <div class="grid grid-cols-1 {{ $canManageSystems ? 'xl:grid-cols-3' : '' }} gap-6">
 

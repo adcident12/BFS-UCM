@@ -106,7 +106,7 @@
                 {{-- Actions --}}
                 <div class="flex gap-2">
                     <a href="{{ route('systems.show', $system) }}"
-                       class="flex-1 text-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors duration-150">
+                       class="flex-1 text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-colors duration-150 shadow-sm shadow-indigo-200">
                         ดูรายละเอียด
                     </a>
                     @if ($canEditPermissions)
@@ -123,7 +123,7 @@
                     @endif
                     @if ($canManageSystems)
                     <a href="{{ route('systems.edit', $system) }}"
-                       class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl transition-colors duration-150">
+                       class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold rounded-xl transition-colors duration-150">
                         แก้ไข
                     </a>
                     @endif

@@ -62,7 +62,7 @@
                 'text'     => 'text-indigo-700',
                 'sub'      => 'Connected Systems',
                 'icon'     => 'M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2',
-                'href'     => '{{ route("systems.index") }}',
+                'href'     => route('systems.index'),
             ],
             [
                 'label'    => 'ผู้ใช้งานทั้งหมด',
@@ -74,7 +74,7 @@
                 'text'     => 'text-sky-700',
                 'sub'      => 'Active Users',
                 'icon'     => 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
-                'href'     => '{{ route("users.index") }}',
+                'href'     => route('users.index'),
             ],
             [
                 'label'    => 'Sync สำเร็จวันนี้',
@@ -104,8 +104,13 @@
     @endphp
 
     @foreach ($cards as $card)
+        @if ($card['href'])
+        <a href="{{ $card['href'] }}" class="bg-white rounded-2xl shadow-sm ring-1 {{ $card['ring'] }} overflow-hidden
+                    hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group relative block">
+        @else
         <div class="bg-white rounded-2xl shadow-sm ring-1 {{ $card['ring'] }} overflow-hidden
                     hover:shadow-md transition-all duration-200 group relative">
+        @endif
             {{-- Top gradient bar --}}
             <div class="h-1 w-full bg-gradient-to-r {{ $card['gradient'] }}"></div>
             <div class="p-5">
@@ -120,6 +125,10 @@
                             <span class="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse"></span>
                             Alert
                         </span>
+                    @elseif ($card['href'])
+                        <svg class="w-4 h-4 {{ $card['text'] }} opacity-0 group-hover:opacity-100 transition-opacity duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
                     @endif
                 </div>
                 <div class="text-3xl font-bold text-slate-800 tracking-tight leading-none mb-1.5">
@@ -128,7 +137,11 @@
                 <div class="text-xs font-semibold text-slate-500">{{ $card['label'] }}</div>
                 <div class="text-[11px] text-slate-400 mt-0.5">{{ $card['sub'] }}</div>
             </div>
+        @if ($card['href'])
+        </a>
+        @else
         </div>
+        @endif
     @endforeach
 </div>
 

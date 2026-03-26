@@ -10,9 +10,8 @@
  | Controller: app/Http/Controllers/Api/AuthController.php
  |             app/Http/Controllers/Api/PermissionController.php
 --}}
-@extends('layouts.app')
-@section('title', 'API Documentation')
-@section('header', 'API Documentation')
+@extends('layouts.docs')
+@section('doc-title', 'API Documentation')
 
 @section('content')
 

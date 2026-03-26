@@ -479,7 +479,11 @@
                         </td>
                         <td class="px-4 md:px-6 py-3.5">
                             <div class="flex items-center gap-3">
-                                <div class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600 text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-sm shadow-indigo-100 flex-shrink-0">
+                                @php
+                                    $avatarPalette = ['from-indigo-500 to-violet-600','from-emerald-500 to-teal-600','from-rose-500 to-pink-600','from-amber-500 to-orange-500','from-blue-500 to-cyan-600','from-violet-500 to-purple-600','from-teal-500 to-emerald-600','from-orange-500 to-red-500'];
+                                    $avatarGrad = $avatarPalette[abs(crc32($user->username ?? $user->name)) % count($avatarPalette)];
+                                @endphp
+                                <div class="w-9 h-9 bg-gradient-to-br {{ $avatarGrad }} text-white rounded-xl flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
                                     {{ strtoupper(substr($user->name, 0, 1)) }}
                                 </div>
                                 <div class="min-w-0">

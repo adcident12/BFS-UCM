@@ -24,6 +24,34 @@
     $canManage = auth()->user()->canAccess('system_create_edit');
 @endphp
 
+{{-- Hero Banner --}}
+<div class="mb-7 relative overflow-hidden rounded-2xl"
+     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-72 h-72 bg-emerald-500/6 rounded-full blur-2xl"></div>
+        <div class="absolute -bottom-16 left-24 w-56 h-56 bg-teal-400/5 rounded-full blur-2xl"></div>
+        <div class="absolute inset-0"
+             style="background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:28px 28px"></div>
+    </div>
+    <div class="relative px-6 md:px-8 py-6 flex items-center gap-4">
+        <div class="w-12 h-12 bg-white/8 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/10">
+            <svg class="w-6 h-6 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+            </svg>
+        </div>
+        <div>
+            <h2 class="text-lg font-bold text-white">จัดการ Permissions</h2>
+            <p class="text-slate-400 text-xs font-medium mt-0.5">
+                @if ($selectedSystem)
+                    กำลังดู <span class="text-white font-semibold">{{ $selectedSystem->name }}</span> — เลือกระบบอื่นจาก sidebar ด้านซ้าย
+                @else
+                    เลือกระบบจาก sidebar เพื่อดูและจัดการ permissions
+                @endif
+            </p>
+        </div>
+    </div>
+</div>
+
 <div class="flex gap-5 items-start">
 
     {{-- ── Left: System selector ─────────────────────────────────────── --}}

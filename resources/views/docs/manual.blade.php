@@ -1,15 +1,5 @@
-@extends('layouts.app')
-
-@section('title', 'คู่มือผู้ใช้งาน')
-@section('header', 'คู่มือผู้ใช้งาน')
-
-@section('breadcrumbs')
-    <a href="{{ route('dashboard') }}" class="text-slate-400 hover:text-slate-600 font-medium transition-colors whitespace-nowrap">Dashboard</a>
-    <svg class="w-3.5 h-3.5 text-slate-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-    <span class="font-semibold text-slate-800 truncate">คู่มือผู้ใช้งาน</span>
-@endsection
-
-@section('content')
+@extends('layouts.docs')
+@section('doc-title', 'คู่มือผู้ใช้งาน')
 
 @php
 $sections = [
@@ -41,26 +31,14 @@ $sections = [
 ];
 @endphp
 
-<div class="flex gap-8 items-start">
+@push('doc-page-toc')
+@foreach($sections as $s)
+<a href="#{{ $s['id'] }}" class="toc-item">{{ $s['label'] }}</a>
+@endforeach
+@endpush
 
-    {{-- Sticky Table of Contents --}}
-    <aside class="hidden xl:block w-56 flex-shrink-0 sticky top-24 self-start">
-        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-4">
-            <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">สารบัญ</p>
-            <nav class="space-y-0.5" id="toc-nav">
-                @foreach ($sections as $s)
-                    <a href="#{{ $s['id'] }}"
-                       class="toc-link flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-300 flex-shrink-0"></span>
-                        {{ $s['label'] }}
-                    </a>
-                @endforeach
-            </nav>
-        </div>
-    </aside>
-
-    {{-- Content --}}
-    <div class="flex-1 min-w-0 space-y-6">
+@section('content')
+<div class="space-y-6">
 
         {{-- Header card --}}
         <div class="relative overflow-hidden rounded-2xl p-7"
@@ -3859,40 +3837,6 @@ $sections = [
             </div>
         </div>
 
-    </div>
 </div>
-
-{{-- Smooth scroll highlight active TOC item --}}
-<script>
-(function () {
-    var links = document.querySelectorAll('.toc-link');
-    var ids   = Array.from(links).map(function (l) { return l.getAttribute('href').slice(1); });
-
-    function setActive(active) {
-        links.forEach(function (l) {
-            var isCur = l.getAttribute('href') === '#' + active;
-            l.className = 'toc-link flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-colors ' +
-                (isCur ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50');
-            l.querySelector('span').className = 'w-1.5 h-1.5 rounded-full flex-shrink-0 ' +
-                (isCur ? 'bg-indigo-500' : 'bg-slate-300');
-        });
-    }
-
-    function onScroll() {
-        // Use getBoundingClientRect so the position is always relative to the viewport,
-        // not the offsetParent — works correctly inside flex/grid containers.
-        var threshold = 140; // px from top of viewport to "activate" the section
-        var active    = ids[0];
-        ids.forEach(function (id) {
-            var el = document.getElementById(id);
-            if (el && el.getBoundingClientRect().top <= threshold) active = id;
-        });
-        setActive(active);
-    }
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-})();
-</script>
 
 @endsection

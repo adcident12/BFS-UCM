@@ -15,38 +15,47 @@
 
 @section('content')
 
-{{-- Header card --}}
-<div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden mb-6">
-    <div class="h-1.5 w-full" style="background: linear-gradient(90deg, #6366f1, #8b5cf6, #06b6d4)"></div>
-    <div class="p-4 md:p-6 flex flex-col sm:flex-row items-start gap-4">
-        <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold text-white flex-shrink-0 shadow-lg shadow-indigo-200"
-             style="background: linear-gradient(135deg, #6366f1, #8b5cf6)">
+{{-- Hero Banner --}}
+<div class="mb-6 relative overflow-hidden rounded-2xl"
+     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-72 h-72 bg-violet-500/6 rounded-full blur-2xl"></div>
+        <div class="absolute -bottom-16 left-24 w-56 h-56 bg-indigo-400/5 rounded-full blur-2xl"></div>
+        <div class="absolute inset-0"
+             style="background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:28px 28px"></div>
+    </div>
+    <div class="relative px-6 md:px-8 py-6 flex flex-col sm:flex-row items-start gap-4">
+        {{-- Avatar --}}
+        <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold text-white flex-shrink-0 border border-white/15"
+             style="background: linear-gradient(135deg, #6366f140, #8b5cf640)">
             {{ strtoupper(substr($user->name, 0, 1)) }}
         </div>
+        {{-- Info --}}
         <div class="flex-1 min-w-0">
-            <h2 class="text-lg font-bold text-slate-800">{{ $user->name }}</h2>
+            <h2 class="text-lg font-bold text-white">{{ $user->name }}</h2>
             <div class="flex flex-wrap items-center gap-2 mt-1.5">
-                <code class="text-xs font-mono text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg font-semibold">{{ $user->username }}</code>
+                <code class="text-xs font-mono text-indigo-300 bg-indigo-500/15 border border-indigo-500/20 px-2.5 py-1 rounded-lg font-semibold">{{ $user->username }}</code>
                 @if ($user->department)
-                    <span class="text-xs text-slate-500 font-medium">{{ $user->department }}</span>
+                    <span class="text-xs text-slate-400 font-medium">{{ $user->department }}</span>
                 @endif
                 @if ($user->title)
-                    <span class="text-xs text-slate-500 font-medium bg-slate-50 px-2 py-0.5 rounded-lg">{{ $user->title }}</span>
+                    <span class="text-xs text-slate-400 font-medium bg-white/8 border border-white/10 px-2 py-0.5 rounded-lg">{{ $user->title }}</span>
                 @endif
             </div>
             <div class="flex flex-wrap items-center gap-3 mt-2">
                 @php $totalPerms = array_sum(array_map('count', $permsBySystem)); @endphp
                 <span class="text-xs text-slate-400 font-medium">
-                    สิทธิ์รวม <span class="font-bold text-slate-600">{{ $totalPerms }}</span> รายการ
-                    ใน <span class="font-bold text-slate-600">{{ count(array_filter($permsBySystem)) }}</span> ระบบ
+                    สิทธิ์รวม <span class="font-bold text-slate-200">{{ $totalPerms }}</span> รายการ
+                    ใน <span class="font-bold text-slate-200">{{ count(array_filter($permsBySystem)) }}</span> ระบบ
                 </span>
-                <span class="text-slate-200">·</span>
-                <span class="text-xs text-slate-400 font-medium">ประวัติ <span class="font-bold text-slate-600">{{ $logs->count() }}</span> รายการ</span>
+                <span class="text-slate-600">·</span>
+                <span class="text-xs text-slate-400 font-medium">ประวัติ <span class="font-bold text-slate-200">{{ $logs->count() }}</span> รายการ</span>
             </div>
         </div>
+        {{-- Back --}}
         <a href="{{ route('users.show', $user) }}"
-           class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-100 px-3 py-2 rounded-xl transition-colors flex-shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+           class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-slate-200 hover:bg-white/10 px-3 py-2 rounded-xl transition-colors flex-shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
             กลับ
