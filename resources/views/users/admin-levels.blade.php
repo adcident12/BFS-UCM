@@ -16,28 +16,39 @@
     $countL2 = $users->where('is_admin', 2)->count();
 @endphp
 
-{{-- ── Header ──────────────────────────────────────────────────────────── --}}
-<div class="flex flex-wrap items-start justify-between gap-4 mb-7">
-    <div>
-        <h2 class="text-lg font-bold text-slate-800">สิทธิ์ผู้ดูแลระบบ</h2>
-        <p class="text-sm text-slate-400 font-medium mt-0.5">กำหนดระดับ Admin ให้ผู้ใช้ — เฉพาะ Admin ระดับ 2 เท่านั้น</p>
+{{-- Hero Banner --}}
+<div class="mb-7 relative overflow-hidden rounded-2xl"
+     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-72 h-72 bg-amber-500/6 rounded-full blur-2xl"></div>
+        <div class="absolute -bottom-16 left-24 w-56 h-56 bg-orange-400/5 rounded-full blur-2xl"></div>
+        <div class="absolute inset-0"
+             style="background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:28px 28px"></div>
     </div>
-    {{-- Stat summary --}}
-    <div class="flex items-center gap-2 flex-shrink-0">
-        <div class="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-xl ring-1 ring-slate-100 text-xs font-semibold">
-            <span class="inline-flex items-center gap-1.5 text-slate-500">
-                <span class="w-2 h-2 rounded-full bg-slate-300"></span>
-                ทั่วไป <span class="text-slate-800 tabular-nums">{{ $countL0 }}</span>
+    <div class="relative px-6 md:px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-white/8 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/10">
+                <svg class="w-6 h-6 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-white">จัดการสิทธิ์ Admin</h2>
+                <p class="text-slate-400 text-xs font-medium mt-0.5">กำหนดระดับ Admin ให้ผู้ใช้ — เฉพาะ Admin ระดับ 2 เท่านั้น</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-slate-500/20 border border-slate-500/25 text-slate-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                ทั่วไป {{ $countL0 }}
             </span>
-            <span class="w-px h-3.5 bg-slate-200"></span>
-            <span class="inline-flex items-center gap-1.5 text-indigo-600">
-                <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
-                L1 <span class="tabular-nums">{{ $countL1 }}</span>
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-indigo-500/15 border border-indigo-500/25 text-indigo-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+                L1 {{ $countL1 }}
             </span>
-            <span class="w-px h-3.5 bg-slate-200"></span>
-            <span class="inline-flex items-center gap-1.5 text-amber-600">
-                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-                L2 <span class="tabular-nums">{{ $countL2 }}</span>
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-300">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                L2 {{ $countL2 }}
             </span>
         </div>
     </div>

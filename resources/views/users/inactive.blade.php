@@ -13,6 +13,28 @@
 
 @section('content')
 
+{{-- Hero Banner --}}
+<div class="mb-7 relative overflow-hidden rounded-2xl"
+     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-72 h-72 bg-rose-500/6 rounded-full blur-2xl"></div>
+        <div class="absolute -bottom-16 left-24 w-56 h-56 bg-pink-400/5 rounded-full blur-2xl"></div>
+        <div class="absolute inset-0"
+             style="background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:28px 28px"></div>
+    </div>
+    <div class="relative px-6 md:px-8 py-6 flex items-center gap-4">
+        <div class="w-12 h-12 bg-white/8 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/10">
+            <svg class="w-6 h-6 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div>
+            <h2 class="text-lg font-bold text-white">ผู้ใช้ที่ไม่ได้ใช้งาน</h2>
+            <p class="text-slate-400 text-xs font-medium mt-0.5">รายการผู้ใช้ที่ไม่มีกิจกรรมเกินระยะเวลาที่กำหนด</p>
+        </div>
+    </div>
+</div>
+
 {{-- Filter / Search bar --}}
 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
     {{-- Search --}}

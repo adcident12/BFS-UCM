@@ -16,21 +16,37 @@
 
 <div class="max-w-5xl mx-auto">
 
-    {{-- Header --}}
-    <div class="flex items-start justify-between mb-6">
-        <div>
-            <h1 class="text-xl font-bold text-slate-900">Connector Wizard</h1>
-            <p class="text-sm text-slate-500 mt-0.5">เชื่อมต่อฐานข้อมูลระบบภายนอกเข้ากับ UCM แบบ No-Code</p>
+    {{-- Hero Banner --}}
+    <div class="mb-7 relative overflow-hidden rounded-2xl"
+         style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
+        <div class="absolute inset-0 pointer-events-none overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-72 h-72 bg-violet-500/6 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-16 left-24 w-56 h-56 bg-indigo-400/5 rounded-full blur-2xl"></div>
+            <div class="absolute inset-0"
+                 style="background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:28px 28px"></div>
         </div>
-        @if($canManageConnectors)
-        <a href="{{ route('connectors.create') }}"
-           class="inline-flex items-center gap-2 text-sm font-semibold text-white bg-gradient-to-br from-indigo-500 to-violet-600 px-4 py-2.5 rounded-xl shadow-md shadow-indigo-200 hover:opacity-90 active:scale-95 transition-all whitespace-nowrap">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            สร้าง Connector ใหม่
-        </a>
-        @endif
+        <div class="relative px-6 md:px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-white/8 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/10">
+                    <svg class="w-6 h-6 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Connector Wizard</h2>
+                    <p class="text-slate-400 text-xs font-medium mt-0.5">เชื่อมต่อฐานข้อมูลระบบภายนอกเข้ากับ UCM แบบ No-Code</p>
+                </div>
+            </div>
+            @if($canManageConnectors)
+            <a href="{{ route('connectors.create') }}"
+               class="inline-flex items-center gap-1.5 px-4 py-2 bg-violet-500/20 hover:bg-violet-500/30 border border-violet-400/30 rounded-xl text-violet-300 hover:text-violet-200 text-xs font-semibold transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                สร้าง Connector ใหม่
+            </a>
+            @endif
+        </div>
     </div>
 
 

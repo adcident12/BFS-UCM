@@ -27,27 +27,36 @@ $levelBtnColors = [
 ];
 @endphp
 
-{{-- Header description --}}
-<div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 px-6 py-5 mb-6 flex flex-wrap items-start gap-4">
-    <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
-        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-        </svg>
+{{-- Hero Banner --}}
+<div class="mb-7 relative overflow-hidden rounded-2xl"
+     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-72 h-72 bg-indigo-500/6 rounded-full blur-2xl"></div>
+        <div class="absolute -bottom-16 left-24 w-56 h-56 bg-blue-400/5 rounded-full blur-2xl"></div>
+        <div class="absolute inset-0"
+             style="background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:28px 28px"></div>
     </div>
-    <div class="flex-1">
-        <h3 class="text-sm font-bold text-slate-800">ระดับสิทธิ์ภายในระบบ UCM</h3>
-        <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">
-            กำหนดว่าผู้ใช้แต่ละระดับสามารถเข้าถึงฟีเจอร์ใดของ UCM ได้บ้าง
-            นอกจากนี้ยังสามารถมอบสิทธิ์พิเศษให้ผู้ใช้รายบุคคลได้ โดยไม่ต้องเพิ่ม Admin Level
-        </p>
-    </div>
-    <div class="flex flex-wrap gap-2">
-        @foreach ([0 => 'ทุกคน (L0)', 1 => 'Admin L1+', 2 => 'Admin L2 เท่านั้น'] as $lv => $label)
-        <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl border {{ $levelColors[$lv] }}">
-            <span class="w-2 h-2 rounded-full {{ ['bg-emerald-500', 'bg-indigo-500', 'bg-amber-500'][$lv] }}"></span>
-            {{ $label }}
-        </span>
-        @endforeach
+    <div class="relative px-6 md:px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-white/8 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/10">
+                <svg class="w-6 h-6 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-white">จัดการสิทธิ์ระบบ UCM</h2>
+                <p class="text-slate-400 text-xs font-medium mt-0.5">กำหนดว่าผู้ใช้แต่ละระดับสามารถเข้าถึงฟีเจอร์ใดของ UCM ได้บ้าง</p>
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            @foreach ([0 => 'L0 ทุกคน', 1 => 'L1 Admin+', 2 => 'L2 Admin'] as $lv => $label)
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-xl
+                {{ [0 => 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/25', 1 => 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/25', 2 => 'bg-amber-500/15 text-amber-300 border border-amber-500/25'][$lv] }}">
+                <span class="w-1.5 h-1.5 rounded-full {{ ['bg-emerald-400', 'bg-indigo-400', 'bg-amber-400'][$lv] }}"></span>
+                {{ $label }}
+            </span>
+            @endforeach
+        </div>
     </div>
 </div>
 

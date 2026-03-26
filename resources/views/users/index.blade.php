@@ -23,6 +23,59 @@
     <div id="export-ids-container"></div>
 </form>
 
+{{-- Hero Banner --}}
+<div class="mb-7 relative overflow-hidden rounded-2xl"
+     style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        <div class="absolute -top-12 -right-12 w-72 h-72 bg-blue-500/6 rounded-full blur-2xl"></div>
+        <div class="absolute -bottom-16 left-24 w-56 h-56 bg-indigo-400/5 rounded-full blur-2xl"></div>
+        <div class="absolute inset-0"
+             style="background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);background-size:28px 28px"></div>
+    </div>
+    <div class="relative px-6 md:px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-white/8 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 border border-white/10">
+                <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-white">จัดการผู้ใช้</h2>
+                <p class="text-slate-400 text-xs font-medium mt-0.5">จัดการบัญชีผู้ใช้ สิทธิ์ และการ Sync จาก Active Directory</p>
+            </div>
+        </div>
+        @if ($canInactiveReport || $canImportLdap)
+        <div class="flex items-center gap-2 flex-shrink-0">
+            @if ($canInactiveReport)
+            <a href="{{ route('users.inactive') }}"
+               class="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/25 rounded-xl text-rose-300 hover:text-rose-200 text-xs font-semibold transition-all whitespace-nowrap">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                ไม่ได้ใช้งาน
+            </a>
+            @endif
+            @if ($canImportLdap)
+            <button id="btn-check-ad"
+                    class="inline-flex items-center gap-1.5 px-3 py-2 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/25 rounded-xl text-amber-300 hover:text-amber-200 text-xs font-semibold transition-all whitespace-nowrap cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                ตรวจสอบ AD
+            </button>
+            <button id="btn-open-modal"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-xl text-blue-300 hover:text-blue-200 text-xs font-semibold transition-all whitespace-nowrap cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                นำเข้าจาก AD
+            </button>
+            @endif
+        </div>
+        @endif
+    </div>
+</div>
+
 {{-- Toolbar --}}
 <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-5 gap-3">
     {{-- Search bar --}}
@@ -53,36 +106,6 @@
         </button>
     </form>
 
-    {{-- AD Management (admin only) — global actions, not related to row selection --}}
-    @if ($canImportLdap || $canInactiveReport)
-    <div class="flex items-center gap-2 flex-shrink-0">
-        @if ($canInactiveReport)
-        <a href="{{ route('users.inactive') }}"
-           class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-sm font-semibold rounded-xl transition-all duration-150 whitespace-nowrap">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            ไม่ได้ใช้งาน
-        </a>
-        @endif
-        @if ($canImportLdap)
-        <button id="btn-check-ad"
-                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-sm font-semibold rounded-xl transition-all duration-150 whitespace-nowrap cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            ตรวจสอบ AD
-        </button>
-        <button id="btn-open-modal"
-                class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm shadow-indigo-200 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200 whitespace-nowrap cursor-pointer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            นำเข้าจาก AD
-        </button>
-        @endif
-    </div>
-    @endif
 </div>
 
 {{-- Stats bar --}}
