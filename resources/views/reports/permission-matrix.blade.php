@@ -361,12 +361,9 @@ tr:hover .perm-cell {
         </table>
     </div>
 
-    {{-- Pagination + summary --}}
-    @if ($users->hasPages() || $users->total() > 0)
-        <div class="px-5 py-3 border-t border-slate-100 flex items-center justify-between gap-4 flex-wrap">
-            <span class="text-xs text-slate-500 font-medium">
-                แสดง {{ $users->firstItem() }}–{{ $users->lastItem() }} จาก {{ number_format($users->total()) }} ผู้ใช้
-            </span>
+    {{-- Pagination --}}
+    @if ($users->hasPages())
+        <div class="px-5 py-3 border-t border-slate-100">
             {{ $users->links() }}
         </div>
     @endif
