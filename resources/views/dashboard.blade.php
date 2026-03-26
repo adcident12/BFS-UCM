@@ -203,6 +203,7 @@
                 </div>
                 <h2 class="font-bold text-slate-800 text-sm">ระบบที่เชื่อมต่อ</h2>
             </div>
+            @if (auth()->user()->canAccess('system_create_edit'))
             <a href="{{ route('systems.create') }}"
                class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,6 +211,7 @@
                 </svg>
                 เพิ่ม
             </a>
+            @endif
         </div>
         <div class="divide-y divide-slate-50">
             @forelse ($systems as $system)

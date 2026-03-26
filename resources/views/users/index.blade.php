@@ -431,7 +431,7 @@
         <table class="w-full text-sm min-w-[560px]">
             <thead>
                 <tr class="border-b border-slate-100 bg-slate-50/80">
-                    <th class="px-3 md:px-4 py-3 w-12">
+                    <th class="px-3 md:px-4 py-3.5 w-12">
                         <div class="flex flex-col items-center gap-1">
                             <input type="checkbox" id="select-all-chk"
                                    class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500/30 cursor-pointer"
@@ -511,44 +511,44 @@
 
 {{-- Import Progress Overlay --}}
 <div id="import-overlay"
-     style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,0.7);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
-    <div style="background:#fff;border-radius:1.25rem;padding:2.5rem;width:90%;max-width:480px;box-shadow:0 25px 80px rgba(0,0,0,0.4);border:1px solid #e2e8f0;">
-        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.75rem;">
-            <div style="width:40px;height:40px;background:#eef2ff;border-radius:0.75rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <svg style="width:20px;height:20px;color:#6366f1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+     style="display:none"
+     class="fixed inset-0 z-[9999] bg-slate-900/70 backdrop-blur-sm items-center justify-center">
+    <div class="bg-white rounded-[1.25rem] p-10 w-[90%] max-w-[480px] shadow-[0_25px_80px_rgba(0,0,0,0.4)] border border-slate-200">
+        <div class="flex items-center gap-3 mb-7">
+            <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                 </svg>
             </div>
             <div>
-                <h3 id="overlay-title" style="font-size:1rem;font-weight:700;color:#1e293b;margin:0;">กำลังนำเข้าผู้ใช้...</h3>
-                <p id="overlay-msg" style="font-size:0.8rem;color:#64748b;margin:0.2rem 0 0;">กำลังเชื่อมต่อ AD และระบบต่างๆ...</p>
+                <h3 id="overlay-title" class="text-base font-bold text-slate-800 m-0">กำลังนำเข้าผู้ใช้...</h3>
+                <p id="overlay-msg" class="text-[0.8rem] text-slate-500 mt-[0.2rem] mb-0">กำลังเชื่อมต่อ AD และระบบต่างๆ...</p>
             </div>
         </div>
-        <div style="margin-bottom:1.25rem;">
-            <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
-                <span id="overlay-count" style="font-size:0.8125rem;color:#475569;font-weight:500;"></span>
-                <span id="overlay-pct" style="font-size:0.8125rem;font-weight:700;color:#6366f1;">5%</span>
+        <div class="mb-5">
+            <div class="flex justify-between mb-2">
+                <span id="overlay-count" class="text-[0.8125rem] text-slate-600 font-medium"></span>
+                <span id="overlay-pct" class="text-[0.8125rem] font-bold text-indigo-500">5%</span>
             </div>
-            <div style="background:#e2e8f0;border-radius:9999px;height:10px;overflow:hidden;">
-                <div id="overlay-bar" style="height:10px;border-radius:9999px;background:linear-gradient(90deg,#6366f1,#8b5cf6);width:5%;transition:width 0.6s ease-out;"></div>
+            <div class="bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                <div id="overlay-bar" class="h-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 w-[5%] [transition:width_0.6s_ease-out]"></div>
             </div>
         </div>
-        <div id="overlay-warning" style="display:flex;align-items:center;gap:0.625rem;background:#fffbeb;border-radius:0.625rem;padding:0.75rem 1rem;font-size:0.75rem;color:#b45309;border:1px solid #fde68a;">
-            <svg style="width:16px;height:16px;flex-shrink:0;animation:spin 1s linear infinite" fill="none" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" style="opacity:0.25"/>
-                <path fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" style="opacity:0.75"/>
+        <div id="overlay-warning" class="flex items-center gap-2.5 bg-amber-50 rounded-[0.625rem] py-3 px-4 text-xs text-amber-700 border border-amber-200">
+            <svg class="w-4 h-4 shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" class="opacity-25"/>
+                <path fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" class="opacity-75"/>
             </svg>
             กรุณาอย่าปิดหน้าต่างหรือออกจากหน้านี้
         </div>
-        <div id="overlay-done" style="display:none;align-items:center;gap:0.625rem;background:#f0fdf4;border-radius:0.625rem;padding:0.75rem 1rem;font-size:0.875rem;color:#15803d;font-weight:600;border:1px solid #bbf7d0;">
-            <svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div id="overlay-done" style="display:none" class="items-center gap-2.5 bg-green-50 rounded-[0.625rem] py-3 px-4 text-sm text-green-700 font-semibold border border-green-200">
+            <svg class="w-[18px] h-[18px] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
             </svg>
             เสร็จแล้ว! กำลังโหลดหน้าใหม่...
         </div>
     </div>
 </div>
-<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
 @push('scripts')
 <script>

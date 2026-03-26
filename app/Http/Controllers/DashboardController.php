@@ -6,12 +6,17 @@ use App\Models\AuditLog;
 use App\Models\SyncLog;
 use App\Models\System;
 use App\Models\UcmUser;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
     public function index(): View
     {
+        /** @var \App\Models\UcmUser|null */
+        $user = Auth::user();
+        abort_unless($user?->canAccess('dashboard'), 403);
+
         $stats = [
             'systems' => System::where('is_active', true)->count(),
             'users' => UcmUser::where('is_active', true)->count(),

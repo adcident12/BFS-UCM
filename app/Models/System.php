@@ -20,6 +20,8 @@ class System extends Model
     protected $casts = [
         'is_active'           => 'boolean',
         'two_way_permissions' => 'boolean',
+        'db_password'         => 'encrypted',
+        'api_token'           => 'encrypted',
     ];
 
     protected $hidden = ['db_password', 'api_token'];

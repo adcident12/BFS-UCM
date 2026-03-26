@@ -704,8 +704,8 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     <div class="wiz-step hidden" data-step="5">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
-                <div class="bg-orange-100 w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200/60">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="bg-orange-100 w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 from-violet-500 to-purple-600 shadow-lg shadow-violet-200/60">
+                    <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
                     </svg>
                 </div>

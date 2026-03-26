@@ -31,6 +31,8 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
+        abort_unless($this->authUser()?->canAccess('user_list'), 403);
+
         $query = UcmUser::query()->where('is_active', true);
 
         if ($search = $request->input('search')) {
@@ -118,6 +120,8 @@ class UserController extends Controller
 
     public function show(UcmUser $user)
     {
+        abort_unless($this->authUser()?->canAccess('user_detail'), 403);
+
         $systems = System::where('is_active', true)
             ->with([
                 'permissions' => fn ($q) => $q->orderBy('sort_order'),
@@ -652,6 +656,8 @@ class UserController extends Controller
 
     public function export(Request $request): StreamedResponse
     {
+        abort_unless($this->authUser()?->canAccess('permission_update'), 403);
+
         $userIds = array_filter(array_map('intval', (array) $request->input('user_ids', [])));
 
         $query = UcmUser::where('is_active', true)->orderBy('name');

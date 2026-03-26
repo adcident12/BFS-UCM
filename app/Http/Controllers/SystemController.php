@@ -40,6 +40,8 @@ class SystemController extends Controller
 
     public function index()
     {
+        abort_unless($this->authUser()?->canAccess('system_list'), 403);
+
         $systems = System::withCount(['permissions', 'userPermissions'])
             ->orderBy('name')
             ->get();
@@ -49,6 +51,8 @@ class SystemController extends Controller
 
     public function create()
     {
+        abort_unless($this->authUser()?->canAccess('system_create_edit'), 403, 'เฉพาะ Admin ระดับ 2 เท่านั้นที่สามารถเพิ่มระบบได้');
+
         return view('systems.create');
     }
 
@@ -97,6 +101,8 @@ class SystemController extends Controller
 
     public function show(System $system)
     {
+        abort_unless($this->authUser()?->canAccess('system_list'), 403);
+
         $system->load(['permissions' => fn ($q) => $q->orderBy('group')->orderBy('sort_order')]);
 
         $managedGroups    = [];
@@ -320,6 +326,8 @@ class SystemController extends Controller
 
     public function usersForImport(System $system)
     {
+        abort_unless($this->authUser()?->canAccess('user_import_ldap'), 403);
+
         if (! AdapterFactory::hasAdapter($system)) {
             return response()->json(['error' => 'ระบบนี้ไม่มี adapter'], 400);
         }

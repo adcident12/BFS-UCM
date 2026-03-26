@@ -8,6 +8,7 @@ use App\Models\UcmUser;
 use App\Models\UserSystemPermission;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserExportController extends Controller
 {
@@ -22,6 +23,10 @@ class UserExportController extends Controller
      */
     public function export(Request $request): JsonResponse
     {
+        /** @var \App\Models\UcmUser|null */
+        $apiUser = Auth::user();
+        abort_unless($apiUser?->canAccess('permission_update'), 403);
+
         $request->validate([
             'user_ids'    => 'array',
             'user_ids.*'  => 'integer|min:1',
