@@ -5,14 +5,19 @@ use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\ConnectorWizardController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MatrixShareLinkController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionCenterController;
+use App\Http\Controllers\PublicMatrixController;
 use App\Http\Controllers\QueueMonitorController;
 use App\Http\Controllers\UcmAccessController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SystemController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+
+// Public share link — no auth required
+Route::get('/share/matrix/{token}', [PublicMatrixController::class, 'show'])->name('share.matrix');
 
 // Auth
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
@@ -113,6 +118,11 @@ Route::middleware('auth')->group(function () {
     // Reports
     Route::get('/reports/permission-matrix', [ReportController::class, 'permissionMatrix'])->name('reports.permission-matrix');
     Route::get('/reports/permission-matrix/export', [ReportController::class, 'exportPermissionMatrix'])->name('reports.permission-matrix.export');
+
+    // Share Links (Permission Matrix)
+    Route::get('/share-links', [MatrixShareLinkController::class, 'index'])->name('share-links.index');
+    Route::post('/share-links', [MatrixShareLinkController::class, 'store'])->name('share-links.store');
+    Route::post('/share-links/{shareLink}/toggle', [MatrixShareLinkController::class, 'toggle'])->name('share-links.toggle');
 
     // Queue Monitor
     Route::get('/queue/monitor', [QueueMonitorController::class, 'index'])->name('queue.monitor');

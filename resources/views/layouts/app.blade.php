@@ -89,7 +89,7 @@
             $activeSection = '';
             if (request()->routeIs('dashboard') || request()->routeIs('users.*') || request()->routeIs('systems.*'))
                 $activeSection = 'main';
-            elseif (request()->routeIs('admin.levels') || request()->routeIs('queue.monitor') || request()->routeIs('connectors.*') || request()->routeIs('audit.*') || request()->routeIs('notifications.*') || request()->routeIs('reports.*'))
+            elseif (request()->routeIs('admin.levels') || request()->routeIs('queue.monitor') || request()->routeIs('connectors.*') || request()->routeIs('audit.*') || request()->routeIs('notifications.*') || request()->routeIs('reports.*') || request()->routeIs('share-links.*'))
                 $activeSection = 'admin';
             elseif (request()->routeIs('docs.manual'))
                 $activeSection = 'docs';
@@ -174,6 +174,21 @@
                     </div>
                     <span class="truncate">Permission Matrix</span>
                     @if ($reportActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
+                @endif
+                @if (auth()->user()->canAccess('share_link_manage'))
+                @php $shareLinkActive = request()->routeIs('share-links.*') @endphp
+                <a href="{{ route('share-links.index') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                          {{ $shareLinkActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $shareLinkActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">Share Links</span>
+                    @if ($shareLinkActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
                 @endif
                 @if (auth()->user()->canAccess('permission_center'))

@@ -34,6 +34,7 @@ $sections = [
     ['id' => 'notification-channels', 'label' => 'Notification Channels'],
     ['id' => 'permission-center',     'label' => 'Permission Center'],
     ['id' => 'permission-matrix',     'label' => 'Permission Matrix'],
+    ['id' => 'share-links',           'label' => 'Share Links'],
     ['id' => 'permission-timeline',   'label' => 'Permission Timeline'],
     ['id' => 'inactive-users',        'label' => 'ผู้ใช้ไม่ได้ใช้งาน'],
     ['id' => 'health-check',          'label' => 'ทดสอบการเชื่อมต่อ'],
@@ -3239,6 +3240,7 @@ $sections = [
                             ['label' => 'UCM Access',  'color' => 'purple', 'desc' => 'เปลี่ยน Feature Level / มอบ/ถอน Individual Grant'],
                             ['label' => 'Queue',       'color' => 'amber',  'desc' => 'Retry / Delete / Flush Failed Jobs'],
                             ['label' => 'API',         'color' => 'rose',   'desc' => 'ออก Token / Revoke / User Login ผ่าน API'],
+                            ['label' => 'Share Links', 'color' => 'cyan',   'desc' => 'สร้าง / ยกเลิก / Reactivate / เปิดดู Share Link'],
                         ] as $item)
                         <div class="flex items-start gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
                             <div class="w-2 h-2 rounded-full bg-{{ $item['color'] }}-500 mt-1 flex-shrink-0"></div>
@@ -3259,7 +3261,7 @@ $sections = [
                             <svg class="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a2 2 0 012-2z"/></svg>
                             <div>
                                 <p class="font-semibold text-indigo-800">กรองตามประเภท</p>
-                                <p class="text-slate-600 mt-0.5">คลิกแท็บ Auth / Users / Permissions / Systems / Connectors / Notifications / UCM Access / Queue / API เพื่อกรองเฉพาะหมวดนั้น</p>
+                                <p class="text-slate-600 mt-0.5">คลิกแท็บ Auth / Users / Permissions / Systems / Connectors / Notifications / UCM Access / Queue / API / Share Links เพื่อกรองเฉพาะหมวดนั้น</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
@@ -3300,7 +3302,7 @@ $sections = [
                             </thead>
                             <tbody>
                                 @foreach ([
-                                    ['col' => 'ประเภท', 'desc' => 'หมวดหมู่เหตุการณ์ (Auth / Users / Permissions / Systems / Connectors / Notifications / UCM Access / Queue / API)'],
+                                    ['col' => 'ประเภท', 'desc' => 'หมวดหมู่เหตุการณ์ (Auth / Users / Permissions / Systems / Connectors / Notifications / UCM Access / Queue / API / Share Links)'],
                                     ['col' => 'เหตุการณ์', 'desc' => 'ชื่อ Event เช่น Login, Update Permissions, Create System'],
                                     ['col' => 'ผู้กระทำ', 'desc' => 'Username ของผู้ดำเนินการ (หรือ System หากเกิดจาก API)'],
                                     ['col' => 'เป้าหมาย', 'desc' => 'ข้อมูลที่ถูกกระทำ เช่น ชื่อผู้ใช้ ชื่อระบบ'],
@@ -3393,35 +3395,53 @@ $sections = [
                             <tbody>
                                 @foreach ([
                                     // Users
-                                    ['event' => 'permissions_updated',   'group' => 'Users', 'desc' => 'เมื่อมีการเปลี่ยนแปลงสิทธิ์ผู้ใช้ (ผ่านหน้า Manage Permissions)'],
-                                    ['event' => 'account_status_changed','group' => 'Users', 'desc' => 'เมื่อเปิด/ปิด Account ของผู้ใช้ในระบบภายนอก'],
-                                    ['event' => 'user_imported',         'group' => 'Users', 'desc' => 'เมื่อนำเข้าผู้ใช้รายคนจาก Active Directory'],
-                                    ['event' => 'user_bulk_imported',    'group' => 'Users', 'desc' => 'เมื่อนำเข้าผู้ใช้แบบ Bulk จาก Active Directory'],
-                                    ['event' => 'user_removed',          'group' => 'Users', 'desc' => 'เมื่อลบผู้ใช้ออกจากระบบ UCM'],
-                                    ['event' => 'admin_level_updated',   'group' => 'Users', 'desc' => 'เมื่อเปลี่ยนระดับ Admin ของผู้ใช้'],
+                                    ['event' => 'permissions_updated',    'group' => 'Users', 'desc' => 'เมื่อมีการเปลี่ยนแปลงสิทธิ์ผู้ใช้ (ผ่านหน้า Manage Permissions)'],
+                                    ['event' => 'permissions_discovered', 'group' => 'Users', 'desc' => 'เมื่อ Discover สิทธิ์ผู้ใช้จากระบบปลายทาง (2-Way Sync)'],
+                                    ['event' => 'account_status_changed', 'group' => 'Users', 'desc' => 'เมื่อเปิด/ปิด Account ของผู้ใช้ในระบบภายนอก'],
+                                    ['event' => 'user_imported',          'group' => 'Users', 'desc' => 'เมื่อนำเข้าผู้ใช้รายคนจาก Active Directory'],
+                                    ['event' => 'user_bulk_imported',     'group' => 'Users', 'desc' => 'เมื่อนำเข้าผู้ใช้แบบ Bulk จาก Active Directory'],
+                                    ['event' => 'user_removed',           'group' => 'Users', 'desc' => 'เมื่อลบผู้ใช้ออกจากระบบ UCM'],
+                                    ['event' => 'admin_level_updated',    'group' => 'Users', 'desc' => 'เมื่อเปลี่ยนระดับ Admin ของผู้ใช้'],
                                     // Systems
-                                    ['event' => 'system_created',        'group' => 'Systems', 'desc' => 'เมื่อเพิ่มระบบที่เชื่อมต่อใหม่'],
-                                    ['event' => 'system_updated',        'group' => 'Systems', 'desc' => 'เมื่อแก้ไขข้อมูลระบบที่เชื่อมต่อ'],
-                                    ['event' => 'system_deleted',        'group' => 'Systems', 'desc' => 'เมื่อลบระบบที่เชื่อมต่อ'],
-                                    ['event' => 'system_2way_toggled',   'group' => 'Systems', 'desc' => 'เมื่อเปิด/ปิด 2-Way Permission Sync ของระบบ'],
+                                    ['event' => 'system_created',         'group' => 'Systems', 'desc' => 'เมื่อเพิ่มระบบที่เชื่อมต่อใหม่'],
+                                    ['event' => 'system_updated',         'group' => 'Systems', 'desc' => 'เมื่อแก้ไขข้อมูลระบบที่เชื่อมต่อ'],
+                                    ['event' => 'system_deleted',         'group' => 'Systems', 'desc' => 'เมื่อลบระบบที่เชื่อมต่อ'],
+                                    ['event' => 'system_2way_toggled',    'group' => 'Systems', 'desc' => 'เมื่อเปิด/ปิด 2-Way Permission Sync ของระบบ'],
+                                    // Permission Definitions
+                                    ['event' => 'perm_def_created',       'group' => 'Permissions', 'desc' => 'เมื่อเพิ่ม Permission Definition ใหม่'],
+                                    ['event' => 'perm_def_updated',       'group' => 'Permissions', 'desc' => 'เมื่อแก้ไข Permission Definition'],
+                                    ['event' => 'perm_def_deleted',       'group' => 'Permissions', 'desc' => 'เมื่อลบ Permission Definition'],
+                                    ['event' => 'perm_def_discovered',    'group' => 'Permissions', 'desc' => 'เมื่อ Discover Permission จากระบบปลายทางผ่าน Permission Center'],
+                                    // Reference Data
+                                    ['event' => 'group_record_created',   'group' => 'Reference', 'desc' => 'เมื่อเพิ่ม Reference Data (Master Data) ของระบบ'],
+                                    ['event' => 'group_record_updated',   'group' => 'Reference', 'desc' => 'เมื่อแก้ไข Reference Data'],
+                                    ['event' => 'group_record_deleted',   'group' => 'Reference', 'desc' => 'เมื่อลบ Reference Data'],
+                                    ['event' => 'group_records_discovered','group' => 'Reference', 'desc' => 'เมื่อ Discover Reference Data จากระบบปลายทาง'],
                                     // Connectors
-                                    ['event' => 'connector_created',     'group' => 'Connectors', 'desc' => 'เมื่อสร้าง Connector Wizard ใหม่'],
-                                    ['event' => 'connector_updated',     'group' => 'Connectors', 'desc' => 'เมื่อแก้ไข Connector Wizard'],
-                                    ['event' => 'connector_deleted',     'group' => 'Connectors', 'desc' => 'เมื่อลบ Connector Wizard'],
+                                    ['event' => 'connector_created',      'group' => 'Connectors', 'desc' => 'เมื่อสร้าง Connector Wizard ใหม่'],
+                                    ['event' => 'connector_updated',      'group' => 'Connectors', 'desc' => 'เมื่อแก้ไข Connector Wizard'],
+                                    ['event' => 'connector_deleted',      'group' => 'Connectors', 'desc' => 'เมื่อลบ Connector Wizard'],
                                     // UCM Access Control
-                                    ['event' => 'feature_level_updated', 'group' => 'UCM Access', 'desc' => 'เมื่อมีการเปลี่ยน Min Level ของ Feature ใน UCM'],
-                                    ['event' => 'feature_grant_created', 'group' => 'UCM Access', 'desc' => 'เมื่อมอบสิทธิ์พิเศษ (Individual Grant) ให้ผู้ใช้'],
-                                    ['event' => 'feature_grant_deleted', 'group' => 'UCM Access', 'desc' => 'เมื่อถอนสิทธิ์พิเศษ (Individual Grant) จากผู้ใช้'],
+                                    ['event' => 'feature_level_updated',  'group' => 'UCM Access', 'desc' => 'เมื่อมีการเปลี่ยน Min Level ของ Feature ใน UCM'],
+                                    ['event' => 'feature_grant_created',  'group' => 'UCM Access', 'desc' => 'เมื่อมอบสิทธิ์พิเศษ (Individual Grant) ให้ผู้ใช้'],
+                                    ['event' => 'feature_grant_deleted',  'group' => 'UCM Access', 'desc' => 'เมื่อถอนสิทธิ์พิเศษ (Individual Grant) จากผู้ใช้'],
+                                    // Notifications
+                                    ['event' => 'notification_channel_created','group' => 'Notifications', 'desc' => 'เมื่อสร้าง Notification Channel ใหม่'],
+                                    ['event' => 'notification_channel_updated','group' => 'Notifications', 'desc' => 'เมื่อแก้ไข Notification Channel'],
+                                    ['event' => 'notification_channel_deleted','group' => 'Notifications', 'desc' => 'เมื่อลบ Notification Channel'],
                                     // Queue Monitor
-                                    ['event' => 'queue_job_retried',     'group' => 'Queue', 'desc' => 'เมื่อ Retry Failed Job รายการเดียว'],
-                                    ['event' => 'queue_all_retried',     'group' => 'Queue', 'desc' => 'เมื่อ Retry Failed Jobs ทั้งหมด'],
-                                    ['event' => 'queue_job_deleted',     'group' => 'Queue', 'desc' => 'เมื่อลบ Failed Job รายการเดียว'],
-                                    ['event' => 'queue_flushed',         'group' => 'Queue', 'desc' => 'เมื่อ Flush Failed Jobs ทั้งหมด'],
+                                    ['event' => 'queue_job_retried',      'group' => 'Queue', 'desc' => 'เมื่อ Retry Failed Job รายการเดียว'],
+                                    ['event' => 'queue_all_retried',      'group' => 'Queue', 'desc' => 'เมื่อ Retry Failed Jobs ทั้งหมด'],
+                                    ['event' => 'queue_job_deleted',      'group' => 'Queue', 'desc' => 'เมื่อลบ Failed Job รายการเดียว'],
+                                    ['event' => 'queue_flushed',          'group' => 'Queue', 'desc' => 'เมื่อ Flush Failed Jobs ทั้งหมด'],
                                     // Security / API
-                                    ['event' => 'login_failed',          'group' => 'Security', 'desc' => 'เมื่อมีการ Login ล้มเหลว (รหัสผ่านผิด หรือแผนกไม่มีสิทธิ์)'],
-                                    ['event' => 'api_token_issued',      'group' => 'Security', 'desc' => 'เมื่อมีการออก API Token (admin credentials ผ่าน /api/auth/token)'],
+                                    ['event' => 'login_failed',           'group' => 'Security', 'desc' => 'เมื่อมีการ Login ล้มเหลว (รหัสผ่านผิด หรือแผนกไม่มีสิทธิ์)'],
+                                    ['event' => 'api_token_issued',       'group' => 'Security', 'desc' => 'เมื่อมีการออก API Token (admin credentials ผ่าน /api/auth/token)'],
+                                    // Share Links
+                                    ['event' => 'share_link_created',     'group' => 'Share Links', 'desc' => 'เมื่อสร้าง Share Link สำหรับ Permission Matrix'],
+                                    ['event' => 'share_link_revoked',     'group' => 'Share Links', 'desc' => 'เมื่อยกเลิก (Revoke) Share Link'],
                                     // Wildcard
-                                    ['event' => '*',                     'group' => '',        'desc' => 'Wildcard — รับแจ้งเตือนทุก event'],
+                                    ['event' => '*',                      'group' => '',            'desc' => 'Wildcard — รับแจ้งเตือนทุก event'],
                                 ] as $row)
                                 <tr class="border border-slate-100">
                                     <td class="px-3 py-2 font-mono font-semibold text-indigo-700 bg-slate-50/50 whitespace-nowrap">{{ $row['event'] }}</td>
@@ -3429,13 +3449,17 @@ $sections = [
                                         @if($row['group'])
                                             <span class="text-[10px] font-bold px-1.5 py-0.5 rounded
                                                 {{ match($row['group']) {
-                                                    'Users'      => 'bg-indigo-100 text-indigo-700',
-                                                    'Systems'    => 'bg-emerald-100 text-emerald-700',
-                                                    'Connectors' => 'bg-orange-100 text-orange-700',
-                                                    'UCM Access' => 'bg-purple-100 text-purple-700',
-                                                    'Queue'      => 'bg-amber-100 text-amber-700',
-                                                    'Security'   => 'bg-rose-100 text-rose-700',
-                                                    default      => 'bg-slate-100 text-slate-600',
+                                                    'Users'         => 'bg-indigo-100 text-indigo-700',
+                                                    'Systems'       => 'bg-emerald-100 text-emerald-700',
+                                                    'Permissions'   => 'bg-violet-100 text-violet-700',
+                                                    'Reference'     => 'bg-teal-100 text-teal-700',
+                                                    'Connectors'    => 'bg-orange-100 text-orange-700',
+                                                    'UCM Access'    => 'bg-purple-100 text-purple-700',
+                                                    'Notifications' => 'bg-pink-100 text-pink-700',
+                                                    'Queue'         => 'bg-amber-100 text-amber-700',
+                                                    'Security'      => 'bg-rose-100 text-rose-700',
+                                                    'Share Links'   => 'bg-cyan-100 text-cyan-700',
+                                                    default         => 'bg-slate-100 text-slate-600',
                                                 } }}">{{ $row['group'] }}</span>
                                         @endif
                                     </td>
@@ -3612,6 +3636,108 @@ $sections = [
                 <div class="flex items-start gap-3 p-3.5 bg-sky-50 border border-sky-100 rounded-xl text-xs text-sky-800">
                     <svg class="w-4 h-4 text-sky-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span>ตารางรองรับผู้ใช้จำนวนมาก (Pagination 50 คน/หน้า) — ใช้ตัวกรองระบบและค้นหาเพื่อจำกัดผลลัพธ์ก่อน Export</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── Share Links ── --}}
+        <div id="share-links" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-violet-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">Share Links — Permission Matrix</h2>
+                <span class="ml-auto text-xs font-semibold text-violet-700 bg-violet-100 px-2.5 py-1 rounded-full">Admin L1 ขึ้นไป</span>
+            </div>
+            <div class="px-6 py-5 space-y-5 text-sm text-slate-700 leading-relaxed">
+                <p>Share Links ช่วยให้ Admin สร้าง <strong class="text-slate-900">ลิงก์แชร์ Permission Matrix แบบ Read-only</strong> ให้กับผู้ที่ไม่มีบัญชีในระบบ UCM เช่น ผู้บริหาร ผู้ตรวจสอบ หรือทีมงานภายนอก — โดยไม่ต้อง Login</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    @foreach ([
+                        ['label' => 'ไม่ต้อง Login', 'desc' => 'ผู้รับลิงก์เปิดดูได้ทันทีผ่าน Browser ไม่ต้องมีบัญชีในระบบ', 'color' => 'violet'],
+                        ['label' => 'กำหนดอายุลิงก์', 'desc' => 'ตั้งค่าวันหมดอายุได้ตั้งแต่ 1–365 วัน (default 7 วัน) ลิงก์จะใช้ไม่ได้อัตโนมัติเมื่อหมดอายุ', 'color' => 'indigo'],
+                        ['label' => 'Filter ข้อมูล', 'desc' => 'จำกัดขอบเขตข้อมูลได้ตามระบบ แผนก หรือ Username เฉพาะที่ต้องการ', 'color' => 'sky'],
+                    ] as $feat)
+                        <div class="p-3 bg-{{ $feat['color'] }}-50 rounded-xl border border-{{ $feat['color'] }}-100">
+                            <div class="font-semibold text-{{ $feat['color'] }}-900 text-xs mb-1">{{ $feat['label'] }}</div>
+                            <p class="text-xs text-{{ $feat['color'] }}-800">{{ $feat['desc'] }}</p>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">การสร้าง Share Link</h3>
+                    <div class="space-y-2">
+                        @foreach ([
+                            'ไปที่เมนู <strong>Share Links</strong> ใน Sidebar (หมวด Admin)',
+                            'กดปุ่ม <strong>สร้าง Share Link ใหม่</strong> ที่มุมขวาบน',
+                            'กรอก <strong>ชื่อลิงก์</strong> เช่น "รายงานสิทธิ์ Q2-2026" และ <strong>อายุ</strong> (วัน)',
+                            'เลือก <strong>ระบบ</strong> ที่ต้องการแสดง (ไม่เลือก = แสดงทุกระบบ)',
+                            'เพิ่ม <strong>แผนก</strong> หรือ <strong>Username</strong> เพื่อจำกัดขอบเขต (ไม่ใส่ = แสดงทุกคน)',
+                            'กด <strong>สร้าง Share Link</strong> — ระบบจะสร้าง URL ให้ทันที',
+                            'กด <strong>คัดลอก</strong> เพื่อคัดลอก URL ส่งให้ผู้ที่ต้องการดู',
+                        ] as $i => $text)
+                            <div class="flex items-start gap-3">
+                                <span class="w-5 h-5 bg-violet-100 text-violet-700 text-xs font-bold rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">{{ $i+1 }}</span>
+                                <p class="text-slate-700">{!! $text !!}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">การจัดการ Share Links</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50">
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">การกระทำ</th>
+                                    <th class="text-left px-3 py-2 font-semibold text-slate-600 border border-slate-100">รายละเอียด</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ([
+                                    ['action' => 'คัดลอก URL', 'desc' => 'กดปุ่ม "คัดลอก" ในแถวของลิงก์ — URL จะถูกคัดลอกไปยัง Clipboard'],
+                                    ['action' => 'เปิดลิงก์', 'desc' => 'กดปุ่ม "เปิด" เพื่อดูตัวอย่างหน้า public ใน Tab ใหม่ (เฉพาะลิงก์ที่ active)'],
+                                    ['action' => 'ยกเลิก', 'desc' => 'ลิงก์จะใช้งานไม่ได้ทันที ผู้ที่เปิด URL จะเห็นหน้าแจ้งว่าถูกยกเลิก'],
+                                    ['action' => 'เปิดใช้อีกครั้ง', 'desc' => 'Reactivate ลิงก์ที่เคยยกเลิก — ลิงก์จะกลับมาใช้งานได้หากยังไม่หมดอายุ'],
+                                ] as $row)
+                                <tr class="border border-slate-100">
+                                    <td class="px-3 py-2 font-semibold text-violet-700 bg-violet-50/50 whitespace-nowrap">{{ $row['action'] }}</td>
+                                    <td class="px-3 py-2 text-slate-600">{{ $row['desc'] }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-4">
+                    <h3 class="font-bold text-slate-900 mb-3">Progress Bar อายุลิงก์</h3>
+                    <div class="space-y-2 text-sm text-slate-600">
+                        <p>ในแต่ละ card ของ Share Link จะมี Progress Bar แสดงอายุลิงก์ที่เหลืออยู่ พร้อมเปลี่ยนสีตามสถานะ:</p>
+                        <div class="flex flex-wrap gap-3 pt-1">
+                            @foreach ([
+                                ['color' => 'bg-violet-400', 'label' => 'สีม่วง', 'desc' => 'เหลือ > 50% ของอายุลิงก์'],
+                                ['color' => 'bg-amber-400',  'label' => 'สีเหลือง', 'desc' => 'เหลือ 20–50%'],
+                                ['color' => 'bg-red-400',    'label' => 'สีแดง', 'desc' => 'เหลือน้อยกว่า 20% (ใกล้หมดอายุ)'],
+                            ] as $bar)
+                                <div class="flex items-center gap-2 text-xs text-slate-600">
+                                    <div class="w-8 h-2 rounded-full {{ $bar['color'] }}"></div>
+                                    <strong>{{ $bar['label'] }}</strong> — {{ $bar['desc'] }}
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-800">
+                    <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Share Link แสดงข้อมูล <strong>ณ เวลาที่เปิดลิงก์</strong> เสมอ (real-time) — ไม่ใช่ Snapshot ตอนสร้างลิงก์ ทุกการเปลี่ยนสิทธิ์ใน UCM จะสะท้อนในลิงก์ทันที รวมถึงทุกการเปิดดูจะถูกบันทึกใน Audit Log อัตโนมัติ</span>
                 </div>
             </div>
         </div>

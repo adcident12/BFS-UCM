@@ -102,6 +102,14 @@ return [
         'lockable'      => true,
     ],
 
+    'share_link_manage' => [
+        'name'          => 'Share Link (Permission Matrix)',
+        'description'   => 'สร้างและจัดการลิงก์แชร์ Permission Matrix แบบไม่ต้อง Login',
+        'group'         => 'สิทธิ์',
+        'default_level' => 1,
+        'lockable'      => true,
+    ],
+
     // ── รายงาน ──────────────────────────────────────────────────────
     'audit_log' => [
         'name'          => 'Audit Log',

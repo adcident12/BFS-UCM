@@ -89,9 +89,10 @@
         'access_control' => ['label' => 'สิทธิ์ UCM',     'color' => 'violet', 'bg' => 'bg-violet-50',  'ring' => 'ring-violet-100', 'text' => 'text-violet-700', 'icon_color' => 'text-violet-500'],
         'notifications'  => ['label' => 'Notifications', 'color' => 'pink',   'bg' => 'bg-pink-50',    'ring' => 'ring-pink-100',   'text' => 'text-pink-700',   'icon_color' => 'text-pink-500'],
         'queue'          => ['label' => 'Queue',          'color' => 'amber',  'bg' => 'bg-amber-50',   'ring' => 'ring-amber-100',  'text' => 'text-amber-700',  'icon_color' => 'text-amber-500'],
+        'share_links'    => ['label' => 'Share Links',    'color' => 'cyan',   'bg' => 'bg-cyan-50',    'ring' => 'ring-cyan-100',   'text' => 'text-cyan-700',   'icon_color' => 'text-cyan-500'],
     ];
 @endphp
-<div class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-6">
+<div class="grid grid-cols-5 sm:grid-cols-10 gap-3 mb-6">
     @foreach ($statDefs as $key => $s)
         @php $cnt = $categoryCounts[$key] ?? 0; @endphp
         <div class="bg-white rounded-2xl ring-1 {{ $s['ring'] }} px-4 py-3.5 flex flex-col items-center gap-1 shadow-sm">
@@ -117,6 +118,7 @@
             'access_control' => ['label' => 'สิทธิ์ UCM',     'icon' => 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'],
             'notifications'  => ['label' => 'Notifications', 'icon' => 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'],
             'queue'          => ['label' => 'Queue',          'icon' => 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'],
+            'share_links'    => ['label' => 'Share Links',    'icon' => 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1'],
         ];
         $currentCategory = request('category', '');
     @endphp

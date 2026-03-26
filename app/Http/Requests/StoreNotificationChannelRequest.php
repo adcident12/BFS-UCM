@@ -53,6 +53,9 @@ class StoreNotificationChannelRequest extends FormRequest
         // Security / API
         'login_failed',
         'api_token_issued',
+        // Share Links
+        'share_link_created',
+        'share_link_revoked',
     ];
 
     public function authorize(): bool

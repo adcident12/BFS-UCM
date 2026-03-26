@@ -99,6 +99,15 @@ class AuditLog extends Model
     const EVENT_FEATURE_GRANT_CREATED = 'feature_grant_created';
     const EVENT_FEATURE_GRANT_DELETED = 'feature_grant_deleted';
 
+    // Categories — Share Links
+    const CATEGORY_SHARE_LINKS = 'share_links';
+
+    // Event types — Share Links
+    const EVENT_SHARE_LINK_CREATED     = 'share_link_created';
+    const EVENT_SHARE_LINK_REVOKED     = 'share_link_revoked';
+    const EVENT_SHARE_LINK_REACTIVATED = 'share_link_reactivated';
+    const EVENT_SHARE_LINK_VIEWED      = 'share_link_viewed';
+
     // Categories — Queue
     const CATEGORY_QUEUE = 'queue';
 
