@@ -518,6 +518,51 @@
         <main class="flex-1 p-4 md:p-6 lg:p-8 min-w-0">
             @yield('content')
         </main>
+
+        {{-- Footer --}}
+        <footer class="flex-shrink-0 border-t border-slate-100 bg-white/70 px-4 md:px-8 pt-6 pb-5">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+
+                {{-- Brand --}}
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm"
+                         style="background: linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%)">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-slate-700">{{ config('app.name') }}</div>
+                        <div class="text-[11px] text-slate-400 font-medium mt-0.5">ระบบบริหารจัดการผู้ใช้งานกลาง</div>
+                    </div>
+                </div>
+
+                {{-- Links --}}
+                <div class="flex items-center gap-5 text-xs font-medium text-slate-400">
+                    <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 transition-colors">Dashboard</a>
+                    <a href="{{ route('users.index') }}" class="hover:text-indigo-600 transition-colors">ผู้ใช้งาน</a>
+                    <a href="{{ route('docs.manual') }}" class="hover:text-indigo-600 transition-colors">คู่มือ</a>
+                    <a href="{{ route('api-docs') }}" class="hover:text-indigo-600 transition-colors">API</a>
+                </div>
+
+            </div>
+
+            {{-- Bottom row --}}
+            <div class="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <span class="text-[11px] text-slate-400">
+                    &copy; {{ now()->year }} <span class="font-semibold">{{ config('app.name') }}</span>. All rights reserved.
+                </span>
+                <div class="flex items-center gap-3 text-[11px] text-slate-300">
+                    <span>v{{ config('app.version', '1.0.0') }}</span>
+                    <span class="w-1 h-1 rounded-full bg-slate-200"></span>
+                    <span>Laravel {{ app()->version() }}</span>
+                    <span class="w-1 h-1 rounded-full bg-slate-200"></span>
+                    <span>PHP {{ PHP_MAJOR_VERSION }}.{{ PHP_MINOR_VERSION }}</span>
+                </div>
+            </div>
+        </footer>
+
     </div>
 
 <script>

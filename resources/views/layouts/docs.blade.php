@@ -252,6 +252,72 @@
             @endif
 
         </div>
+
+        {{-- ═══ Footer ════════════════════════════════════════════════════════ --}}
+        <footer class="border-t border-slate-200/80 bg-white px-6 md:px-10 pt-8 pb-6">
+            <div class="max-w-5xl">
+
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+
+                    {{-- Brand --}}
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                             style="background: linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%)">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-900">UCM Documentation</div>
+                            <div class="text-[11px] text-slate-400 mt-0.5">{{ config('app.name') }}</div>
+                        </div>
+                    </div>
+
+                    {{-- Nav columns --}}
+                    <div class="flex flex-wrap gap-x-10 gap-y-4 text-sm">
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">คู่มือ</p>
+                            <div class="space-y-1.5">
+                                <a href="{{ route('docs.manual') }}" class="block text-slate-500 hover:text-indigo-600 transition-colors">คู่มือผู้ใช้งาน</a>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">นักพัฒนา</p>
+                            <div class="space-y-1.5">
+                                <a href="{{ route('docs.install') }}" class="block text-slate-500 hover:text-indigo-600 transition-colors">Install Guide</a>
+                                <a href="{{ route('api-docs') }}" class="block text-slate-500 hover:text-indigo-600 transition-colors">API Reference</a>
+                                <a href="{{ url('api-docs/swagger') }}" class="block text-slate-500 hover:text-indigo-600 transition-colors">Swagger UI</a>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">ระบบ</p>
+                            <div class="space-y-1.5">
+                                <a href="{{ route('dashboard') }}" class="block text-slate-500 hover:text-indigo-600 transition-colors">กลับสู่ UCM</a>
+                                <a href="{{ route('notifications.index') }}" class="block text-slate-500 hover:text-indigo-600 transition-colors">Notifications</a>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                {{-- Bottom row --}}
+                <div class="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                    <span class="text-[11px] text-slate-400">
+                        &copy; {{ now()->year }} <span class="font-semibold text-slate-500">{{ config('app.name') }}</span>. All rights reserved.
+                    </span>
+                    <div class="flex items-center gap-3 text-[11px] text-slate-300">
+                        <span>v{{ config('app.version', '1.0.0') }}</span>
+                        <span class="w-1 h-1 rounded-full bg-slate-200"></span>
+                        <span>Laravel {{ app()->version() }}</span>
+                        <span class="w-1 h-1 rounded-full bg-slate-200"></span>
+                        <span>PHP {{ PHP_MAJOR_VERSION }}.{{ PHP_MINOR_VERSION }}</span>
+                    </div>
+                </div>
+
+            </div>
+        </footer>
+
     </div>
 
     {{-- ═══ Scripts ════════════════════════════════════════════════════════════ --}}
