@@ -359,7 +359,7 @@
                                             <input type="checkbox"
                                                    name="permissions[]"
                                                    value="{{ $perm->key }}"
-                                                   class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                                                   class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-2 focus:ring-indigo-500/40 focus:outline-none cursor-pointer"
                                                    {{ in_array($perm->key, $userPerms) ? 'checked' : '' }}>
                                             <span class="text-sm font-medium transition-colors
                                                          {{ in_array($perm->key, $userPerms) ? 'text-indigo-700' : 'text-slate-600 group-hover:text-indigo-700' }}">
@@ -378,7 +378,7 @@
                             เลือกสิทธิ์แล้ว <span id="count-selected-{{ $system->id }}" class="font-bold text-slate-600">{{ $selectedCount }}</span> จาก {{ $totalCount }} รายการ
                         </span>
                         <button type="submit"
-                                class="ml-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm shadow-indigo-200 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200 inline-flex items-center gap-2">
+                                class="ml-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl shadow-sm shadow-indigo-200 transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200 active:scale-95 inline-flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                             </svg>
@@ -476,12 +476,12 @@
         </div>
     @empty
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-16 text-center">
-            <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2"/>
                 </svg>
             </div>
-            <p class="text-sm font-semibold text-slate-400 mb-1">ยังไม่มีระบบที่เชื่อมต่อ</p>
+            <p class="text-sm font-semibold text-slate-700 mb-1">ยังไม่มีระบบที่เชื่อมต่อ</p>
             @if ($canManageSystems)
             <a href="{{ route('systems.create') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 hover:underline">เพิ่มระบบ →</a>
             @endif

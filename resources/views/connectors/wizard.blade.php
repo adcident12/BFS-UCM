@@ -13,9 +13,9 @@
 @section('content')
 
 @php
-$inp  = 'w-full px-3 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 placeholder:text-slate-400 transition';
-$mono = 'w-full px-3 py-2 text-sm font-mono text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 placeholder:text-slate-400 transition';
-$sel  = 'w-full pl-3 pr-8 py-2 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 appearance-none transition';
+$inp  = 'w-full px-3 py-2.5 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/40 placeholder:text-slate-400 transition-all';
+$mono = 'w-full px-3 py-2.5 text-sm font-mono text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/40 placeholder:text-slate-400 transition-all';
+$sel  = 'w-full pl-3 pr-8 py-2.5 text-sm text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/40 appearance-none transition-all';
 $lbl  = 'block text-[13px] font-semibold text-slate-600 mb-1.5';
 $hint = 'text-xs text-slate-400 mt-1';
 $btnP = 'inline-flex items-center gap-1.5 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-indigo-500 to-violet-600 rounded-xl shadow-md shadow-indigo-200 hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all';
@@ -121,13 +121,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span>
                         </label>
                         <div class="relative">
-                            <select id="field_system_id" class="{{ $sel }}">
+                            <select id="field_system_id" data-searchable class="{{ $sel }}">
                                 <option value="">— สร้างระบบใหม่ —</option>
                                 @foreach(\App\Models\System::orderBy('name')->get() as $sys)
                                 <option value="{{ $sys->id }}">{{ $sys->name }} ({{ $sys->slug }})</option>
                                 @endforeach
                             </select>
-                            {!! $arr !!}
                         </div>
                         <p class="{{ $hint }}">เลือกเฉพาะถ้าต้องการเพิ่ม Connector ให้ระบบที่มีอยู่แล้ว</p>
                     </div>
@@ -161,7 +160,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                 <label class="{{ $lbl }}">สีประจำระบบ</label>
                                 <div class="flex gap-2 items-center">
                                     <input type="color" id="field_system_color" value="#6366f1"
-                                           class="w-10 h-10 border border-slate-200 rounded-lg p-0.5 cursor-pointer bg-white flex-shrink-0">
+                                           class="w-10 h-10 border border-slate-200 rounded-xl p-0.5 cursor-pointer bg-white flex-shrink-0">
                                     <input type="text" id="field_system_color_text" value="#6366f1" class="{{ $mono }}" placeholder="#6366f1">
                                 </div>
                             </div>
@@ -361,13 +360,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                     <label class="{{ $lbl }}">ตาราง Users <span class="text-rose-500">*</span></label>
                     <div class="flex gap-2">
                         <div class="relative flex-1">
-                            <select id="field_user_table" class="{{ $sel }}" onchange="wizLoadUserColumns()">
+                            <select id="field_user_table" data-searchable class="{{ $sel }}" onchange="wizLoadUserColumns()">
                                 <option value="">— เลือกตาราง —</option>
                                 @if(isset($editConfig) && $editConfig->user_table)
                                     <option value="{{ $editConfig->user_table }}" selected>{{ $editConfig->user_table }}</option>
                                 @endif
                             </select>
-                            {!! $arr !!}
                         </div>
                         <button class="{{ $btnO }} flex-shrink-0" onclick="wizLoadTables('user_table','wizLoadUserColumns')" title="โหลดรายการตาราง">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -408,75 +406,69 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                     <div>
                         <label class="{{ $lbl }}">คอลัมน์ Identifier <span class="text-rose-500">*</span></label>
                         <div class="relative">
-                            <select id="field_user_identifier_col" class="{{ $sel }}">
+                            <select id="field_user_identifier_col" data-searchable class="{{ $sel }}">
                                 <option value="">— เลือกคอลัมน์ —</option>
                                 @if(isset($editConfig) && $editConfig->user_identifier_col)
                                     <option value="{{ $editConfig->user_identifier_col }}" selected>{{ $editConfig->user_identifier_col }}</option>
                                 @endif
                             </select>
-                            {!! $arr !!}
                         </div>
                         <p class="{{ $hint }}">ตรงกับ UCM username / employee_number</p>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">คอลัมน์ PK ของ User Table <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                         <div class="relative">
-                            <select id="field_user_pk_col" class="{{ $sel }}">
+                            <select id="field_user_pk_col" data-searchable class="{{ $sel }}">
                                 <option value="">(ไม่ระบุ — ใช้ Identifier โดยตรง)</option>
                                 @if(isset($editConfig) && $editConfig->user_pk_col)
                                     <option value="{{ $editConfig->user_pk_col }}" selected>{{ $editConfig->user_pk_col }}</option>
                                 @endif
                             </select>
-                            {!! $arr !!}
                         </div>
                         <p class="{{ $hint }}">ระบุเมื่อ FK ใน junction table อ้างอิง PK (INT) ไม่ใช่ username โดยตรง</p>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">ชื่อ-นามสกุล <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                         <div class="relative">
-                            <select id="field_user_name_col" class="{{ $sel }}">
+                            <select id="field_user_name_col" data-searchable class="{{ $sel }}">
                                 <option value="">(ไม่ระบุ)</option>
                                 @if(isset($editConfig) && $editConfig->user_name_col)
                                     <option value="{{ $editConfig->user_name_col }}" selected>{{ $editConfig->user_name_col }}</option>
                                 @endif
                             </select>
-                            {!! $arr !!}
                         </div>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">อีเมล <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                         <div class="relative">
-                            <select id="field_user_email_col" class="{{ $sel }}">
+                            <select id="field_user_email_col" data-searchable class="{{ $sel }}">
                                 <option value="">(ไม่ระบุ)</option>
                                 @if(isset($editConfig) && $editConfig->user_email_col)
                                     <option value="{{ $editConfig->user_email_col }}" selected>{{ $editConfig->user_email_col }}</option>
                                 @endif
                             </select>
-                            {!! $arr !!}
                         </div>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">แผนก <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                         <div class="relative">
-                            <select id="field_user_dept_col" class="{{ $sel }}">
+                            <select id="field_user_dept_col" data-searchable class="{{ $sel }}">
                                 <option value="">(ไม่ระบุ)</option>
                                 @if(isset($editConfig) && $editConfig->user_dept_col)
                                     <option value="{{ $editConfig->user_dept_col }}" selected>{{ $editConfig->user_dept_col }}</option>
                                 @endif
                             </select>
-                            {!! $arr !!}
                         </div>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">สถานะ Active <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                         <div class="relative">
-                            <select id="field_user_status_col" class="{{ $sel }}" onchange="wizToggleStatusVal()">
+                            <select id="field_user_status_col" data-searchable class="{{ $sel }}" onchange="wizToggleStatusVal()">
                                 <option value="">(ไม่ระบุ)</option>
                                 @if(isset($editConfig) && $editConfig->user_status_col)
                                     <option value="{{ $editConfig->user_status_col }}" selected>{{ $editConfig->user_status_col }}</option>
                                 @endif
                             </select>
-                            {!! $arr !!}
                         </div>
                     </div>
                     <div id="status-val-wrap" class="hidden col-span-2 grid grid-cols-2 gap-4">
@@ -587,13 +579,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         <label class="{{ $lbl }}">ตาราง Permissions <span class="text-rose-500">*</span></label>
                         <div class="flex gap-2">
                             <div class="relative flex-1">
-                                <select id="field_perm_table" class="{{ $sel }}" onchange="wizLoadPermColumns()">
+                                <select id="field_perm_table" data-searchable class="{{ $sel }}" onchange="wizLoadPermColumns()">
                                     <option value="">— เลือกตาราง —</option>
                                     @if(isset($editConfig) && $editConfig->perm_table)
                                         <option value="{{ $editConfig->perm_table }}" selected>{{ $editConfig->perm_table }}</option>
                                     @endif
                                 </select>
-                                {!! $arr !!}
                             </div>
                             <button class="{{ $btnO }} flex-shrink-0" onclick="wizLoadTables('perm_table','wizLoadPermColumns')" title="โหลดรายการตาราง">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -608,49 +599,45 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         <div id="perm-user-fk-wrap">
                             <label class="{{ $lbl }}">FK ชี้ไปยัง User <span class="text-rose-500">*</span></label>
                             <div class="relative">
-                                <select id="field_perm_user_fk_col" class="{{ $sel }}">
+                                <select id="field_perm_user_fk_col" data-searchable class="{{ $sel }}">
                                     <option value="">— เลือกคอลัมน์ —</option>
                                     @if(isset($editConfig) && $editConfig->perm_user_fk_col)
                                         <option value="{{ $editConfig->perm_user_fk_col }}" selected>{{ $editConfig->perm_user_fk_col }}</option>
                                     @endif
                                 </select>
-                                {!! $arr !!}
                             </div>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Permission Value <span class="text-rose-500">*</span></label>
                             <div class="relative">
-                                <select id="field_perm_value_col" class="{{ $sel }}">
+                                <select id="field_perm_value_col" data-searchable class="{{ $sel }}">
                                     <option value="">— เลือกคอลัมน์ —</option>
                                     @if(isset($editConfig) && $editConfig->perm_value_col)
                                         <option value="{{ $editConfig->perm_value_col }}" selected>{{ $editConfig->perm_value_col }}</option>
                                     @endif
                                 </select>
-                                {!! $arr !!}
                             </div>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Label <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                             <div class="relative">
-                                <select id="field_perm_label_col" class="{{ $sel }}">
+                                <select id="field_perm_label_col" data-searchable class="{{ $sel }}">
                                     <option value="">(ไม่ระบุ)</option>
                                     @if(isset($editConfig) && $editConfig->perm_label_col)
                                         <option value="{{ $editConfig->perm_label_col }}" selected>{{ $editConfig->perm_label_col }}</option>
                                     @endif
                                 </select>
-                                {!! $arr !!}
                             </div>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Group <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                             <div class="relative">
-                                <select id="field_perm_group_col" class="{{ $sel }}">
+                                <select id="field_perm_group_col" data-searchable class="{{ $sel }}">
                                     <option value="">(ไม่ระบุ)</option>
                                     @if(isset($editConfig) && $editConfig->perm_group_col)
                                         <option value="{{ $editConfig->perm_group_col }}" selected>{{ $editConfig->perm_group_col }}</option>
                                     @endif
                                 </select>
-                                {!! $arr !!}
                             </div>
                         </div>
                     </div>
@@ -759,13 +746,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         <p class="{{ $hint }} mb-2">ตารางที่เก็บนิยาม Permission (ต่างจาก junction table ที่เก็บ user↔permission mapping)</p>
                         <div class="flex gap-2">
                             <div class="relative flex-1">
-                                <select id="field_perm_def_table" name="perm_def_table" onchange="wizLoadDefColumns()" class="{{ $sel }}">
+                                <select id="field_perm_def_table" name="perm_def_table" data-searchable onchange="wizLoadDefColumns()" class="{{ $sel }}">
                                     <option value="">— เลือกตาราง —</option>
                                     @if(isset($editConfig) && $editConfig->perm_def_table)
                                         <option value="{{ $editConfig->perm_def_table }}" selected>{{ $editConfig->perm_def_table }}</option>
                                     @endif
                                 </select>
-                                {!! $arr !!}
                             </div>
                             <button type="button" onclick="wizLoadTables('perm_def_table', 'wizLoadDefColumns')" class="{{ $btnO }} flex-shrink-0">
                                 โหลดตาราง
@@ -778,49 +764,45 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         <div>
                             <label class="{{ $lbl }}">คอลัมน์ Key/Value <span class="text-rose-500">*</span></label>
                             <div class="relative">
-                                <select id="field_perm_def_value_col" name="perm_def_value_col" class="{{ $sel }}">
+                                <select id="field_perm_def_value_col" name="perm_def_value_col" data-searchable class="{{ $sel }}">
                                     <option value="">— เลือกคอลัมน์ —</option>
                                     @if(isset($editConfig) && $editConfig->perm_def_value_col)
                                         <option value="{{ $editConfig->perm_def_value_col }}" selected>{{ $editConfig->perm_def_value_col }}</option>
                                     @endif
                                 </select>
-                                {!! $arr !!}
                             </div>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">คอลัมน์ Primary Key</label>
                             <div class="relative">
-                                <select id="field_perm_def_pk_col" name="perm_def_pk_col" class="{{ $sel }}">
+                                <select id="field_perm_def_pk_col" name="perm_def_pk_col" data-searchable class="{{ $sel }}">
                                     <option value="">id (default)</option>
                                     @if(isset($editConfig) && $editConfig->perm_def_pk_col)
                                         <option value="{{ $editConfig->perm_def_pk_col }}" selected>{{ $editConfig->perm_def_pk_col }}</option>
                                     @endif
                                 </select>
-                                {!! $arr !!}
                             </div>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">คอลัมน์ Label <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                             <div class="relative">
-                                <select id="field_perm_def_label_col" name="perm_def_label_col" class="{{ $sel }}">
+                                <select id="field_perm_def_label_col" name="perm_def_label_col" data-searchable class="{{ $sel }}">
                                     <option value="">(ไม่ระบุ)</option>
                                     @if(isset($editConfig) && $editConfig->perm_def_label_col)
                                         <option value="{{ $editConfig->perm_def_label_col }}" selected>{{ $editConfig->perm_def_label_col }}</option>
                                     @endif
                                 </select>
-                                {!! $arr !!}
                             </div>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">คอลัมน์ Group <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                             <div class="relative">
-                                <select id="field_perm_def_group_col" name="perm_def_group_col" class="{{ $sel }}">
+                                <select id="field_perm_def_group_col" name="perm_def_group_col" data-searchable class="{{ $sel }}">
                                     <option value="">(ไม่ระบุ)</option>
                                     @if(isset($editConfig) && $editConfig->perm_def_group_col)
                                         <option value="{{ $editConfig->perm_def_group_col }}" selected>{{ $editConfig->perm_def_group_col }}</option>
                                     @endif
                                 </select>
-                                {!! $arr !!}
                             </div>
                         </div>
                     </div>
@@ -1550,8 +1532,8 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         var empty = document.getElementById('master-table-empty');
         if (empty) empty.style.display = 'none';
 
-        var selCls  = 'w-full pl-3 pr-8 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg appearance-none focus:outline-none focus:border-indigo-500 transition';
-        var inpCls  = 'w-full px-2.5 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-500 transition';
+        var selCls  = 'w-full pl-3 pr-8 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg appearance-none focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/40 transition-all';
+        var inpCls  = 'w-full px-2.5 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/40 transition-all';
 
         var tableOpts = '<option value="">— เลือกตาราง —</option>';
         tables.forEach(function (t) {
@@ -1632,11 +1614,13 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         ].join('');
 
         list.appendChild(card);
+        if (window.initSearchableSelects) initSearchableSelects(card);
 
         // If preset has a table, load columns immediately (extra cols are added inside the callback)
         if (preset.table) {
             var tableSelect = card.querySelector('.mt-table-select');
             tableSelect.value = preset.table;
+            if (tableSelect._ss) tableSelect._ss._syncLabel();
             wizMasterLoadColumns(card, preset.table, preset);
         }
     };
@@ -1702,8 +1686,8 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     function wizAddMasterExtraColToCard(card, preset) {
         preset = preset || {};
         var list    = card.querySelector('.mt-extra-col-list');
-        var inpCls  = 'w-full px-2 py-1 text-xs text-slate-800 bg-white border border-slate-200 rounded focus:outline-none focus:border-indigo-500 transition';
-        var selCls  = 'w-full px-2 py-1 text-xs text-slate-800 bg-white border border-slate-200 rounded appearance-none focus:outline-none focus:border-indigo-500 transition';
+        var inpCls  = 'w-full px-2 py-1 text-xs text-slate-800 bg-white border border-slate-200 rounded focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/40 transition-all';
+        var selCls  = 'w-full px-2 py-1 text-xs text-slate-800 bg-white border border-slate-200 rounded appearance-none focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/40 transition-all';
 
         // Build column options from the table's already-loaded selects
         var existingLabelSel = card.querySelector('.mt-label-col-select');
@@ -1728,6 +1712,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         ].join('');
 
         list.appendChild(row);
+        if (window.initSearchableSelects) initSearchableSelects(row);
     }
 
     window.wizRemoveMasterExtraCol = function (btn) {
@@ -2190,7 +2175,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             masterOpts += '<option value="' + escHtml(t) + '">' + escHtml(t) + '</option>';
         });
 
-        var selectCls = 'w-full pl-3 pr-8 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg appearance-none focus:outline-none focus:border-indigo-500';
+        var selectCls = 'w-full pl-3 pr-8 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg appearance-none focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/40 transition-all';
 
         var row = document.createElement('div');
         row.className = 'composite-col-row flex items-start gap-2 p-2.5 bg-slate-50 rounded-lg border border-slate-200';
@@ -2220,6 +2205,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
 
         list.appendChild(row);
         if (hint) { hint.style.display = 'none'; }
+        if (window.initSearchableSelects) initSearchableSelects(row);
 
         // Populate junction-column select from current perm_table columns
         var permTable = val('perm_table');

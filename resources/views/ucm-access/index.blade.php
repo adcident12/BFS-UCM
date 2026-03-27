@@ -209,7 +209,7 @@ $levelBtnColors = [
                                    placeholder="ค้นหาชื่อ / username / แผนก..."
                                    oninput="searchGrant('{{ $key }}', this.value)"
                                    autocomplete="off"
-                                   class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                   class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                             <div id="grant-dropdown-{{ $key }}"
                                  class="hidden absolute z-20 top-full mt-1 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden max-h-48 overflow-y-auto">
                             </div>

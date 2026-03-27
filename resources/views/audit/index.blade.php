@@ -33,7 +33,7 @@
 @section('content')
 
 {{-- ── Hero Banner ─────────────────────────────────────────────────────── --}}
-<div class="mb-7 relative overflow-hidden rounded-2xl"
+<div class="mb-8 relative overflow-hidden rounded-2xl"
      style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
         <div class="absolute -top-12 -right-12 w-72 h-72 bg-violet-500/6 rounded-full blur-2xl"></div>
@@ -164,7 +164,7 @@
                        id="search-input"
                        value="{{ request('search') }}"
                        placeholder="ค้นหา username, คำอธิบาย, subject..."
-                       class="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 bg-white placeholder-slate-400 transition-all">
+                       class="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 bg-white placeholder-slate-400 transition-all">
             </div>
 
             {{-- Date Presets + Inputs --}}
@@ -197,7 +197,7 @@
                            value="{{ request('date_from') }}"
                            placeholder="วันเริ่มต้น"
                            autocomplete="off"
-                           class="w-full sm:w-40 px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 bg-white text-slate-700 placeholder-slate-400 cursor-pointer transition-all">
+                           class="w-full sm:w-40 px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 bg-white text-slate-700 placeholder-slate-400 cursor-pointer transition-all">
                 </div>
 
                 {{-- Date To --}}
@@ -208,12 +208,12 @@
                            value="{{ request('date_to') }}"
                            placeholder="วันสิ้นสุด"
                            autocomplete="off"
-                           class="w-full sm:w-40 px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 bg-white text-slate-700 placeholder-slate-400 cursor-pointer transition-all">
+                           class="w-full sm:w-40 px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 bg-white text-slate-700 placeholder-slate-400 cursor-pointer transition-all">
                 </div>
 
                 {{-- Actions --}}
                 <button type="submit"
-                        class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm shadow-indigo-200 whitespace-nowrap">
+                        class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-indigo-200 whitespace-nowrap active:scale-95">
                     ค้นหา
                 </button>
 
@@ -232,13 +232,13 @@
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
     @if ($logs->isEmpty())
         <div class="flex flex-col items-center justify-center py-24 text-slate-400">
-            <div class="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mb-4">
-                <svg class="w-8 h-8 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
             </div>
-            <p class="text-sm font-semibold text-slate-500">ไม่พบรายการ Audit Log</p>
-            <p class="text-xs text-slate-400 mt-1">ลองเปลี่ยนเงื่อนไขการค้นหา</p>
+            <p class="text-sm font-semibold text-slate-700 mb-1">ไม่พบรายการ Audit Log</p>
+            <p class="text-xs text-slate-400">ลองเปลี่ยนเงื่อนไขการค้นหา</p>
         </div>
     @else
         <div class="overflow-x-auto">

@@ -178,10 +178,10 @@ tr:hover .perm-cell {
             </div>
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="ค้นหา username, ชื่อ, แผนก..."
-                   class="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 bg-white placeholder-slate-400">
+                   class="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all bg-white placeholder-slate-400">
         </div>
-        <select name="system_id"
-                class="sm:w-52 px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white text-slate-700">
+        <select name="system_id" data-searchable
+                class="sm:w-52 px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 bg-white text-slate-700">
             <option value="">ทุก System</option>
             @foreach ($systems as $system)
                 <option value="{{ $system->id }}" {{ request('system_id') == $system->id ? 'selected' : '' }}>

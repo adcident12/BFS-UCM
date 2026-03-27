@@ -16,7 +16,7 @@
         <div class="absolute inset-0"
              style="background-image:linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px);background-size:32px 32px"></div>
     </div>
-    <div class="relative px-6 md:px-8 py-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <div class="relative px-6 md:px-8 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div class="flex items-center gap-4">
             <div class="w-12 h-12 bg-white/15 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
                 <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +243,7 @@
                     </div>
                     <div class="flex items-center gap-2 flex-shrink-0">
                         <span class="inline-flex items-center gap-1 text-[11px] font-semibold rounded-full px-2 py-0.5
-                                     {{ $system->is_active ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/50' : 'bg-slate-100 text-slate-500' }}">
+                                     {{ $system->is_active ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60' : 'bg-slate-100 text-slate-500' }}">
                             <span class="w-1.5 h-1.5 rounded-full {{ $system->is_active ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>
                             {{ $system->is_active ? 'Active' : 'Off' }}
                         </span>
@@ -338,13 +338,13 @@
                             <span class="text-slate-300 text-xs">→</span>
                             <span class="text-xs font-medium text-slate-500">{{ $log->system?->name ?? 'N/A' }}</span>
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold
-                                {{ $isGrant ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/50'
-                                    : ($isRevoke ? 'bg-rose-100 text-rose-700 ring-1 ring-rose-200/50'
+                                {{ $isGrant ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/60'
+                                    : ($isRevoke ? 'bg-rose-100 text-rose-700 ring-1 ring-rose-200/60'
                                     : 'bg-slate-100 text-slate-600') }}">
                                 {{ strtoupper($log->action) }}
                             </span>
                             @if ($isFailed)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 ring-1 ring-red-200/50">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 ring-1 ring-red-200/60">
                                     FAILED
                                 </span>
                             @endif

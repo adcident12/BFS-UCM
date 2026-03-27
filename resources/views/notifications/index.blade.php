@@ -181,7 +181,7 @@ $availableEvents = [
                     {{-- Actions --}}
                     <div class="flex items-center gap-1 flex-shrink-0">
                         <button onclick='openEditModal(@json($channel), @json($availableEvents))'
-                                class="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all cursor-pointer"
+                                class="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
                                 title="แก้ไข">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -192,7 +192,7 @@ $availableEvents = [
                             @csrf @method('DELETE')
                             <button type="button"
                                     onclick="askConfirm('del-channel-{{ $channel->id }}', 'ลบ Channel นี้?', '{{ addslashes($channel->name) }}')"
-                                    class="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
+                                    class="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-rose-500/40"
                                     title="ลบ">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -267,8 +267,8 @@ $availableEvents = [
                     <div class="text-[11px] text-slate-400 font-medium">ตั้งค่า Webhook หรือ Email</div>
                 </div>
             </div>
-            <button onclick="closeModal('modal-add')" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-1 rounded-lg hover:bg-white/10">
-                <svg class="w-4.5 h-4.5 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button onclick="closeModal('modal-add')" class="text-slate-500 hover:text-white transition-colors cursor-pointer p-1 rounded-lg hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
             </button>
@@ -345,7 +345,7 @@ function openEditModal(channel, events) {
         <label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
             <input type="checkbox" name="events[]" value="${key}"
                    ${selectedEvents.includes(key) ? 'checked' : ''}
-                   class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-300">
+                   class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/40">
             ${label}
         </label>
     `).join('');
@@ -363,13 +363,13 @@ function openEditModal(channel, events) {
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">ชื่อ Channel</label>
                 <input type="text" name="name" value="${channel.name}" required
-                       class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                       class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
             </div>
 
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">ประเภท</label>
                 <select name="type" id="edit-type" onchange="toggleEditConfig(this.value)"
-                        class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white">
+                        class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 bg-white">
                     <option value="webhook" ${typeWebhook ? 'selected' : ''}>Webhook</option>
                     <option value="email" ${!typeWebhook ? 'selected' : ''}>Email</option>
                 </select>
@@ -379,19 +379,19 @@ function openEditModal(channel, events) {
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">Webhook URL</label>
                     <input type="url" name="config[url]" value="${configUrl}"
-                           class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                           class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">Secret (ถ้ามี)</label>
                     <input type="text" name="config[secret]" value="${configSecret}"
-                           class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                           class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                 </div>
             </div>
 
             <div id="edit-email-config" ${!typeWebhook ? '' : 'style="display:none"'}>
                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">อีเมลผู้รับ (คั่นด้วย ,)</label>
                 <input type="text" name="config[to]" value="${configTo}"
-                       class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                       class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
             </div>
 
             <div>
@@ -402,7 +402,7 @@ function openEditModal(channel, events) {
             <div class="flex items-center gap-2">
                 <input type="hidden" name="is_active" value="0">
                 <input type="checkbox" name="is_active" value="1" id="edit-is-active" ${isActive ? 'checked' : ''}
-                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-300">
+                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500/40">
                 <label for="edit-is-active" class="text-sm font-medium text-slate-700">เปิดใช้งาน</label>
             </div>
 
@@ -420,6 +420,10 @@ function openEditModal(channel, events) {
     `;
 
     openModal('modal-edit');
+    if (window.SearchableSelect) {
+        const editTypeSel = document.getElementById('edit-type');
+        if (editTypeSel && !editTypeSel._ss) new SearchableSelect(editTypeSel);
+    }
 }
 
 function toggleConfig(type) {

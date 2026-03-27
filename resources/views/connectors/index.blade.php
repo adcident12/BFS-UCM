@@ -17,7 +17,7 @@
 <div class="max-w-5xl mx-auto">
 
     {{-- Hero Banner --}}
-    <div class="mb-7 relative overflow-hidden rounded-2xl"
+    <div class="mb-8 relative overflow-hidden rounded-2xl"
          style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
         <div class="absolute inset-0 pointer-events-none overflow-hidden">
             <div class="absolute -top-12 -right-12 w-72 h-72 bg-violet-500/6 rounded-full blur-2xl"></div>
@@ -54,13 +54,13 @@
 
     {{-- Empty State --}}
     <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-16 text-center">
-        <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
         </div>
-        <h2 class="text-base font-bold text-slate-700 mb-1">ยังไม่มี Connector</h2>
-        <p class="text-sm text-slate-500 mb-5">สร้าง Connector เพื่อเชื่อมต่อฐานข้อมูลระบบภายนอกกับ UCM</p>
+        <h2 class="text-sm font-semibold text-slate-700 mb-1">ยังไม่มี Connector</h2>
+        <p class="text-xs text-slate-400 mb-5">สร้าง Connector เพื่อเชื่อมต่อฐานข้อมูลระบบภายนอกกับ UCM</p>
         @if($canManageConnectors)
         <a href="{{ route('connectors.create') }}"
            class="inline-flex items-center gap-2 text-sm font-semibold text-white bg-gradient-to-br from-indigo-500 to-violet-600 px-5 py-2.5 rounded-xl shadow-md shadow-indigo-200 hover:opacity-90 transition-all">

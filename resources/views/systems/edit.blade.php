@@ -69,7 +69,7 @@
                         </label>
                         <input type="text" name="name" value="{{ old('name', $system->name) }}" required
                                class="w-full px-3.5 py-2.5 border rounded-xl text-sm text-slate-800 placeholder-slate-300
-                                      focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all
+                                      focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all
                                       {{ $errors->has('name') ? 'border-red-300 focus:ring-red-500/20 focus:border-red-400' : 'border-slate-200' }}">
                         @error('name')
                             <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1 font-medium">
@@ -84,7 +84,7 @@
                         </label>
                         <input type="text" name="slug" value="{{ old('slug', $system->slug) }}" required
                                class="w-full px-3.5 py-2.5 border rounded-xl text-sm font-mono text-slate-800 placeholder-slate-300
-                                      focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all
+                                      focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all
                                       {{ $errors->has('slug') ? 'border-red-300 focus:ring-red-500/20 focus:border-red-400' : 'border-slate-200' }}">
                         @error('slug')
                             <p class="text-red-500 text-xs mt-1.5 flex items-center gap-1 font-medium">
@@ -99,7 +99,7 @@
                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">คำอธิบาย</label>
                     <textarea name="description" rows="2"
                               class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-300
-                                     focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all resize-none"
+                                     focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all resize-none"
                               placeholder="อธิบายหน้าที่หรือวัตถุประสงค์ของระบบนี้">{{ old('description', $system->description) }}</textarea>
                 </div>
 
@@ -110,7 +110,7 @@
                     </label>
                     <input type="text" name="adapter_class" value="{{ old('adapter_class', $system->adapter_class) }}"
                            class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 placeholder-slate-300
-                                  focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                  focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
                            placeholder="App\Adapters\RepairSystemAdapter">
                 </div>
 

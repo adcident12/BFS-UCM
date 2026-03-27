@@ -49,7 +49,7 @@
             <input type="text" name="search" value="{{ $search ?? '' }}"
                    placeholder="ค้นหาชื่อ, username, แผนก..."
                    class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400
-                          focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all bg-white shadow-sm">
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all bg-white shadow-sm">
             @if ($search)
                 <a href="{{ route('users.inactive', ['days' => $days]) }}"
                    class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 transition-colors"
@@ -146,7 +146,7 @@
                         </td>
                         <td class="px-5 py-3.5 hidden md:table-cell">
                             @if ($user->system_permissions_count > 0)
-                                <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg ring-1 ring-amber-200/50">
+                                <span class="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg ring-1 ring-amber-200/60">
                                     {{ $user->system_permissions_count }} สิทธิ์
                                 </span>
                             @else

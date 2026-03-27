@@ -63,7 +63,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
             <input id="sys-search" type="text" placeholder="ค้นหาระบบ..." oninput="filterSystems(this.value)"
-                   class="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                   class="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
         </div>
 
         {{-- System list --}}
@@ -285,27 +285,27 @@
                                         <div>
                                             <label class="block text-xs font-semibold text-slate-500 mb-1">Label <span class="text-rose-400">*</span></label>
                                             <input type="text" name="label" value="{{ old('label', $perm->label) }}" required
-                                                   class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                                   class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-semibold text-slate-500 mb-1">Remote Value</label>
                                             <input type="text" name="remote_value" value="{{ old('remote_value', $perm->remote_value) }}"
-                                                   class="w-full text-sm font-mono border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                                   class="w-full text-sm font-mono border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-semibold text-slate-500 mb-1">Group</label>
                                             <input type="text" name="group" value="{{ old('group', $group === '__none__' ? '' : $group) }}"
-                                                   class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                                   class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                                         </div>
                                         <div>
                                             <label class="block text-xs font-semibold text-slate-500 mb-1">Sort Order</label>
                                             <input type="number" name="sort_order" value="{{ old('sort_order', $perm->sort_order) }}" min="0"
-                                                   class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                                   class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                                         </div>
                                         <div class="sm:col-span-2">
                                             <label class="block text-xs font-semibold text-slate-500 mb-1">Description</label>
                                             <input type="text" name="description" value="{{ old('description', $perm->description) }}"
-                                                   class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                                   class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                                         </div>
                                     </div>
                                     <div class="flex items-center justify-between">
@@ -361,32 +361,32 @@
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Key <span class="text-rose-400">*</span></label>
                                 <input type="text" name="key" value="{{ old('key') }}" required placeholder="เช่น view_report"
-                                       class="w-full text-sm font-mono border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                       class="w-full text-sm font-mono border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Label <span class="text-rose-400">*</span></label>
                                 <input type="text" name="label" value="{{ old('label') }}" required placeholder="ชื่อที่แสดง"
-                                       class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                       class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Remote Value</label>
                                 <input type="text" name="remote_value" value="{{ old('remote_value') }}" placeholder="ค่าในระบบปลายทาง"
-                                       class="w-full text-sm font-mono border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                       class="w-full text-sm font-mono border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Group</label>
                                 <input type="text" name="group" value="{{ old('group') }}" placeholder="เช่น รายงาน"
-                                       class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                       class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Sort Order</label>
                                 <input type="number" name="sort_order" value="{{ old('sort_order', 0) }}" min="0"
-                                       class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                       class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 mb-1">Description</label>
                                 <input type="text" name="description" value="{{ old('description') }}" placeholder="คำอธิบาย"
-                                       class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                       class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                             </div>
                         </div>
                         <div class="flex items-center justify-between">
@@ -432,7 +432,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input type="text" id="user-search" placeholder="ค้นหาผู้ใช้..." oninput="filterUsers(this.value)"
-                       class="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                       class="w-full pl-9 pr-3 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">

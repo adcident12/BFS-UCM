@@ -249,23 +249,23 @@
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">ชื่อที่แสดง *</label>
                                     <input type="text" name="label" required value="{{ $perm->label }}"
-                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Remote Value <span class="font-normal normal-case text-slate-400">(ค่าจริงใน {{ $system->name }})</span></label>
                                     <input type="text" name="remote_value" value="{{ $perm->remote_value }}"
-                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
                                         placeholder="{{ $perm->label }}">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">กลุ่ม</label>
                                     <input type="text" name="group" value="{{ $perm->group }}"
-                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">คำอธิบาย</label>
                                     <input type="text" name="description" value="{{ $perm->description }}"
-                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                        class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                                 </div>
                             </div>
                             <div class="flex items-center gap-4 mb-3">
@@ -315,13 +315,13 @@
                                 Key * <span class="text-slate-400 font-normal normal-case">(ตัวพิมพ์เล็ก, _)</span>
                             </label>
                             <input type="text" name="key" required
-                                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
                                 placeholder="daily_edit">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">ชื่อที่แสดง *</label>
                             <input type="text" name="label" required
-                                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
                                 placeholder="Daily Flight — Editable">
                         </div>
                         <div>
@@ -329,20 +329,20 @@
                                 Remote Value <span class="text-slate-400 font-normal normal-case">(ค่าจริงใน {{ $system->name }})</span>
                             </label>
                             <input type="text" name="remote_value"
-                                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm font-mono text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
                                 placeholder="Daily Flight:2">
                             <p class="text-xs text-slate-400 mt-1.5 font-medium">ถ้าไม่กรอกจะใช้ชื่อที่แสดงแทน</p>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">กลุ่ม</label>
                             <input type="text" name="group"
-                                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all"
+                                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
                                 placeholder="Daily Flight">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">คำอธิบาย</label>
                             <input type="text" name="description"
-                                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                         </div>
                         <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
                             <label class="flex items-start gap-2.5 cursor-pointer">

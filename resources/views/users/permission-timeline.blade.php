@@ -208,11 +208,11 @@
                                 {{-- Meta row: badge + system + actor --}}
                                 <div class="flex flex-wrap items-center gap-1.5 mb-1">
                                     @if ($isDiscovered)
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 ring-1 ring-sky-200/50">DISCOVER</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 ring-1 ring-sky-200/60">DISCOVER</span>
                                     @elseif ($isStatusChange)
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200/50">STATUS</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 ring-1 ring-amber-200/60">STATUS</span>
                                     @else
-                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200/50">PERM</span>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200/60">PERM</span>
                                     @endif
 
                                     @if (!empty($log->metadata['system_name']))

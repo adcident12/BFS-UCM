@@ -14,7 +14,7 @@
 @section('content')
 
 {{-- ── Hero Banner ─────────────────────────────────────────────────────── --}}
-<div class="mb-7 relative overflow-hidden rounded-2xl"
+<div class="mb-8 relative overflow-hidden rounded-2xl"
      style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0c1a3a 100%)">
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
         <div class="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500/5 rounded-full"></div>
@@ -198,13 +198,15 @@
 
         {{-- Table --}}
         @if ($failedJobs->isEmpty())
-        <div class="flex flex-col items-center justify-center py-14 text-slate-300">
-            <svg class="w-10 h-10 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <p class="text-sm font-semibold text-slate-400">ไม่มี Failed Jobs</p>
-            <p class="text-xs text-slate-300 mt-1">Queue ทำงานปกติ</p>
+        <div class="flex flex-col items-center justify-center py-14">
+            <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <p class="text-sm font-semibold text-slate-700 mb-1">ไม่มี Failed Jobs</p>
+            <p class="text-xs text-slate-400">Queue ทำงานปกติ</p>
         </div>
         @else
         <div class="overflow-x-auto">
@@ -383,12 +385,15 @@
                 </div>
             </div>
             @empty
-            <div class="flex flex-col items-center justify-center py-14 text-slate-300">
-                <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-                <p class="text-xs font-medium">ยังไม่มี Sync Log</p>
+            <div class="flex flex-col items-center justify-center py-14">
+                <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                </div>
+                <p class="text-sm font-semibold text-slate-700 mb-1">ยังไม่มี Sync Log</p>
+                <p class="text-xs text-slate-400">ยังไม่มีการ Sync เกิดขึ้น</p>
             </div>
             @endforelse
         </div>

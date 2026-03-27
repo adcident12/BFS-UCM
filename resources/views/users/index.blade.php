@@ -24,7 +24,7 @@
 </form>
 
 {{-- Hero Banner --}}
-<div class="mb-7 relative overflow-hidden rounded-2xl"
+<div class="mb-8 relative overflow-hidden rounded-2xl"
      style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
         <div class="absolute -top-12 -right-12 w-72 h-72 bg-blue-500/6 rounded-full blur-2xl"></div>
@@ -89,7 +89,7 @@
             <input type="text" name="search" value="{{ request('search') }}"
                    placeholder="ค้นหาชื่อ, username, แผนก..."
                    class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400
-                          focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all bg-white shadow-sm">
+                          focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all bg-white shadow-sm">
             @if(request('search'))
                 <a href="{{ route('users.index') }}"
                    class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 transition-colors"
@@ -101,7 +101,7 @@
             @endif
         </div>
         <button type="submit"
-                class="px-4 py-2.5 bg-slate-700 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl transition-colors duration-150 shadow-sm">
+                class="px-4 py-2.5 bg-slate-700 hover:bg-slate-800 text-white text-sm font-semibold rounded-xl transition-all duration-150 shadow-sm active:scale-95">
             ค้นหา
         </button>
     </form>
@@ -204,7 +204,7 @@
             <div id="adc-results" style="display:none" class="flex flex-col flex-1 min-h-0">
                 <div class="px-4 md:px-6 py-2.5 bg-red-50 border-b border-red-100 flex flex-wrap items-center justify-between gap-1 text-xs text-slate-500 flex-shrink-0">
                     <label class="flex items-center gap-2 cursor-pointer font-medium text-red-700">
-                        <input type="checkbox" id="adc-select-all" class="w-4 h-4 text-red-600 rounded">
+                        <input type="checkbox" id="adc-select-all" class="w-4 h-4 text-red-600 rounded focus:ring-2 focus:ring-red-500/40 focus:outline-none cursor-pointer">
                         ไม่พบใน AD: <span id="adc-total-count" class="font-bold">0</span> คน
                     </label>
                     <span id="adc-selected-label" style="display:none" class="text-red-600 font-semibold">เลือกแล้ว <span id="adc-selected-count">0</span> คน</span>
@@ -272,7 +272,7 @@
                 <div class="relative">
                     <input id="ad-search-input" type="text" placeholder="ค้นหาชื่อ, username, แผนก..."
                            class="w-full px-4 py-2.5 pl-10 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400
-                                  focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                  focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                     <svg class="absolute left-3.5 top-3 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
                     </svg>
@@ -288,7 +288,7 @@
                 <div id="ad-results-container" style="display:none">
                     <div class="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs text-slate-500 sticky top-0">
                         <label class="flex items-center gap-2 cursor-pointer font-medium">
-                            <input type="checkbox" id="ad-select-all" class="w-4 h-4 text-indigo-600 rounded">
+                            <input type="checkbox" id="ad-select-all" class="w-4 h-4 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500/40 focus:outline-none cursor-pointer">
                             เลือกทั้งหมด (<span id="ad-total-count">0</span> คน)
                         </label>
                         <span id="ad-selected-label" style="display:none" class="text-indigo-600 font-semibold">เลือกแล้ว <span id="ad-selected-count">0</span> คน</span>
@@ -306,7 +306,7 @@
                 {{-- Custom searchable dropdown --}}
                 <div id="sys-dropdown" class="relative flex-1">
                     <button type="button" id="sys-dropdown-btn"
-                            class="w-full flex items-center justify-between px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 text-left transition-all cursor-pointer">
+                            class="w-full flex items-center justify-between px-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 text-left transition-all cursor-pointer">
                         <span id="sys-dropdown-label" class="text-slate-400 truncate">— เลือกระบบ —</span>
                         <svg class="w-4 h-4 text-slate-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -316,7 +316,7 @@
                          class="absolute z-20 w-full mt-1 bg-white rounded-xl border border-slate-200 shadow-xl shadow-slate-100/50">
                         <div class="p-2 border-b border-slate-100">
                             <input id="sys-search-input" type="text" placeholder="ค้นหาระบบ..."
-                                   class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-400 transition-all">
+                                   class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all">
                         </div>
                         <div id="sys-options" class="max-h-48 overflow-y-auto py-1">
                             <button type="button" data-value="" data-label="— เลือกระบบ —"
@@ -354,7 +354,7 @@
                 <div id="sys-results-container" style="display:none">
                     <div class="px-4 md:px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center justify-between gap-1 text-xs text-slate-500 sticky top-0">
                         <label class="flex items-center gap-2 cursor-pointer font-medium">
-                            <input type="checkbox" id="sys-select-all" class="w-4 h-4 text-indigo-600 rounded">
+                            <input type="checkbox" id="sys-select-all" class="w-4 h-4 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500/40 focus:outline-none cursor-pointer">
                             ทั้งหมด <span id="sys-total-count">0</span> คน
                             <span class="text-slate-400 hidden sm:inline">(ใน UCM: <span id="sys-in-ucm-count" class="text-emerald-600 font-semibold">0</span>, ยังไม่ได้นำเข้า: <span id="sys-not-ucm-count" class="text-amber-600 font-semibold">0</span>)</span>
                         </label>
@@ -457,7 +457,7 @@
                     <th class="px-3 md:px-4 py-3.5 w-12">
                         <div class="flex flex-col items-center gap-1">
                             <input type="checkbox" id="select-all-chk"
-                                   class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500/30 cursor-pointer"
+                                   class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-2 focus:ring-emerald-500/40 focus:outline-none cursor-pointer"
                                    title="เลือกทั้งหมดในหน้านี้">
                             <span class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider leading-none">CSV</span>
                         </div>
@@ -474,7 +474,7 @@
                 @forelse ($users as $user)
                     <tr class="hover:bg-indigo-50/30 transition-colors group" data-user-id="{{ $user->id }}">
                         <td class="px-3 md:px-4 py-3.5">
-                            <input type="checkbox" class="user-chk w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500/30 cursor-pointer"
+                            <input type="checkbox" class="user-chk w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-2 focus:ring-emerald-500/40 focus:outline-none cursor-pointer"
                                    value="{{ $user->id }}" data-name="{{ $user->name }}">
                         </td>
                         <td class="px-4 md:px-6 py-3.5">
@@ -516,13 +516,13 @@
                 @empty
                     <tr>
                         <td colspan="7" class="px-6 py-16 text-center">
-                            <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                                <svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
                             </div>
-                            <p class="text-sm font-semibold text-slate-400 mb-1">ยังไม่มีผู้ใช้</p>
-                            <p class="text-xs text-slate-300">กด "นำเข้าจาก AD" เพื่อเริ่มต้น</p>
+                            <p class="text-sm font-semibold text-slate-700 mb-1">ยังไม่มีผู้ใช้</p>
+                            <p class="text-xs text-slate-400">กด "นำเข้าจาก AD" เพื่อเริ่มต้น</p>
                         </td>
                     </tr>
                 @endforelse

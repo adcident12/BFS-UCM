@@ -20,7 +20,7 @@
 <div id="health-flash-area"></div>
 
 {{-- Hero Banner --}}
-<div class="mb-7 relative overflow-hidden rounded-2xl"
+<div class="mb-8 relative overflow-hidden rounded-2xl"
      style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #0c1a2e 100%)">
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
         <div class="absolute -top-12 -right-12 w-72 h-72 bg-orange-500/6 rounded-full blur-2xl"></div>
@@ -106,7 +106,7 @@
                 {{-- Actions --}}
                 <div class="flex gap-2">
                     <a href="{{ route('systems.show', $system) }}"
-                       class="flex-1 text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-colors duration-150 shadow-sm shadow-indigo-200">
+                       class="flex-1 text-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-sm shadow-indigo-200 active:scale-95">
                         ดูรายละเอียด
                     </a>
                     @if ($canEditPermissions)
@@ -145,11 +145,11 @@
                     </svg>
                 </div>
             </div>
-            <h3 class="text-base font-bold text-slate-700 mb-1">ยังไม่มีระบบ</h3>
-            <p class="text-sm text-slate-400 mb-6">เพิ่มระบบแรกเพื่อเริ่มจัดการสิทธิ์ผู้ใช้</p>
+            <h3 class="text-sm font-semibold text-slate-700 mb-1">ยังไม่มีระบบ</h3>
+            <p class="text-xs text-slate-400 mb-6">เพิ่มระบบแรกเพื่อเริ่มจัดการสิทธิ์ผู้ใช้</p>
             @if ($canManageSystems)
             <a href="{{ route('systems.create') }}"
-               class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm shadow-indigo-200">
+               class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-xl transition-all shadow-sm shadow-indigo-200 active:scale-95">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>

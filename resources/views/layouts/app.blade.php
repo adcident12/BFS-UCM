@@ -117,7 +117,7 @@
                 @foreach ($navItems as $item)
                     @php $active = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*') @endphp
                     <a href="{{ route($item['route']) }}" onclick="closeSidebar()"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                               {{ $active ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                         <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                     {{ $active ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -149,7 +149,7 @@
                 @endphp
                 @if ($canSeeAudit)
                 <a href="{{ route('audit.index') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $auditActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $auditActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -164,7 +164,7 @@
                 @if (auth()->user()->canAccess('permission_matrix'))
                 @php $reportActive = request()->routeIs('reports.*') @endphp
                 <a href="{{ route('reports.permission-matrix') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $reportActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $reportActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -179,7 +179,7 @@
                 @if (auth()->user()->canAccess('share_link_manage'))
                 @php $shareLinkActive = request()->routeIs('share-links.*') @endphp
                 <a href="{{ route('share-links.index') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $shareLinkActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $shareLinkActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -194,7 +194,7 @@
                 @if (auth()->user()->canAccess('permission_center'))
                 @php $permCenterActive = request()->routeIs('permissions.*') @endphp
                 <a href="{{ route('permissions.index') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $permCenterActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $permCenterActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -209,7 +209,7 @@
                 @if (auth()->user()->canAccess('admin_levels'))
                 @php $adminActive = request()->routeIs('admin.levels') @endphp
                 <a href="{{ route('admin.levels') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $adminActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $adminActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -224,7 +224,7 @@
                 @if (auth()->user()->canAccess('ucm_access'))
                 @php $ucmAccessActive = request()->routeIs('ucm-access.*') @endphp
                 <a href="{{ route('ucm-access.index') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $ucmAccessActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $ucmAccessActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -239,7 +239,7 @@
                 @if (auth()->user()->canAccess('queue_monitor'))
                 @php $queueActive = request()->routeIs('queue.monitor') @endphp
                 <a href="{{ route('queue.monitor') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $queueActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $queueActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -254,7 +254,7 @@
                 @if (auth()->user()->canAccess('connector_wizard'))
                 @php $connActive = request()->routeIs('connectors.*') @endphp
                 <a href="{{ route('connectors.index') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $connActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $connActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -269,7 +269,7 @@
                 @if (auth()->user()->canAccess('notifications'))
                 @php $notifActive = request()->routeIs('notifications.*') @endphp
                 <a href="{{ route('notifications.index') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $notifActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $notifActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -296,7 +296,7 @@
             <div id="nav-body-docs" class="nav-acc-body space-y-0.5">
                 @php $manualActive = request()->routeIs('docs.manual') @endphp
                 <a href="{{ route('docs.manual') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $manualActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $manualActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -325,7 +325,7 @@
                     $swaggerActive = request()->is('api-docs/swagger');
                 @endphp
                 <a href="{{ route('docs.install') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $installActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $installActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -337,7 +337,7 @@
                     @if ($installActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
                 <a href="{{ route('api-docs') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $apiDocsActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $apiDocsActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -349,7 +349,7 @@
                     @if ($apiDocsActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
                 <a href="{{ url('api-docs/swagger') }}" onclick="closeSidebar()"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                           {{ $swaggerActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                                 {{ $swaggerActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
@@ -367,7 +367,7 @@
             <p class="px-3 mb-1.5 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">บัญชี</p>
             @php $profileActive = request()->routeIs('users.show') && request()->route('user')?->id === auth()->id() @endphp
             <a href="{{ route('users.show', auth()->user()) }}" onclick="closeSidebar()"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
                       {{ $profileActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
                             {{ $profileActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
