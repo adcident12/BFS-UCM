@@ -187,7 +187,9 @@ database/migrations/
     └── 2026_03_26_153610_create_matrix_share_links_table.php           ← Share Link สำหรับ Permission Matrix (token, filters, expiry, view_count)
 
 resources/views/
-    ├── layouts/app.blade.php               # Main layout + sidebar accordion nav
+    ├── layouts/
+    │   ├── app.blade.php                   # Main layout + dark sidebar + accordion nav + global confirm modal
+    │   └── docs.blade.php                  # Docs layout — fixed top bar + left page nav sidebar + right scroll-spy TOC
     ├── welcome.blade.php                   # Laravel default (redirect ไปยัง login)
     ├── auth/login.blade.php                # หน้า Login (AD credentials)
     ├── dashboard.blade.php                 # Stats cards + Activity Charts (Chart.js)
@@ -223,9 +225,12 @@ resources/views/
     │   ├── api-code-block.blade.php        # Reusable code block สำหรับ API docs
     │   ├── api-endpoint.blade.php          # Reusable endpoint card สำหรับ API docs
     │   └── api-group.blade.php             # Reusable endpoint group สำหรับ API docs
+    ├── layouts/
+    │   ├── app.blade.php                   # Main layout + dark sidebar + accordion nav
+    │   └── docs.blade.php                  # Docs layout — top bar + left page nav + right TOC sidebar (cream bg #FAFAF9)
     └── docs/
-        ├── manual.blade.php                # คู่มือผู้ใช้งาน (25 sections, sticky TOC)
-        └── install.blade.php               # Install Guide สำหรับนักพัฒนา (11 sections)
+        ├── manual.blade.php                # คู่มือผู้ใช้งาน (25 sections, right sidebar scroll-spy TOC)
+        └── install.blade.php               # Install Guide สำหรับนักพัฒนา (12 sections, right sidebar scroll-spy TOC)
 ```
 
 ---
@@ -448,7 +453,8 @@ MAIL_FROM_NAME="UCM Notification"
 # ── UCM Settings ─────────────────────────────────────────
 UCM_ALLOWED_DEPARTMENT="Systems Development and IT"  # เว้นว่างเพื่ออนุญาตทุกแผนก
 UCM_AUDIT_DEPARTMENTS="Safety,Quality Assurance"     # แผนกที่ดู Audit Log ได้ (Read-Only) คั่นด้วย ,
-UCM_ADMIN_TOKEN_TTL_DAYS=90                          # อายุ Admin API Token (วัน) ค่าเริ่มต้น = ไม่หมดอายุ
+UCM_USER_TOKEN_TTL_HOURS=24                          # อายุ User API Token จาก /api/auth/user-login (ชั่วโมง)
+UCM_ADMIN_TOKEN_TTL_DAYS=90                          # อายุ Admin API Token จาก /api/auth/token (วัน) เว้นว่าง = ไม่หมดอายุ
 
 # ── Session (Production) ─────────────────────────────────
 SESSION_SECURE_COOKIE=true                           # true ใน production (HTTPS), false ใน dev
@@ -941,7 +947,10 @@ Job config: `tries=3`, `timeout=30s`, `backoff=10s`
 | `systems` | Create/Update/Delete System, Toggle 2-Way, Create/Update/Delete Permission Definition, Discover Permission Definitions, Create/Update/Delete Group Record |
 | `connectors` | Create/Update/Delete Connector Config |
 | `notifications` | Create/Update/Delete Notification Channel |
+| `ucm_access` | Update Feature Min Level, Grant/Revoke Individual Feature Access |
+| `queue` | Retry Failed Job, Retry All, Flush Failed Jobs |
 | `api` | Issue Token, Revoke Token, User Login via API |
+| `share_links` | Create Share Link, Revoke Share Link, Reactivate Share Link, View Share Link (public) |
 
 ### สิทธิ์การเข้าถึง
 

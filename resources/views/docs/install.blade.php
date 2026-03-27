@@ -355,10 +355,20 @@ $sections = [
                         ['key' => 'LDAP_USER_FILTER', 'val' => '(sAMAccountName={username})'],
                         ['key' => 'LDAP_USERNAME_ATTRIBUTE', 'val' => 'sAMAccountName'],
                     ]],
+                    ['section' => 'Mail (สำหรับ Notification Email)', 'color' => 'sky', 'vars' => [
+                        ['key' => 'MAIL_MAILER', 'val' => 'smtp'],
+                        ['key' => 'MAIL_HOST', 'val' => 'smtp.your-domain.com'],
+                        ['key' => 'MAIL_PORT', 'val' => '587', 'note' => '25 / 465 / 587'],
+                        ['key' => 'MAIL_USERNAME', 'val' => 'ucm@your-domain.com'],
+                        ['key' => 'MAIL_PASSWORD', 'val' => 'your_mail_password'],
+                        ['key' => 'MAIL_FROM_ADDRESS', 'val' => 'ucm@your-domain.com'],
+                        ['key' => 'MAIL_FROM_NAME', 'val' => '"UCM Notification"'],
+                    ]],
                     ['section' => 'UCM Settings', 'color' => 'amber', 'vars' => [
                         ['key' => 'UCM_ALLOWED_DEPARTMENT', 'val' => '"Systems Development and IT"', 'note' => 'แผนกที่อนุญาต Login (เว้นว่างเพื่ออนุญาตทุกแผนก)'],
-                        ['key' => 'UCM_AUDIT_DEPARTMENTS', 'val' => '"Safety,Quality Assurance"', 'note' => 'แผนกที่ดู Audit Log ได้ (Read-Only) คั่นด้วย , เพิ่มแผนกได้ในอนาคต'],
-                        ['key' => 'UCM_ADMIN_TOKEN_TTL_DAYS', 'val' => '90', 'note' => 'อายุ Admin API Token (วัน) — เว้นว่างหรือลบออก = ไม่หมดอายุ'],
+                        ['key' => 'UCM_AUDIT_DEPARTMENTS', 'val' => '"Safety,Quality Assurance"', 'note' => 'แผนกที่ดู Audit Log ได้ (Read-Only) คั่นด้วย ,'],
+                        ['key' => 'UCM_USER_TOKEN_TTL_HOURS', 'val' => '24', 'note' => 'อายุ User Token จาก /api/auth/user-login (ชั่วโมง)'],
+                        ['key' => 'UCM_ADMIN_TOKEN_TTL_DAYS', 'val' => '90', 'note' => 'อายุ Admin Token จาก /api/auth/token (วัน) เว้นว่าง = ไม่หมดอายุ'],
                         ['key' => 'SESSION_SECURE_COOKIE', 'val' => 'true', 'note' => 'true ใน production (HTTPS) / false ใน development'],
                     ]],
                     ['section' => 'AI Schema Analysis (ทางเลือก)', 'color' => 'fuchsia', 'vars' => [
