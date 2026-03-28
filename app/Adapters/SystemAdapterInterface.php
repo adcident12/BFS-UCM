@@ -97,6 +97,19 @@ interface SystemAdapterInterface
     public function provisionPermission(string $key, string $label, string $group): string|int|null;
 
     /**
+     * อัปเดต permission definition ในระบบภายนอก (UCM → External)
+     *
+     * เรียกอัตโนมัติเมื่ออัปเดต label / group ของ permission ใน UCM และ 2-way เปิดอยู่
+     * Adapter ที่ไม่มี definition table override คืน true เฉยๆ
+     *
+     * @param  string $remoteValue  ค่า remote_value ของ permission ที่จะอัปเดต
+     * @param  string $label        label ใหม่
+     * @param  string $group        group ใหม่
+     * @return bool   true = อัปเดตสำเร็จหรือไม่จำเป็นต้องอัปเดต, false = เกิด error
+     */
+    public function updatePermission(string $remoteValue, string $label, string $group): bool;
+
+    /**
      * ลบ permission definition ออกจากระบบภายนอก (UCM → External)
      *
      * เรียกอัตโนมัติเมื่อลบ permission ใน UCM

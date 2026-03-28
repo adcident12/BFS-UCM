@@ -357,23 +357,37 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             <div class="px-6 py-6 space-y-5">
 
                 <div>
-                    <label class="{{ $lbl }}">ตาราง Users <span class="text-rose-500">*</span></label>
-                    <div class="flex gap-2">
-                        <div class="relative flex-1">
-                            <select id="field_user_table" data-searchable class="{{ $sel }}" onchange="wizLoadUserColumns()">
-                                <option value="">— เลือกตาราง —</option>
-                                @if(isset($editConfig) && $editConfig->user_table)
-                                    <option value="{{ $editConfig->user_table }}" selected>{{ $editConfig->user_table }}</option>
-                                @endif
-                            </select>
-                        </div>
-                        <button class="{{ $btnO }} flex-shrink-0" onclick="wizLoadTables('user_table','wizLoadUserColumns')" title="โหลดรายการตาราง">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                            </svg>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="{{ $lbl }} mb-0">ตาราง Users <span class="text-rose-500">*</span></label>
+                        <button type="button" class="{{ $btnO }} text-[11px]" onclick="wizAddUserTable()">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            เพิ่ม JOIN
                         </button>
                     </div>
-                    <p class="{{ $hint }}">กดปุ่ม ⟳ เพื่อโหลดรายการตาราง (ต้องผ่านขั้นตอนที่ 2 แล้ว)</p>
+
+                    {{-- Primary table row --}}
+                    <div id="user-tables-list" class="space-y-2">
+                        <div class="user-table-row p-3 bg-slate-50 border border-slate-200 rounded-xl" data-index="0">
+                            <div class="flex gap-2 items-center">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase w-10 flex-shrink-0">FROM</span>
+                                <div class="relative flex-1">
+                                    <select id="field_user_table" data-searchable class="{{ $sel }}" onchange="wizLoadUserColumns()">
+                                        <option value="">— เลือกตาราง —</option>
+                                        @if(isset($editConfig) && $editConfig->user_table)
+                                            <option value="{{ $editConfig->user_table }}" selected>{{ $editConfig->user_table }}</option>
+                                        @endif
+                                    </select>
+                                </div>
+                                <input type="text" id="field_user_table_alias_0" placeholder="alias (เช่น u)" class="w-24 flex-shrink-0 text-xs border border-slate-200 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400/50">
+                                <button class="{{ $btnO }} flex-shrink-0" onclick="wizLoadTables('user_table','wizLoadUserColumns')" title="โหลดรายการตาราง">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="{{ $hint }}">กดปุ่ม ⟳ เพื่อโหลดรายการตาราง (ต้องผ่านขั้นตอนที่ 2 แล้ว) • กด "เพิ่ม JOIN" เพื่อรองรับหลายตาราง</p>
                 </div>
 
                 {{-- UCM Identifier --}}
@@ -452,12 +466,32 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                     <div>
                         <label class="{{ $lbl }}">แผนก <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                         <div class="relative">
-                            <select id="field_user_dept_col" data-searchable class="{{ $sel }}">
+                            <select id="field_user_dept_col" data-searchable class="{{ $sel }}" onchange="wizToggleDeptMap()">
                                 <option value="">(ไม่ระบุ)</option>
                                 @if(isset($editConfig) && $editConfig->user_dept_col)
                                     <option value="{{ $editConfig->user_dept_col }}" selected>{{ $editConfig->user_dept_col }}</option>
                                 @endif
                             </select>
+                        </div>
+                    </div>
+                    <div id="dept-map-panel" class="hidden col-span-2">
+                        <div class="border border-indigo-200 rounded-xl p-4 bg-indigo-50/40">
+                            <div class="flex items-center justify-between mb-3">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-slate-700">Department Code Mapping</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5">แมปชื่อแผนก UCM → รหัสแผนกที่ระบบภายนอกใช้ เช่น "ฝ่ายไอที" → "ITDEV"</p>
+                                </div>
+                                <button type="button" onclick="wizLoadUcmDepartments()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-white border border-indigo-200 rounded-lg hover:bg-indigo-50 transition-all">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                    โหลดแผนกจาก UCM
+                                </button>
+                            </div>
+                            <div id="dept-map-rows" class="space-y-2"></div>
+                            <p id="dept-map-empty" class="text-xs text-slate-400 italic py-1">ยังไม่มี mapping — คลิก "โหลดแผนกจาก UCM" หรือเพิ่มแถวด้วยตนเอง</p>
+                            <button type="button" onclick="wizAddDeptMapRow()" class="mt-2 flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                เพิ่มแถวด้วยตนเอง
+                            </button>
                         </div>
                     </div>
                     <div>
@@ -566,6 +600,87 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </div>
                         <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center" id="perm-check-manual">
                             <div class="w-2 h-2 rounded-full bg-indigo-500" id="perm-dot-manual" style="display:none"></div>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-mixed" onclick="selectPermMode('mixed')">
+                        <input type="radio" name="permission_mode" value="mixed" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)">
+                        <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0 text-base">⚡</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-800">Junction + Column <span class="text-[10px] font-bold px-1.5 py-0.5 bg-violet-100 text-violet-600 rounded-full ml-1">Mixed</span></p>
+                            <p class="text-xs text-slate-500 mt-0.5">มีทั้ง junction table <em>และ</em> column บน user table พร้อมกัน</p>
+                        </div>
+                        <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center" id="perm-check-mixed">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500" id="perm-dot-mixed" style="display:none"></div>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-boolean_matrix" onclick="selectPermMode('boolean_matrix')">
+                        <input type="radio" name="permission_mode" value="boolean_matrix" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0 text-base">☑️</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-800">Boolean Matrix</p>
+                            <p class="text-xs text-slate-500 mt-0.5">สิทธิ์เป็นคอลัมน์ TINYINT บนตาราง users โดยตรง</p>
+                        </div>
+                        <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center" id="perm-check-boolean_matrix">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500" id="perm-dot-boolean_matrix" style="display:none"></div>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-group_inheritance" onclick="selectPermMode('group_inheritance')">
+                        <input type="radio" name="permission_mode" value="group_inheritance" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)">
+                        <div class="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center flex-shrink-0 text-base">👥</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-800">Group Inheritance</p>
+                            <p class="text-xs text-slate-500 mt-0.5">สิทธิ์ถ่ายทอดผ่านกลุ่ม/role (users → roles → permissions)</p>
+                        </div>
+                        <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center" id="perm-check-group_inheritance">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500" id="perm-dot-group_inheritance" style="display:none"></div>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-json_column" onclick="selectPermMode('json_column')">
+                        <input type="radio" name="permission_mode" value="json_column" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)"
+                               {{ isset($editConfig) && $editConfig->permission_mode === 'json_column' ? 'checked' : '' }}>
+                        <div class="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0 text-base">🗂️</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-800">JSON Column</p>
+                            <p class="text-xs text-slate-500 mt-0.5">สิทธิ์เก็บเป็น JSON array ใน 1 column เช่น <code class="text-[10px] bg-slate-100 px-1 rounded font-mono">["read","write"]</code></p>
+                        </div>
+                        <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center" id="perm-check-json_column">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500" id="perm-dot-json_column" style="display:none"></div>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-delimited_column" onclick="selectPermMode('delimited_column')">
+                        <input type="radio" name="permission_mode" value="delimited_column" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)"
+                               {{ isset($editConfig) && $editConfig->permission_mode === 'delimited_column' ? 'checked' : '' }}>
+                        <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0 text-base">📝</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-800">Delimited Column</p>
+                            <p class="text-xs text-slate-500 mt-0.5">สิทธิ์คั่น delimiter ใน 1 column เช่น <code class="text-[10px] bg-slate-100 px-1 rounded font-mono">admin,editor,viewer</code></p>
+                        </div>
+                        <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center" id="perm-check-delimited_column">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500" id="perm-dot-delimited_column" style="display:none"></div>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-bitmask" onclick="selectPermMode('bitmask')">
+                        <input type="radio" name="permission_mode" value="bitmask" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)"
+                               {{ isset($editConfig) && $editConfig->permission_mode === 'bitmask' ? 'checked' : '' }}>
+                        <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0 text-base">🔢</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-800">Bitmask</p>
+                            <p class="text-xs text-slate-500 mt-0.5">สิทธิ์เก็บเป็น integer bit flags เช่น <code class="text-[10px] bg-slate-100 px-1 rounded font-mono">7 = read(1)+write(2)+admin(4)</code></p>
+                        </div>
+                        <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center" id="perm-check-bitmask">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500" id="perm-dot-bitmask" style="display:none"></div>
+                        </div>
+                    </label>
+                    <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-multi_level_hierarchy" onclick="selectPermMode('multi_level_hierarchy')">
+                        <input type="radio" name="permission_mode" value="multi_level_hierarchy" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)"
+                               {{ isset($editConfig) && $editConfig->permission_mode === 'multi_level_hierarchy' ? 'checked' : '' }}>
+                        <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0 text-base">🌳</div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-800">Multi-Level Hierarchy</p>
+                            <p class="text-xs text-slate-500 mt-0.5">RBAC recursive: users → roles(parent_id) → permissions (3+ ชั้น)</p>
+                        </div>
+                        <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 border-slate-200 flex items-center justify-center" id="perm-check-multi_level_hierarchy">
+                            <div class="w-2 h-2 rounded-full bg-indigo-500" id="perm-dot-multi_level_hierarchy" style="display:none"></div>
                         </div>
                     </label>
                 </div>
@@ -690,6 +805,555 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                     </div>
                     <div id="manual-perm-list" class="flex flex-col gap-1.5"></div>
                     <p id="manual-empty" class="text-xs text-slate-400 text-center py-4">ยังไม่มี permission — กด "เพิ่ม Permission" เพื่อเริ่มต้น</p>
+                </div>
+
+                {{-- Mixed Mode — Column Side Fields (Feature B) --}}
+                <div id="perm-mixed-col-fields" class="hidden">
+                    <hr class="border-t border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Column Side <span class="text-[10px] font-normal text-slate-400 normal-case">(ส่วนที่เก็บ permission ในคอลัมน์บน user table)</span></p>
+
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="{{ $lbl }}">ตาราง <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
+                            <div class="relative">
+                                <select id="field_perm_col_table" data-searchable class="{{ $sel }}" onchange="wizLoadMixedColColumns()">
+                                    <option value="">(ใช้ตาราง users หลัก)</option>
+                                    @if(isset($editConfig) && $editConfig->perm_col_table)
+                                        <option value="{{ $editConfig->perm_col_table }}" selected>{{ $editConfig->perm_col_table }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">ตารางที่มีคอลัมน์ permission — ปล่อยว่างหากเป็นตาราง users หลัก</p>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">คอลัมน์ Identifier <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
+                            <div class="relative">
+                                <select id="field_perm_col_identifier" data-searchable class="{{ $sel }}">
+                                    <option value="">(ใช้ user_identifier_col)</option>
+                                    @if(isset($editConfig) && $editConfig->perm_col_identifier)
+                                        <option value="{{ $editConfig->perm_col_identifier }}" selected>{{ $editConfig->perm_col_identifier }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">คอลัมน์ Permission Value <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_col_value_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_col_value_col)
+                                        <option value="{{ $editConfig->perm_col_value_col }}" selected>{{ $editConfig->perm_col_value_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">คอลัมน์ที่เก็บค่า permission เช่น <code class="font-mono text-[10px]">role</code>, <code class="font-mono text-[10px]">is_admin</code></p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between mb-2">
+                        <div>
+                            <p class="text-xs font-bold text-slate-600">ค่าที่เป็นไปได้ของ Column <span class="text-rose-500">*</span></p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">กำหนดรายการ permission keys สำหรับ column side — จะมี prefix <code class="font-mono text-[10px]">col:</code> โดยอัตโนมัติ</p>
+                        </div>
+                        <button type="button" class="{{ $btnO }}" onclick="wizAddColPermOption()">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                            เพิ่มค่า
+                        </button>
+                    </div>
+                    <div class="grid gap-1.5 px-2.5 mb-1.5" style="grid-template-columns:1fr 1fr 7rem auto">
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Key (ค่าใน DB)</p>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Label</p>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Group</p>
+                        <div></div>
+                    </div>
+                    <div id="col-perm-options-list" class="flex flex-col gap-1.5"></div>
+                    <p id="col-perm-empty" class="text-xs text-slate-400 text-center py-3">ยังไม่มีค่า — กด "เพิ่มค่า" เพื่อกำหนดรายการ</p>
+                </div>
+
+                {{-- Boolean Matrix Fields --}}
+                <div id="perm-bool-matrix-fields" class="hidden">
+                    <hr class="border-t border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Boolean Matrix Columns</p>
+                    <p class="text-xs text-slate-500 mb-3">ระบุชื่อคอลัมน์ TINYINT ที่ใช้เป็น permission บนตาราง users (คั่นด้วย comma หรือ newline)</p>
+                    <div>
+                        <label class="{{ $lbl }}">รายการคอลัมน์ <span class="text-rose-500">*</span></label>
+                        <textarea id="field_perm_bool_columns_text" rows="4"
+                                  class="block w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-mono focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none resize-y"
+                                  placeholder="can_view_manifest&#10;can_edit_manifest&#10;can_approve_manifest">{{ isset($editConfig) && !empty($editConfig->perm_bool_columns) ? implode("\n", $editConfig->perm_bool_columns) : '' }}</textarea>
+                        <p class="{{ $hint }}">แต่ละบรรทัดหรือค่าคั่น comma คือชื่อคอลัมน์ เช่น <code class="font-mono text-[10px]">can_view, can_edit</code></p>
+                    </div>
+                </div>
+
+                {{-- Group Inheritance Fields --}}
+                <div id="perm-group-inherit-fields" class="hidden">
+                    <hr class="border-t border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Group Inheritance — Via Table</p>
+                    <p class="text-xs text-slate-500 mb-4">กำหนดตาราง membership (เช่น <code class="font-mono text-[10px]">employee_roles</code>) ที่เชื่อม users → groups/roles และตาราง permissions ที่เชื่อม groups → permission codes</p>
+
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="{{ $lbl }}">Via Table (membership) <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_via_table" data-searchable class="{{ $sel }}" onchange="wizLoadViaColumns()">
+                                    <option value="">— เลือกตาราง —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_via_table)
+                                        <option value="{{ $editConfig->perm_via_table }}" selected>{{ $editConfig->perm_via_table }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">ตาราง mapping user ↔ group/role</p>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">FK ชี้ไปยัง User ใน Via Table <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_via_user_fk_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_via_user_fk_col)
+                                        <option value="{{ $editConfig->perm_via_user_fk_col }}" selected>{{ $editConfig->perm_via_user_fk_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">FK ชี้ไปยัง Group ใน Via Table <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_via_group_fk_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_via_group_fk_col)
+                                        <option value="{{ $editConfig->perm_via_group_fk_col }}" selected>{{ $editConfig->perm_via_group_fk_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="{{ $lbl }}">ตาราง Permissions (junction) <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_table_gi" data-searchable class="{{ $sel }}" onchange="wizLoadPermColumnsGI()">
+                                    <option value="">— เลือกตาราง —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_table)
+                                        <option value="{{ $editConfig->perm_table }}" selected>{{ $editConfig->perm_table }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">ตาราง mapping group ↔ permission code</p>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">FK ชี้ไปยัง Group ใน Perm Table <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_user_fk_col_gi" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_user_fk_col)
+                                        <option value="{{ $editConfig->perm_user_fk_col }}" selected>{{ $editConfig->perm_user_fk_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">Permission Value Col <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_value_col_gi" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_value_col)
+                                        <option value="{{ $editConfig->perm_value_col }}" selected>{{ $editConfig->perm_value_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- JSON Column Fields --}}
+                <div id="perm-json-col-fields" class="hidden">
+                    <hr class="border-t border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">JSON Column — การตั้งค่า</p>
+                    <p class="text-xs text-slate-500 mb-4">ใช้เมื่อระบบเก็บสิทธิ์เป็น JSON array ใน 1 column บนตาราง users เช่น <code class="font-mono text-[10px] bg-slate-100 px-1 py-0.5 rounded">permissions = '["read","write","approve"]'</code></p>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="{{ $lbl }}">Column ที่เก็บ JSON <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_json_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_json_col)
+                                        <option value="{{ $editConfig->perm_json_col }}" selected>{{ $editConfig->perm_json_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">column ชนิด JSON/TEXT/VARCHAR ที่เก็บ array เช่น <code class="font-mono text-[10px]">permissions</code></p>
+                        </div>
+                        <div class="flex flex-col justify-end">
+                            <button type="button" onclick="wizLoadUserColumns('perm_json_col')" class="{{ $btnO }} text-xs">
+                                โหลดคอลัมน์จาก User Table
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="{{ $lbl }}">รายการสิทธิ์ที่มีให้เลือก <span class="text-xs font-normal text-slate-400">(optional — ถ้าไม่ระบุจะ auto-discover จาก DB)</span></label>
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-xs text-slate-500">กำหนดล่วงหน้าเพื่อความเร็ว หรือปล่อยว่างให้ระบบ scan อัตโนมัติ</p>
+                            <button type="button" onclick="wizAddAvailableRow('json')" class="{{ $btnO }} text-xs">+ เพิ่มสิทธิ์</button>
+                        </div>
+                        <div id="json-available-list" class="flex flex-col gap-1.5">
+                            @if(isset($editConfig) && !empty($editConfig->perm_json_available))
+                                @foreach($editConfig->perm_json_available as $avail)
+                                    <div class="flex gap-2 items-center">
+                                        <input type="text" placeholder="key" value="{{ $avail['key'] ?? '' }}" data-json-avail-key class="flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs focus:border-indigo-400 outline-none">
+                                        <input type="text" placeholder="label" value="{{ $avail['label'] ?? '' }}" data-json-avail-label class="flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs focus:border-indigo-400 outline-none">
+                                        <button type="button" onclick="this.closest('div').remove()" class="text-slate-400 hover:text-rose-500 text-lg leading-none px-1">×</button>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+                        <p id="json-available-empty" class="{{ empty($editConfig?->perm_json_available) ? '' : 'hidden' }} text-xs text-slate-400 text-center py-2">ว่าง = auto-discover จาก DB (อาจช้าถ้าตารางมีข้อมูลมาก)</p>
+                        <input type="hidden" id="field_perm_json_available" name="perm_json_available">
+                    </div>
+                </div>
+
+                {{-- Delimited Column Fields --}}
+                <div id="perm-delimited-col-fields" class="hidden">
+                    <hr class="border-t border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Delimited Column — การตั้งค่า</p>
+                    <p class="text-xs text-slate-500 mb-4">ใช้เมื่อระบบเก็บสิทธิ์หลายค่าคั่น delimiter ใน 1 column เช่น <code class="font-mono text-[10px] bg-slate-100 px-1 py-0.5 rounded">role = 'admin,editor,viewer'</code></p>
+
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="{{ $lbl }}">Column ที่เก็บ string <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_delimited_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_delimited_col)
+                                        <option value="{{ $editConfig->perm_delimited_col }}" selected>{{ $editConfig->perm_delimited_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">column VARCHAR/TEXT ที่เก็บ string คั่น delimiter</p>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">Delimiter <span class="text-rose-500">*</span></label>
+                            <div class="flex flex-wrap gap-2 mt-1">
+                                @foreach([[',' , 'Comma (,)'],['|','Pipe (|)'],[';','Semicolon (;)'],[' ','Space']] as [$val, $lbTxt])
+                                <label class="flex items-center gap-1.5 cursor-pointer">
+                                    <input type="radio" name="perm_delimiter" value="{{ $val }}"
+                                           class="accent-indigo-600"
+                                           {{ isset($editConfig) ? (($editConfig->perm_delimiter === $val || (!$editConfig->perm_delimiter && $val === ',')) ? 'checked' : '') : ($val === ',' ? 'checked' : '') }}>
+                                    <span class="text-xs text-slate-700">{{ $lbTxt }}</span>
+                                </label>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div class="flex flex-col justify-end">
+                            <button type="button" onclick="wizLoadUserColumns('perm_delimited_col')" class="{{ $btnO }} text-xs">
+                                โหลดคอลัมน์จาก User Table
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="{{ $lbl }}">รายการสิทธิ์ที่มีให้เลือก <span class="text-xs font-normal text-slate-400">(optional)</span></label>
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-xs text-slate-500">กำหนดล่วงหน้า หรือปล่อยว่างให้ระบบ scan อัตโนมัติ</p>
+                            <button type="button" onclick="wizAddAvailableRow('delimited')" class="{{ $btnO }} text-xs">+ เพิ่มสิทธิ์</button>
+                        </div>
+                        <div id="delimited-available-list" class="flex flex-col gap-1.5">
+                            @if(isset($editConfig) && !empty($editConfig->perm_delimited_available))
+                                @foreach($editConfig->perm_delimited_available as $avail)
+                                    <div class="flex gap-2 items-center">
+                                        <input type="text" placeholder="key" value="{{ $avail['key'] ?? '' }}" data-delimited-avail-key class="flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs focus:border-indigo-400 outline-none">
+                                        <input type="text" placeholder="label" value="{{ $avail['label'] ?? '' }}" data-delimited-avail-label class="flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs focus:border-indigo-400 outline-none">
+                                        <button type="button" onclick="this.closest('div').remove()" class="text-slate-400 hover:text-rose-500 text-lg leading-none px-1">×</button>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+                        <p id="delimited-available-empty" class="{{ empty($editConfig?->perm_delimited_available) ? '' : 'hidden' }} text-xs text-slate-400 text-center py-2">ว่าง = auto-discover จาก DB</p>
+                        <input type="hidden" id="field_perm_delimited_available" name="perm_delimited_available">
+                    </div>
+                </div>
+
+                {{-- Bitmask Fields --}}
+                <div id="perm-bitmask-fields" class="hidden">
+                    <hr class="border-t border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Bitmask — การตั้งค่า</p>
+                    <p class="text-xs text-slate-500 mb-4">ใช้เมื่อสิทธิ์เก็บเป็นเลขจำนวนเต็ม (bit flags) ใน 1 column เช่น <code class="font-mono text-[10px] bg-slate-100 px-1 py-0.5 rounded">perms_flag = 7</code> หมายถึง bit 1+2+4 = read+write+admin</p>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="{{ $lbl }}">Column (Integer/TINYINT) <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_bitmask_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_bitmask_col)
+                                        <option value="{{ $editConfig->perm_bitmask_col }}" selected>{{ $editConfig->perm_bitmask_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">column INT ที่เก็บ bit flags รวมกัน</p>
+                        </div>
+                        <div class="flex flex-col justify-end">
+                            <button type="button" onclick="wizLoadUserColumns('perm_bitmask_col')" class="{{ $btnO }} text-xs">
+                                โหลดคอลัมน์จาก User Table
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="{{ $lbl }}">Bit Map <span class="text-rose-500">*</span></label>
+                        <p class="text-xs text-slate-500 mb-2">กำหนดว่า bit value แต่ละตัวหมายถึงสิทธิ์อะไร (bit value ต้องเป็น powers of 2: 1, 2, 4, 8, 16, ...)</p>
+                        <div class="grid grid-cols-2 gap-2 text-xs font-semibold text-slate-500 mb-1 px-2">
+                            <span>Bit Value</span><span>Permission Key</span>
+                        </div>
+                        <div id="bitmask-map-list" class="flex flex-col gap-1.5">
+                            @if(isset($editConfig) && !empty($editConfig->perm_bitmask_map))
+                                @foreach($editConfig->perm_bitmask_map as $bit => $permKey)
+                                    <div class="flex gap-2 items-center">
+                                        <input type="number" min="1" placeholder="1" value="{{ $bit }}" data-bitmask-bit class="w-28 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-right focus:border-indigo-400 outline-none">
+                                        <input type="text" placeholder="read" value="{{ $permKey }}" data-bitmask-key class="flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs focus:border-indigo-400 outline-none">
+                                        <button type="button" onclick="this.closest('div').remove()" class="text-slate-400 hover:text-rose-500 text-lg leading-none px-1">×</button>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+                        <button type="button" onclick="wizAddBitmaskRow()" class="{{ $btnO }} text-xs mt-2">+ เพิ่ม Bit</button>
+                        <input type="hidden" id="field_perm_bitmask_map" name="perm_bitmask_map">
+                    </div>
+                </div>
+
+                {{-- Multi-Level Hierarchy Fields --}}
+                <div id="perm-multi-level-hier-fields" class="hidden">
+                    <hr class="border-t border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Multi-Level Hierarchy — การตั้งค่า</p>
+                    <p class="text-xs text-slate-500 mb-4">RBAC แบบลึก: <code class="font-mono text-[10px] bg-slate-100 px-1 py-0.5 rounded">users → user_roles → roles(parent_id) → role_permissions → permissions</code><br>UCM จะมอบหมาย <strong>roles</strong> ให้ผู้ใช้ โดยสิทธิ์ที่แท้จริงสืบทอดผ่าน role hierarchy</p>
+
+                    <p class="text-xs font-semibold text-slate-600 mb-3">Membership Table (user ↔ role)</p>
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="{{ $lbl }}">Membership Table <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_hier_user_role_table" data-searchable class="{{ $sel }}" onchange="wizLoadHierMemberColumns()">
+                                    <option value="">— เลือกตาราง —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_hier_user_role_table)
+                                        <option value="{{ $editConfig->perm_hier_user_role_table }}" selected>{{ $editConfig->perm_hier_user_role_table }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">เช่น <code class="font-mono text-[10px]">user_roles</code></p>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">User FK <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_hier_user_fk_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_hier_user_fk_col)
+                                        <option value="{{ $editConfig->perm_hier_user_fk_col }}" selected>{{ $editConfig->perm_hier_user_fk_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">เช่น <code class="font-mono text-[10px]">user_id</code></p>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">Role FK <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_hier_role_fk_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_hier_role_fk_col)
+                                        <option value="{{ $editConfig->perm_hier_role_fk_col }}" selected>{{ $editConfig->perm_hier_role_fk_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">เช่น <code class="font-mono text-[10px]">role_id</code></p>
+                        </div>
+                    </div>
+
+                    <p class="text-xs font-semibold text-slate-600 mb-3">Roles Table (self-referential)</p>
+                    <div class="grid grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <label class="{{ $lbl }}">Roles Table <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_hier_role_table" data-searchable class="{{ $sel }}" onchange="wizLoadHierRoleColumns()">
+                                    <option value="">— เลือกตาราง —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_hier_role_table)
+                                        <option value="{{ $editConfig->perm_hier_role_table }}" selected>{{ $editConfig->perm_hier_role_table }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">เช่น <code class="font-mono text-[10px]">roles</code></p>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">PK Column <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_hier_role_pk_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_hier_role_pk_col)
+                                        <option value="{{ $editConfig->perm_hier_role_pk_col }}" selected>{{ $editConfig->perm_hier_role_pk_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">เช่น <code class="font-mono text-[10px]">id</code></p>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">Name Column</label>
+                            <div class="relative">
+                                <select id="field_perm_hier_role_name_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— ไม่ระบุ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_hier_role_name_col)
+                                        <option value="{{ $editConfig->perm_hier_role_name_col }}" selected>{{ $editConfig->perm_hier_role_name_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">label ของ role เช่น <code class="font-mono text-[10px]">name</code></p>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">Parent FK Column</label>
+                            <div class="relative">
+                                <select id="field_perm_hier_role_parent_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— ไม่มี hierarchy —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_hier_role_parent_col)
+                                        <option value="{{ $editConfig->perm_hier_role_parent_col }}" selected>{{ $editConfig->perm_hier_role_parent_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">self-reference เช่น <code class="font-mono text-[10px]">parent_id</code></p>
+                        </div>
+                    </div>
+
+                    <p class="text-xs font-semibold text-slate-600 mb-3">Role-Permissions Table</p>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="{{ $lbl }}">Role-Permissions Table <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_hier_perm_table" data-searchable class="{{ $sel }}" onchange="wizLoadHierPermColumns()">
+                                    <option value="">— เลือกตาราง —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_hier_perm_table)
+                                        <option value="{{ $editConfig->perm_hier_perm_table }}" selected>{{ $editConfig->perm_hier_perm_table }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                            <p class="{{ $hint }}">เช่น <code class="font-mono text-[10px]">role_permissions</code></p>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">Role FK <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_hier_perm_role_fk_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_hier_perm_role_fk_col)
+                                        <option value="{{ $editConfig->perm_hier_perm_role_fk_col }}" selected>{{ $editConfig->perm_hier_perm_role_fk_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="{{ $lbl }}">Permission Value Column <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <select id="field_perm_hier_perm_value_col" data-searchable class="{{ $sel }}">
+                                    <option value="">— เลือกคอลัมน์ —</option>
+                                    @if(isset($editConfig) && $editConfig->perm_hier_perm_value_col)
+                                        <option value="{{ $editConfig->perm_hier_perm_value_col }}" selected>{{ $editConfig->perm_hier_perm_value_col }}</option>
+                                    @endif
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Junction Enhancements (optional panels for junction/mixed modes) --}}
+                <div id="perm-junction-enhancements" class="hidden">
+                    <hr class="border-t border-slate-100">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Junction Enhancements <span class="text-[10px] font-normal text-slate-400 normal-case">(ตัวเลือกเสริมสำหรับ Junction / Mixed mode)</span></p>
+
+                    {{-- Soft-Delete Panel --}}
+                    <div class="mb-3 border border-slate-200 rounded-xl overflow-hidden">
+                        <label class="flex items-center gap-3 px-4 py-3 bg-slate-50 cursor-pointer select-none">
+                            <input type="checkbox" id="enable_soft_delete_junction" onchange="wizToggleSoftDeleteJunction(this.checked)"
+                                   class="w-4 h-4 text-amber-500 rounded border-slate-300 cursor-pointer"
+                                   {{ isset($editConfig) && $editConfig->perm_junction_active_col ? 'checked' : '' }}>
+                            <div>
+                                <span class="text-sm font-semibold text-slate-800">ใช้ Soft-Delete (ไม่ลบแถว)</span>
+                                <p class="text-xs text-slate-500 mt-0.5">แทนการ DELETE แถว — อัปเดตคอลัมน์ active flag แทน (Scenario J)</p>
+                            </div>
+                        </label>
+                        <div id="soft-delete-junction-fields" class="{{ isset($editConfig) && $editConfig->perm_junction_active_col ? '' : 'hidden' }} p-4 bg-amber-50 border-t border-amber-100">
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label class="{{ $lbl }}">Active Column <span class="text-rose-500">*</span></label>
+                                    <input type="text" id="field_perm_junction_active_col" name="perm_junction_active_col"
+                                           value="{{ isset($editConfig) ? ($editConfig->perm_junction_active_col ?? '') : '' }}"
+                                           class="{{ $inp }}" placeholder="is_active">
+                                </div>
+                                <div>
+                                    <label class="{{ $lbl }}">Active Value</label>
+                                    <input type="text" id="field_perm_junction_active_val" name="perm_junction_active_val"
+                                           value="{{ isset($editConfig) ? ($editConfig->perm_junction_active_val ?? '1') : '1' }}"
+                                           class="{{ $inp }}" placeholder="1">
+                                </div>
+                                <div>
+                                    <label class="{{ $lbl }}">Inactive Value</label>
+                                    <input type="text" id="field_perm_junction_inactive_val" name="perm_junction_inactive_val"
+                                           value="{{ isset($editConfig) ? ($editConfig->perm_junction_inactive_val ?? '0') : '0' }}"
+                                           class="{{ $inp }}" placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Time-Bound Panel --}}
+                    <div class="mb-3 border border-slate-200 rounded-xl overflow-hidden">
+                        <label class="flex items-center gap-3 px-4 py-3 bg-slate-50 cursor-pointer select-none">
+                            <input type="checkbox" id="enable_time_bound_junction" onchange="wizToggleTimeBoundJunction(this.checked)"
+                                   class="w-4 h-4 text-sky-500 rounded border-slate-300 cursor-pointer"
+                                   {{ isset($editConfig) && ($editConfig->perm_valid_from_col || $editConfig->perm_valid_to_col) ? 'checked' : '' }}>
+                            <div>
+                                <span class="text-sm font-semibold text-slate-800">มีวันหมดอายุ (valid_from / valid_to)</span>
+                                <p class="text-xs text-slate-500 mt-0.5">กรองเฉพาะแถวที่ยังไม่หมดอายุเมื่อดึง permissions (Scenario L)</p>
+                            </div>
+                        </label>
+                        <div id="time-bound-junction-fields" class="{{ isset($editConfig) && ($editConfig->perm_valid_from_col || $editConfig->perm_valid_to_col) ? '' : 'hidden' }} p-4 bg-sky-50 border-t border-sky-100">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="{{ $lbl }}">Valid From Column <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
+                                    <input type="text" id="field_perm_valid_from_col" name="perm_valid_from_col"
+                                           value="{{ isset($editConfig) ? ($editConfig->perm_valid_from_col ?? '') : '' }}"
+                                           class="{{ $inp }}" placeholder="valid_from">
+                                </div>
+                                <div>
+                                    <label class="{{ $lbl }}">Valid To Column <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
+                                    <input type="text" id="field_perm_valid_to_col" name="perm_valid_to_col"
+                                           value="{{ isset($editConfig) ? ($editConfig->perm_valid_to_col ?? '') : '' }}"
+                                           class="{{ $inp }}" placeholder="valid_to">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Insert Metadata Panel --}}
+                    <div class="border border-slate-200 rounded-xl overflow-hidden">
+                        <label class="flex items-center gap-3 px-4 py-3 bg-slate-50 cursor-pointer select-none">
+                            <input type="checkbox" id="enable_insert_meta" onchange="wizToggleInsertMeta(this.checked)"
+                                   class="w-4 h-4 text-violet-500 rounded border-slate-300 cursor-pointer"
+                                   {{ isset($editConfig) && !empty($editConfig->perm_insert_meta_cols) ? 'checked' : '' }}>
+                            <div>
+                                <span class="text-sm font-semibold text-slate-800">เพิ่ม Metadata ตอน INSERT</span>
+                                <p class="text-xs text-slate-500 mt-0.5">เพิ่มคอลัมน์ metadata เช่น <code class="font-mono text-[10px]">granted_by</code>, <code class="font-mono text-[10px]">granted_at</code> เมื่อ INSERT แถวใหม่ (Scenario M)</p>
+                            </div>
+                        </label>
+                        <div id="insert-meta-fields" class="{{ isset($editConfig) && !empty($editConfig->perm_insert_meta_cols) ? '' : 'hidden' }} p-4 bg-violet-50 border-t border-violet-100">
+                            <div class="flex items-center justify-between mb-2">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-600">คอลัมน์ → Token</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">Tokens: <code class="font-mono text-[10px]">__ucm_admin__</code> = username ผู้ทำรายการ, <code class="font-mono text-[10px]">__now__</code> = เวลาปัจจุบัน, หรือค่าคงที่อื่นๆ</p>
+                                </div>
+                                <button type="button" class="{{ $btnO }}" onclick="wizAddMetaRow()">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    เพิ่มแถว
+                                </button>
+                            </div>
+                            <div id="insert-meta-rows" class="flex flex-col gap-2"></div>
+                            <p id="insert-meta-empty" class="text-xs text-slate-400 text-center py-3">ยังไม่มีแถว metadata — กด "เพิ่มแถว"</p>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -1023,7 +1687,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     };
 
     window.selectPermMode = function (mode) {
-        ['junction', 'column', 'manual'].forEach(function (m) {
+        ['junction', 'column', 'manual', 'mixed', 'boolean_matrix', 'group_inheritance', 'json_column', 'delimited_column', 'bitmask', 'multi_level_hierarchy'].forEach(function (m) {
             var card = document.getElementById('perm-card-' + m);
             var dot  = document.getElementById('perm-dot-' + m);
             var chk  = document.getElementById('perm-check-' + m);
@@ -1048,7 +1712,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     window.wizNext = function (from) {
         if (! wizValidate(from)) return;
         showStep(from + 1);
-        if (from + 1 === 4) { wizApplyPermSuggestion(); }
+        if (from + 1 === 4) {
+            wizApplyPermSuggestion();
+            // Always sync panel visibility with whichever mode is currently selected
+            var activeMode = (document.querySelector('input[name="permission_mode"]:checked') || {}).value || 'junction';
+            wizPermModeChange(activeMode);
+        }
         if (from + 1 === 6) { wizInitMasterTablesStep(); }
         if (from + 1 === 7) { wizBuildSummary(); }
     };
@@ -1117,15 +1786,55 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             return true;
         }
         if (step === 3) {
-            if (! val('user_table')) return showErr('กรุณาเลือกตาราง Users');
+            if (! val('user_table')) return showErr('กรุณาเลือกตาราง Users (primary)');
             if (! val('user_identifier_col')) return showErr('กรุณาเลือกคอลัมน์ Identifier');
+            // validate join rows: ทุก row ที่ไม่ใช่ primary ต้องมี join_local_col และ join_remote_col
+            var joinRows = document.querySelectorAll('#user-tables-list .user-table-row[data-index]');
+            for (var ri = 1; ri < joinRows.length; ri++) {
+                var row = joinRows[ri];
+                var tbl = row.querySelector('.user-table-join-select');
+                var loc = row.querySelector('.user-table-join-local');
+                var rem = row.querySelector('.user-table-join-remote');
+                if (tbl && tbl.value && (! loc || ! loc.value || ! rem || ! rem.value)) {
+                    return showErr('กรุณาระบุ ON clause (local col = remote col) สำหรับ JOIN table ที่ ' + ri);
+                }
+            }
             return true;
         }
         if (step === 4) {
             var mode = getPermMode();
-            if (mode !== 'manual') {
+            if (mode === 'boolean_matrix') {
+                var boolCols = (document.getElementById('field_perm_bool_columns_text')?.value || '').split(/[\n,]/).map(function(s){return s.trim();}).filter(Boolean);
+                if (boolCols.length === 0) return showErr('Boolean Matrix: กรุณาระบุอย่างน้อย 1 คอลัมน์');
+            } else if (mode === 'group_inheritance') {
+                if (! document.getElementById('field_perm_via_table')?.value) return showErr('Group Inheritance: กรุณาเลือก Via Table');
+                if (! document.getElementById('field_perm_via_user_fk_col')?.value) return showErr('Group Inheritance: กรุณาเลือก FK ชี้ไปยัง User ใน Via Table');
+                if (! document.getElementById('field_perm_via_group_fk_col')?.value) return showErr('Group Inheritance: กรุณาเลือก FK ชี้ไปยัง Group ใน Via Table');
+                if (! document.getElementById('field_perm_table_gi')?.value) return showErr('Group Inheritance: กรุณาเลือกตาราง Permissions');
+                if (! document.getElementById('field_perm_value_col_gi')?.value) return showErr('Group Inheritance: กรุณาเลือกคอลัมน์ Permission Value');
+            } else if (mode === 'json_column') {
+                if (! document.getElementById('field_perm_json_col')?.value) return showErr('JSON Column: กรุณาเลือก Column ที่เก็บ JSON');
+            } else if (mode === 'delimited_column') {
+                if (! document.getElementById('field_perm_delimited_col')?.value) return showErr('Delimited Column: กรุณาเลือก Column ที่เก็บ string');
+            } else if (mode === 'bitmask') {
+                if (! document.getElementById('field_perm_bitmask_col')?.value) return showErr('Bitmask: กรุณาเลือก Column (integer)');
+                if (Object.keys(getBitmaskMap()).length === 0) return showErr('Bitmask: กรุณาเพิ่ม Bit Map อย่างน้อย 1 รายการ');
+            } else if (mode === 'multi_level_hierarchy') {
+                if (! document.getElementById('field_perm_hier_user_role_table')?.value) return showErr('Multi-Level Hierarchy: กรุณาเลือก Membership Table');
+                if (! document.getElementById('field_perm_hier_user_fk_col')?.value) return showErr('Multi-Level Hierarchy: กรุณาเลือก User FK');
+                if (! document.getElementById('field_perm_hier_role_fk_col')?.value) return showErr('Multi-Level Hierarchy: กรุณาเลือก Role FK');
+                if (! document.getElementById('field_perm_hier_role_table')?.value) return showErr('Multi-Level Hierarchy: กรุณาเลือก Roles Table');
+                if (! document.getElementById('field_perm_hier_role_pk_col')?.value) return showErr('Multi-Level Hierarchy: กรุณาเลือก PK Column');
+                if (! document.getElementById('field_perm_hier_perm_table')?.value) return showErr('Multi-Level Hierarchy: กรุณาเลือก Role-Permissions Table');
+                if (! document.getElementById('field_perm_hier_perm_role_fk_col')?.value) return showErr('Multi-Level Hierarchy: กรุณาเลือก Role FK ใน Perm Table');
+                if (! document.getElementById('field_perm_hier_perm_value_col')?.value) return showErr('Multi-Level Hierarchy: กรุณาเลือก Permission Value Column');
+            } else if (mode !== 'manual') {
                 if (! val('perm_table')) return showErr('กรุณาเลือกตาราง Permissions');
                 if (! val('perm_value_col')) return showErr('กรุณาเลือกคอลัมน์ Permission Value');
+            }
+            if (mode === 'mixed') {
+                if (! val('perm_col_value_col')) return showErr('Mixed mode: กรุณาเลือกคอลัมน์ Permission Value (column side)');
+                if (getColPermOptions().length === 0) return showErr('Mixed mode: กรุณาเพิ่มค่าที่เป็นไปได้ของ column side อย่างน้อย 1 รายการ');
             }
             return true;
         }
@@ -1272,16 +1981,21 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         });
     }
 
-    window.wizLoadUserColumns = function () {
+    window.wizLoadUserColumns = function (fieldId) {
         var table = val('user_table');
-        loadColumnsFor(table, [
-            { id: 'field_user_identifier_col', preselect: EDIT_CONFIG?.user_identifier_col },
-            { id: 'field_user_pk_col', nullable: true, preselect: EDIT_CONFIG?.user_pk_col },
-            { id: 'field_user_name_col', nullable: true, preselect: EDIT_CONFIG?.user_name_col },
-            { id: 'field_user_email_col', nullable: true, preselect: EDIT_CONFIG?.user_email_col },
-            { id: 'field_user_dept_col', nullable: true, preselect: EDIT_CONFIG?.user_dept_col },
-            { id: 'field_user_status_col', nullable: true, preselect: EDIT_CONFIG?.user_status_col },
-        ]);
+        if (! table) { return; }
+        if (fieldId) {
+            loadColumnsFor(table, [{ id: 'field_' + fieldId, preselect: EDIT_CONFIG?.[fieldId] }]);
+        } else {
+            loadColumnsFor(table, [
+                { id: 'field_user_identifier_col', preselect: EDIT_CONFIG?.user_identifier_col },
+                { id: 'field_user_pk_col', nullable: true, preselect: EDIT_CONFIG?.user_pk_col },
+                { id: 'field_user_name_col', nullable: true, preselect: EDIT_CONFIG?.user_name_col },
+                { id: 'field_user_email_col', nullable: true, preselect: EDIT_CONFIG?.user_email_col },
+                { id: 'field_user_dept_col', nullable: true, preselect: EDIT_CONFIG?.user_dept_col },
+                { id: 'field_user_status_col', nullable: true, preselect: EDIT_CONFIG?.user_status_col },
+            ]);
+        }
     };
 
     window.wizLoadPermColumns = function () {
@@ -1312,16 +2026,237 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     // ── Perm Mode Change ───────────────────────────────────────────────────
 
     window.wizPermModeChange = function (mode) {
-        document.getElementById('perm-db-fields').classList.toggle('hidden', mode === 'manual');
+        var isJunctionLike   = mode === 'junction' || mode === 'mixed';
+        var isBoolMatrix     = mode === 'boolean_matrix';
+        var isGI             = mode === 'group_inheritance';
+        var isJsonCol        = mode === 'json_column';
+        var isDelimitedCol   = mode === 'delimited_column';
+        var isBitmask        = mode === 'bitmask';
+        var isMultiLevelHier = mode === 'multi_level_hierarchy';
+        var isColumnLike     = mode === 'column' || isJsonCol || isDelimitedCol || isBitmask;
+        var noDbFields       = mode === 'manual' || isBoolMatrix || isGI || isJsonCol || isDelimitedCol || isBitmask || isMultiLevelHier;
+
+        // Show/hide main sections
+        document.getElementById('perm-db-fields').classList.toggle('hidden', noDbFields);
         document.getElementById('perm-manual-fields').classList.toggle('hidden', mode !== 'manual');
+
+        var mixedColFields = document.getElementById('perm-mixed-col-fields');
+        if (mixedColFields) mixedColFields.classList.toggle('hidden', mode !== 'mixed');
+
+        var boolMatrixFields = document.getElementById('perm-bool-matrix-fields');
+        if (boolMatrixFields) boolMatrixFields.classList.toggle('hidden', ! isBoolMatrix);
+
+        var giFields = document.getElementById('perm-group-inherit-fields');
+        if (giFields) giFields.classList.toggle('hidden', ! isGI);
+
+        // New mode panels
+        var jsonColFields = document.getElementById('perm-json-col-fields');
+        if (jsonColFields) jsonColFields.classList.toggle('hidden', ! isJsonCol);
+
+        var delimColFields = document.getElementById('perm-delimited-col-fields');
+        if (delimColFields) delimColFields.classList.toggle('hidden', ! isDelimitedCol);
+
+        var bitmaskFields = document.getElementById('perm-bitmask-fields');
+        if (bitmaskFields) bitmaskFields.classList.toggle('hidden', ! isBitmask);
+
+        var multiHierFields = document.getElementById('perm-multi-level-hier-fields');
+        if (multiHierFields) multiHierFields.classList.toggle('hidden', ! isMultiLevelHier);
+
+        // Junction enhancements only for junction/mixed modes
+        var junctionEnhancements = document.getElementById('perm-junction-enhancements');
+        if (junctionEnhancements) junctionEnhancements.classList.toggle('hidden', ! isJunctionLike);
+
         var fkWrap = document.getElementById('perm-user-fk-wrap');
-        if (fkWrap) fkWrap.classList.toggle('hidden', mode === 'column');
+        if (fkWrap) fkWrap.classList.toggle('hidden', isColumnLike);
+
         var hint = document.getElementById('perm-table-hint');
         if (hint) hint.textContent = mode === 'column'
             ? 'Column mode: ให้เลือกตาราง users เดิมของระบบ'
-            : 'ตาราง junction ที่เก็บความสัมพันธ์ user ↔ permission';
+            : mode === 'mixed'
+                ? 'Junction table สำหรับ permission ฝั่ง junction (ส่วน column side ตั้งค่าด้านล่าง)'
+                : 'ตาราง junction ที่เก็บความสัมพันธ์ user ↔ permission';
+
         var compositeSection = document.getElementById('perm-composite-section');
-        if (compositeSection) compositeSection.classList.toggle('hidden', mode !== 'junction');
+        if (compositeSection) compositeSection.classList.toggle('hidden', ! isJunctionLike);
+
+        if (mode === 'mixed') {
+            wizFetchTablesInternal(function (tbls) {
+                var sel = document.getElementById('field_perm_col_table');
+                if (! sel) return;
+                var preselect = EDIT_CONFIG?.perm_col_table || sel.value || '';
+                sel.innerHTML = '<option value="">(ใช้ตาราง users หลัก)</option>';
+                tbls.forEach(function (t) {
+                    var opt = document.createElement('option');
+                    opt.value = t; opt.textContent = t;
+                    if (t === preselect) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+                wizLoadMixedColColumns();
+            });
+        }
+
+        if (isGI) {
+            wizFetchTablesInternal(function (tbls) {
+                ['field_perm_via_table', 'field_perm_table_gi'].forEach(function (selId) {
+                    var sel = document.getElementById(selId);
+                    if (! sel) return;
+                    var cur = sel.value;
+                    sel.innerHTML = '<option value="">— เลือกตาราง —</option>';
+                    tbls.forEach(function (t) {
+                        var opt = document.createElement('option');
+                        opt.value = t; opt.textContent = t;
+                        if (t === cur) opt.selected = true;
+                        sel.appendChild(opt);
+                    });
+                });
+            });
+        }
+    };
+
+    // ── Junction Enhancement Toggles ───────────────────────────────────────
+
+    window.wizToggleSoftDeleteJunction = function (enabled) {
+        document.getElementById('soft-delete-junction-fields').classList.toggle('hidden', ! enabled);
+        if (! enabled) {
+            document.getElementById('field_perm_junction_active_col').value = '';
+        }
+    };
+
+    window.wizToggleTimeBoundJunction = function (enabled) {
+        document.getElementById('time-bound-junction-fields').classList.toggle('hidden', ! enabled);
+        if (! enabled) {
+            document.getElementById('field_perm_valid_from_col').value = '';
+            document.getElementById('field_perm_valid_to_col').value = '';
+        }
+    };
+
+    window.wizToggleInsertMeta = function (enabled) {
+        document.getElementById('insert-meta-fields').classList.toggle('hidden', ! enabled);
+        if (! enabled) {
+            document.getElementById('insert-meta-rows').innerHTML = '';
+            document.getElementById('insert-meta-empty').style.display = '';
+        }
+    };
+
+    window.wizAddMetaRow = function () {
+        var list = document.getElementById('insert-meta-rows');
+        var empty = document.getElementById('insert-meta-empty');
+        if (empty) empty.style.display = 'none';
+        var row = document.createElement('div');
+        row.className = 'flex gap-2 items-center';
+        row.innerHTML = '<input type="text" class="meta-col-name flex-1 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-mono focus:border-indigo-400 focus:ring-1 focus:ring-indigo-100 outline-none" placeholder="ชื่อคอลัมน์ เช่น granted_by">'
+            + '<span class="text-slate-400 text-xs">→</span>'
+            + '<input type="text" class="meta-col-token flex-1 rounded-lg border border-slate-200 px-2.5 py-2 text-xs font-mono focus:border-indigo-400 focus:ring-1 focus:ring-indigo-100 outline-none" placeholder="__ucm_admin__ หรือ __now__">'
+            + '<button type="button" onclick="this.closest(\'.flex\').remove(); if(!document.querySelector(\'#insert-meta-rows .flex\')){document.getElementById(\'insert-meta-empty\').style.display=\'\'}" class="text-slate-400 hover:text-rose-500 transition p-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>';
+        list.appendChild(row);
+    };
+
+    function getMetaCols() {
+        var result = {};
+        document.querySelectorAll('#insert-meta-rows .flex').forEach(function (row) {
+            var colName = row.querySelector('.meta-col-name')?.value.trim();
+            var token   = row.querySelector('.meta-col-token')?.value.trim();
+            if (colName && token) result[colName] = token;
+        });
+        return result;
+    }
+
+    // ── JSON Column Helpers ────────────────────────────────────────────────
+
+    window.wizAddAvailableRow = function (type) {
+        var list = document.getElementById(type + '-available-list');
+        var empty = document.getElementById(type + '-available-empty');
+        if (empty) empty.classList.add('hidden');
+        var row = document.createElement('div');
+        row.className = 'flex gap-2 items-center';
+        row.innerHTML = '<input type="text" placeholder="key" data-' + type + '-avail-key class="flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs focus:border-indigo-400 outline-none">'
+            + '<input type="text" placeholder="label" data-' + type + '-avail-label class="flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs focus:border-indigo-400 outline-none">'
+            + '<button type="button" onclick="this.closest(\'div\').remove()" class="text-slate-400 hover:text-rose-500 text-lg leading-none px-1">×</button>';
+        list.appendChild(row);
+    };
+
+    function getAvailableList(type) {
+        var keyAttr   = '[data-' + type + '-avail-key]';
+        var labelAttr = '[data-' + type + '-avail-label]';
+        var result = [];
+        var list = document.getElementById(type + '-available-list');
+        if (! list) { return result; }
+        list.querySelectorAll('.flex').forEach(function (row) {
+            var key   = row.querySelector(keyAttr)?.value.trim();
+            var label = row.querySelector(labelAttr)?.value.trim();
+            if (key) { result.push({ key: key, label: label || key }); }
+        });
+        return result;
+    }
+
+    // ── Bitmask Helpers ────────────────────────────────────────────────────
+
+    window.wizAddBitmaskRow = function () {
+        var list = document.getElementById('bitmask-map-list');
+        var row = document.createElement('div');
+        row.className = 'flex gap-2 items-center';
+        row.innerHTML = '<input type="number" min="1" placeholder="1" data-bitmask-bit class="w-28 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs text-right focus:border-indigo-400 outline-none">'
+            + '<input type="text" placeholder="read" data-bitmask-key class="flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs focus:border-indigo-400 outline-none">'
+            + '<button type="button" onclick="this.closest(\'div\').remove()" class="text-slate-400 hover:text-rose-500 text-lg leading-none px-1">×</button>';
+        list.appendChild(row);
+    };
+
+    function getBitmaskMap() {
+        var result = {};
+        document.querySelectorAll('#bitmask-map-list .flex').forEach(function (row) {
+            var bit = row.querySelector('[data-bitmask-bit]')?.value.trim();
+            var key = row.querySelector('[data-bitmask-key]')?.value.trim();
+            if (bit && key) { result[bit] = key; }
+        });
+        return result;
+    }
+
+    // ── Multi-Level Hierarchy Column Loaders ───────────────────────────────
+
+    window.wizLoadHierMemberColumns = function () {
+        var table = document.getElementById('field_perm_hier_user_role_table')?.value;
+        if (! table) { return; }
+        loadColumnsFor(table, [
+            { id: 'field_perm_hier_user_fk_col', preselect: EDIT_CONFIG?.perm_hier_user_fk_col },
+            { id: 'field_perm_hier_role_fk_col', preselect: EDIT_CONFIG?.perm_hier_role_fk_col },
+        ]);
+    };
+
+    window.wizLoadHierRoleColumns = function () {
+        var table = document.getElementById('field_perm_hier_role_table')?.value;
+        if (! table) { return; }
+        loadColumnsFor(table, [
+            { id: 'field_perm_hier_role_pk_col',     preselect: EDIT_CONFIG?.perm_hier_role_pk_col },
+            { id: 'field_perm_hier_role_name_col',   preselect: EDIT_CONFIG?.perm_hier_role_name_col },
+            { id: 'field_perm_hier_role_parent_col', preselect: EDIT_CONFIG?.perm_hier_role_parent_col },
+        ]);
+    };
+
+    window.wizLoadHierPermColumns = function () {
+        var table = document.getElementById('field_perm_hier_perm_table')?.value;
+        if (! table) { return; }
+        loadColumnsFor(table, [
+            { id: 'field_perm_hier_perm_role_fk_col',  preselect: EDIT_CONFIG?.perm_hier_perm_role_fk_col },
+            { id: 'field_perm_hier_perm_value_col',    preselect: EDIT_CONFIG?.perm_hier_perm_value_col },
+        ]);
+    };
+
+    window.wizLoadViaColumns = function () {
+        var table = document.getElementById('field_perm_via_table')?.value;
+        if (! table) return;
+        loadColumnsFor(table, [
+            { id: 'field_perm_via_user_fk_col',  preselect: EDIT_CONFIG?.perm_via_user_fk_col },
+            { id: 'field_perm_via_group_fk_col', preselect: EDIT_CONFIG?.perm_via_group_fk_col },
+        ]);
+    };
+
+    window.wizLoadPermColumnsGI = function () {
+        var table = document.getElementById('field_perm_table_gi')?.value;
+        if (! table) return;
+        loadColumnsFor(table, [
+            { id: 'field_perm_user_fk_col_gi', preselect: EDIT_CONFIG?.perm_user_fk_col },
+            { id: 'field_perm_value_col_gi',   preselect: EDIT_CONFIG?.perm_value_col },
+        ]);
     };
 
     // ── 2-Way Sync Toggle ──────────────────────────────────────────────────
@@ -1498,6 +2433,130 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         });
         return result;
     }
+
+    // ── Feature A: Multi-Table User JOIN ──────────────────────────────────
+
+    /** คืน array ของ join table definitions จาก user-tables-list */
+    function wizGetUserTables() {
+        var result = [];
+        var primaryTable = val('user_table');
+        var primaryAlias = (document.getElementById('field_user_table_alias_0')?.value || '').trim();
+        if (! primaryTable) return result;
+        result.push({ table: primaryTable, alias: primaryAlias || null, join_type: null, join_local_col: null, join_remote_col: null });
+
+        document.querySelectorAll('#user-tables-list .user-table-row[data-index]').forEach(function (row) {
+            var idx = parseInt(row.dataset.index);
+            if (idx === 0) return;
+            var tbl  = row.querySelector('.user-table-join-select')?.value || '';
+            var alias = (row.querySelector('.user-table-join-alias')?.value || '').trim();
+            var jt   = row.querySelector('.user-table-join-type')?.value || 'LEFT';
+            var loc  = (row.querySelector('.user-table-join-local')?.value || '').trim();
+            var rem  = (row.querySelector('.user-table-join-remote')?.value || '').trim();
+            if (tbl) result.push({ table: tbl, alias: alias || null, join_type: jt, join_local_col: loc, join_remote_col: rem });
+        });
+        return result;
+    }
+
+    /** เพิ่ม JOIN row ใหม่ใน user-tables-list */
+    window.wizAddUserTable = function (preset) {
+        preset = preset || {};
+        var list = document.getElementById('user-tables-list');
+        var idx  = list.querySelectorAll('.user-table-row').length;
+        var selCls = 'w-full text-xs border border-slate-200 rounded-lg px-2.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400/50';
+        var inpCls = 'w-full text-xs border border-slate-200 rounded-lg px-2.5 py-2 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-400/50';
+        var row = document.createElement('div');
+        row.className = 'user-table-row p-3 bg-slate-50 border border-dashed border-indigo-200 rounded-xl space-y-2';
+        row.dataset.index = idx;
+
+        // สร้าง option จากตารางที่มี (ดึงจาก field_user_table options)
+        var existingOpts = document.getElementById('field_user_table')?.innerHTML || '<option value="">— เลือกตาราง —</option>';
+
+        row.innerHTML = [
+            '<div class="flex gap-2 items-center">',
+            '  <select class="w-20 flex-shrink-0 text-xs border border-slate-200 rounded-lg px-2 py-2 user-table-join-type">',
+            '    <option value="LEFT"' + (preset.join_type === 'LEFT' ? ' selected' : '') + '>LEFT</option>',
+            '    <option value="INNER"' + (preset.join_type === 'INNER' ? ' selected' : '') + '>INNER</option>',
+            '    <option value="RIGHT"' + (preset.join_type === 'RIGHT' ? ' selected' : '') + '>RIGHT</option>',
+            '  </select>',
+            '  <span class="text-[11px] font-bold text-slate-400 flex-shrink-0">JOIN</span>',
+            '  <div class="relative flex-1"><select class="user-table-join-select ' + selCls + '">' + existingOpts + '</select></div>',
+            '  <input type="text" class="w-20 flex-shrink-0 user-table-join-alias text-xs border border-slate-200 rounded-lg px-2.5 py-2" placeholder="alias" value="' + escAttr(preset.alias || '') + '">',
+            '  <button type="button" onclick="wizRemoveUserTable(this)" class="w-7 h-7 flex items-center justify-center rounded bg-rose-50 border border-rose-200 text-rose-500 hover:bg-rose-100 cursor-pointer flex-shrink-0">×</button>',
+            '</div>',
+            '<div class="flex gap-2 items-center">',
+            '  <span class="text-[10px] text-slate-400 w-12 flex-shrink-0">ON</span>',
+            '  <input type="text" class="flex-1 user-table-join-local ' + inpCls + '" placeholder="local col (เช่น u.id)" value="' + escAttr(preset.join_local_col || '') + '">',
+            '  <span class="text-[10px] text-slate-400">=</span>',
+            '  <input type="text" class="flex-1 user-table-join-remote ' + inpCls + '" placeholder="remote col (เช่น p.user_id)" value="' + escAttr(preset.join_remote_col || '') + '">',
+            '</div>',
+        ].join('');
+
+        list.appendChild(row);
+        if (window.initSearchableSelects) initSearchableSelects(row);
+        if (preset.table) {
+            var sel = row.querySelector('.user-table-join-select');
+            var opt = sel?.querySelector('option[value="' + preset.table + '"]');
+            if (opt) opt.selected = true;
+        }
+    };
+
+    window.wizRemoveUserTable = function (btn) {
+        btn.closest('.user-table-row').remove();
+        // re-index
+        document.querySelectorAll('#user-tables-list .user-table-row').forEach(function (r, i) { r.dataset.index = i; });
+    };
+
+    // ── Feature B: Mixed Permission Mode — Column Options ─────────────────
+
+    window.wizAddColPermOption = function (opt) {
+        opt = opt || { key: '', label: '', group: '' };
+        var list  = document.getElementById('col-perm-options-list');
+        var empty = document.getElementById('col-perm-empty');
+        if (empty) empty.style.display = 'none';
+        var row = document.createElement('div');
+        row.className = 'col-opt-row grid gap-1.5 items-center bg-slate-50 px-2.5 py-2 rounded-lg border border-slate-200';
+        row.style.gridTemplateColumns = '1fr 1fr 7rem auto';
+        var iCls = 'w-full px-2 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded focus:outline-none focus:border-indigo-500 transition';
+        row.innerHTML = [
+            '<input type="text" placeholder="ค่าใน DB (เช่น admin)" value="' + escAttr(opt.key) + '" class="' + iCls + ' font-mono" data-col-opt="key">',
+            '<input type="text" placeholder="label (ชื่อที่แสดง)" value="' + escAttr(opt.label || '') + '" class="' + iCls + '" data-col-opt="label">',
+            '<input type="text" placeholder="group" value="' + escAttr(opt.group || '') + '" class="' + iCls + '" data-col-opt="group">',
+            '<button type="button" onclick="wizRemoveColPermOption(this)" class="w-7 h-7 flex items-center justify-center rounded bg-rose-50 border border-rose-200 text-rose-500 hover:bg-rose-100 cursor-pointer flex-shrink-0">×</button>',
+        ].join('');
+        list.appendChild(row);
+    };
+
+    window.wizRemoveColPermOption = function (btn) {
+        btn.closest('.col-opt-row').remove();
+        var list  = document.getElementById('col-perm-options-list');
+        var empty = document.getElementById('col-perm-empty');
+        if (empty) empty.style.display = list.children.length === 0 ? 'block' : 'none';
+    };
+
+    function getColPermOptions() {
+        var rows = document.querySelectorAll('#col-perm-options-list > .col-opt-row');
+        var result = [];
+        rows.forEach(function (row) {
+            var k = row.querySelector('[data-col-opt="key"]')?.value.trim() || '';
+            var l = row.querySelector('[data-col-opt="label"]')?.value.trim() || '';
+            var g = row.querySelector('[data-col-opt="group"]')?.value.trim() || '';
+            if (k) result.push({ key: k, label: l || k, group: g || 'Column' });
+        });
+        return result;
+    }
+
+    window.wizLoadMixedColColumns = function () {
+        var table = val('perm_col_table');
+        if (! table) {
+            var userTables = wizGetUserTables();
+            table = userTables.length > 0 ? userTables[0].table : val('user_table');
+        }
+        if (! table) return;
+        loadColumnsFor(table, [
+            { id: 'field_perm_col_identifier', nullable: true, preselect: EDIT_CONFIG?.perm_col_identifier },
+            { id: 'field_perm_col_value_col',  preselect: EDIT_CONFIG?.perm_col_value_col },
+        ]);
+    };
 
     // ── Master Data Tables ─────────────────────────────────────────────────
 
@@ -1761,7 +2820,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     window.wizBuildSummary = function () {
         var sysId = val('system_id');
         var mode  = getPermMode();
-        var modeLabels = { junction: 'Junction Table', column: 'Single Column', manual: 'Manual' };
+        var modeLabels = { junction: 'Junction Table', column: 'Single Column', manual: 'Manual', mixed: 'Junction + Column (Mixed)' };
 
         var sections = [
             {
@@ -1783,17 +2842,29 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             },
             {
                 title: 'User Table',
-                rows: [
-                    ['ตาราง', val('user_table')],
-                    ['UCM Identifier', radioVal('user_ucm_identifier')],
-                    ['คอลัมน์ Identifier', val('user_identifier_col')],
-                ],
+                rows: (function () {
+                    var tables = wizGetUserTables();
+                    var tableStr = tables.length > 1
+                        ? tables[0].table + ' + ' + (tables.length - 1) + ' JOIN'
+                        : val('user_table');
+                    return [
+                        ['ตาราง', tableStr],
+                        ['UCM Identifier', radioVal('user_ucm_identifier')],
+                        ['คอลัมน์ Identifier', val('user_identifier_col')],
+                    ];
+                })(),
             },
             {
                 title: 'Permissions',
-                rows: mode !== 'manual'
-                    ? [['Mode', modeLabels[mode] || mode], ['ตาราง', val('perm_table')], ['Value Column', val('perm_value_col')]]
-                    : [['Mode', 'Manual'], ['จำนวน', getManualPerms().length + ' permissions']],
+                rows: (function () {
+                    if (mode === 'manual') return [['Mode', 'Manual'], ['จำนวน', getManualPerms().length + ' permissions']];
+                    var rows = [['Mode', modeLabels[mode] || mode], ['ตาราง', val('perm_table')], ['Value Column', val('perm_value_col')]];
+                    if (mode === 'mixed') {
+                        rows.push(['Col Value Column', val('perm_col_value_col') || '-']);
+                        rows.push(['Col Options', getColPermOptions().length + ' ค่า']);
+                    }
+                    return rows;
+                })(),
             },
             {
                 title: '2-Way Sync',
@@ -1860,23 +2931,35 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             system_color:           document.getElementById('field_system_color')?.value || '#6366f1',
             system_icon:            val('system_icon'),
             user_table:             val('user_table'),
+            user_tables:            JSON.stringify(wizGetUserTables()),
             user_ucm_identifier:    radioVal('user_ucm_identifier'),
             user_identifier_col:    val('user_identifier_col'),
             user_pk_col:            val('user_pk_col') || null,
             user_name_col:          val('user_name_col') || null,
             user_email_col:         val('user_email_col') || null,
             user_dept_col:          val('user_dept_col') || null,
+            dept_map:               wizGetDeptMap(),
             user_status_col:          val('user_status_col') || null,
             user_status_active_val:   val('user_status_active_val') || null,
             user_status_inactive_val: val('user_status_inactive_val') || null,
             permission_mode:        mode,
-            perm_table:             mode !== 'manual' ? val('perm_table') : null,
-            perm_user_fk_col:       mode === 'junction' ? val('perm_user_fk_col') : null,
-            perm_value_col:         mode !== 'manual' ? val('perm_value_col') : null,
-            perm_label_col:         mode !== 'manual' ? (val('perm_label_col') || null) : null,
-            perm_group_col:         mode !== 'manual' ? (val('perm_group_col') || null) : null,
-            perm_composite_cols:    mode === 'junction' ? JSON.stringify(wizGetCompositeCols()) : null,
+            perm_table:             mode === 'group_inheritance'
+                                        ? (document.getElementById('field_perm_table_gi')?.value || null)
+                                        : (mode !== 'manual' && mode !== 'boolean_matrix' ? val('perm_table') : null),
+            perm_user_fk_col:       mode === 'group_inheritance'
+                                        ? (document.getElementById('field_perm_user_fk_col_gi')?.value || null)
+                                        : ((mode === 'junction' || mode === 'mixed') ? val('perm_user_fk_col') : null),
+            perm_value_col:         mode === 'group_inheritance'
+                                        ? (document.getElementById('field_perm_value_col_gi')?.value || null)
+                                        : (mode !== 'manual' && mode !== 'boolean_matrix' ? val('perm_value_col') : null),
+            perm_label_col:         (mode !== 'manual' && mode !== 'boolean_matrix' && mode !== 'group_inheritance') ? (val('perm_label_col') || null) : null,
+            perm_group_col:         (mode !== 'manual' && mode !== 'boolean_matrix' && mode !== 'group_inheritance') ? (val('perm_group_col') || null) : null,
+            perm_composite_cols:    (mode === 'junction' || mode === 'mixed') ? JSON.stringify(wizGetCompositeCols()) : null,
             manual_permissions:     mode === 'manual' ? JSON.stringify(getManualPerms()) : null,
+            perm_col_table:         mode === 'mixed' ? (val('perm_col_table') || null) : null,
+            perm_col_identifier:    mode === 'mixed' ? (val('perm_col_identifier') || null) : null,
+            perm_col_value_col:     mode === 'mixed' ? val('perm_col_value_col') : null,
+            perm_col_options:       mode === 'mixed' ? JSON.stringify(getColPermOptions()) : null,
             perm_def_table:           twoWayEnabled ? (val('perm_def_table') || (IS_EDIT ? EDIT_CONFIG?.perm_def_table || null : null)) : null,
             perm_def_value_col:       twoWayEnabled ? (val('perm_def_value_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_value_col || null : null)) : null,
             perm_def_pk_col:          twoWayEnabled ? (val('perm_def_pk_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_pk_col || null : null)) : null,
@@ -1885,6 +2968,42 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             perm_delete_mode:         twoWayEnabled ? (radioVal('perm_delete_mode') || (IS_EDIT ? EDIT_CONFIG?.perm_delete_mode || null : null) || 'detach_only') : null,
             perm_def_soft_delete_col: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? (val('perm_def_soft_delete_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_soft_delete_col || null : null)) : null,
             perm_def_soft_delete_val: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? (val('perm_def_soft_delete_val') || (IS_EDIT ? EDIT_CONFIG?.perm_def_soft_delete_val || null : null)) : null,
+            // Boolean Matrix
+            perm_bool_columns:       mode === 'boolean_matrix'
+                                        ? JSON.stringify((document.getElementById('field_perm_bool_columns_text')?.value || '').split(/[\n,]/).map(function(s){return s.trim();}).filter(Boolean))
+                                        : null,
+            // Group Inheritance (via table)
+            perm_via_table:          mode === 'group_inheritance' ? (document.getElementById('field_perm_via_table')?.value || null) : null,
+            perm_via_user_fk_col:    mode === 'group_inheritance' ? (document.getElementById('field_perm_via_user_fk_col')?.value || null) : null,
+            perm_via_group_fk_col:   mode === 'group_inheritance' ? (document.getElementById('field_perm_via_group_fk_col')?.value || null) : null,
+            // Junction enhancements (soft-delete, time-bound, insert-meta)
+            perm_junction_active_col:   (mode === 'junction' || mode === 'mixed') && document.getElementById('enable_soft_delete_junction')?.checked ? (val('perm_junction_active_col') || null) : null,
+            perm_junction_active_val:   (mode === 'junction' || mode === 'mixed') && document.getElementById('enable_soft_delete_junction')?.checked ? (val('perm_junction_active_val') || '1') : null,
+            perm_junction_inactive_val: (mode === 'junction' || mode === 'mixed') && document.getElementById('enable_soft_delete_junction')?.checked ? (val('perm_junction_inactive_val') || '0') : null,
+            perm_valid_from_col:        (mode === 'junction' || mode === 'mixed') && document.getElementById('enable_time_bound_junction')?.checked ? (val('perm_valid_from_col') || null) : null,
+            perm_valid_to_col:          (mode === 'junction' || mode === 'mixed') && document.getElementById('enable_time_bound_junction')?.checked ? (val('perm_valid_to_col') || null) : null,
+            perm_insert_meta_cols:      (mode === 'junction' || mode === 'mixed') && document.getElementById('enable_insert_meta')?.checked ? JSON.stringify(getMetaCols()) : null,
+            // JSON Column mode
+            perm_json_col:              mode === 'json_column' ? (document.getElementById('field_perm_json_col')?.value || null) : null,
+            perm_json_available:        mode === 'json_column' ? JSON.stringify(getAvailableList('json')) : null,
+            // Delimited Column mode
+            perm_delimited_col:         mode === 'delimited_column' ? (document.getElementById('field_perm_delimited_col')?.value || null) : null,
+            perm_delimiter:             mode === 'delimited_column' ? (radioVal('perm_delimiter') || ',') : null,
+            perm_delimited_available:   mode === 'delimited_column' ? JSON.stringify(getAvailableList('delimited')) : null,
+            // Bitmask mode
+            perm_bitmask_col:           mode === 'bitmask' ? (document.getElementById('field_perm_bitmask_col')?.value || null) : null,
+            perm_bitmask_map:           mode === 'bitmask' ? JSON.stringify(getBitmaskMap()) : null,
+            // Multi-Level Hierarchy mode
+            perm_hier_user_role_table:  mode === 'multi_level_hierarchy' ? (document.getElementById('field_perm_hier_user_role_table')?.value || null) : null,
+            perm_hier_user_fk_col:      mode === 'multi_level_hierarchy' ? (document.getElementById('field_perm_hier_user_fk_col')?.value || null) : null,
+            perm_hier_role_fk_col:      mode === 'multi_level_hierarchy' ? (document.getElementById('field_perm_hier_role_fk_col')?.value || null) : null,
+            perm_hier_role_table:       mode === 'multi_level_hierarchy' ? (document.getElementById('field_perm_hier_role_table')?.value || null) : null,
+            perm_hier_role_pk_col:      mode === 'multi_level_hierarchy' ? (document.getElementById('field_perm_hier_role_pk_col')?.value || null) : null,
+            perm_hier_role_name_col:    mode === 'multi_level_hierarchy' ? (document.getElementById('field_perm_hier_role_name_col')?.value || null) : null,
+            perm_hier_role_parent_col:  mode === 'multi_level_hierarchy' ? (document.getElementById('field_perm_hier_role_parent_col')?.value || null) : null,
+            perm_hier_perm_table:       mode === 'multi_level_hierarchy' ? (document.getElementById('field_perm_hier_perm_table')?.value || null) : null,
+            perm_hier_perm_role_fk_col: mode === 'multi_level_hierarchy' ? (document.getElementById('field_perm_hier_perm_role_fk_col')?.value || null) : null,
+            perm_hier_perm_value_col:   mode === 'multi_level_hierarchy' ? (document.getElementById('field_perm_hier_perm_value_col')?.value || null) : null,
             master_tables: JSON.stringify(getMasterTables()),
         });
 
@@ -2280,6 +3399,71 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         return result;
     }
 
+    // ── Department Code Mapping ────────────────────────────────────────────
+
+    window.wizToggleDeptMap = function () {
+        var panel = document.getElementById('dept-map-panel');
+        if (! panel) { return; }
+        panel.classList.toggle('hidden', ! val('user_dept_col'));
+    };
+
+    window.wizLoadUcmDepartments = function () {
+        fetch('{{ route("connectors.ajax.ucm-departments") }}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        }).then(function (r) { return r.json(); }).then(function (res) {
+            var depts = res.departments || [];
+            if (depts.length === 0) { alert('ไม่พบข้อมูลแผนกใน UCM'); return; }
+            var existing = new Set();
+            document.querySelectorAll('#dept-map-rows .dept-map-ucm').forEach(function (inp) {
+                if (inp.value) { existing.add(inp.value); }
+            });
+            depts.forEach(function (dept) {
+                if (! existing.has(dept)) { wizAddDeptMapRow(dept, ''); }
+            });
+        }).catch(function () { alert('เกิดข้อผิดพลาดในการโหลดแผนก'); });
+    };
+
+    window.wizAddDeptMapRow = function (ucmName, extCode) {
+        ucmName = ucmName || '';
+        extCode = (extCode !== undefined && extCode !== null) ? extCode : '';
+        var rows  = document.getElementById('dept-map-rows');
+        var empty = document.getElementById('dept-map-empty');
+        if (! rows) { return; }
+        var inpCls = 'w-full px-3 py-1.5 text-xs text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/40 transition-all';
+        var row = document.createElement('div');
+        row.className = 'dept-map-row flex items-center gap-2';
+        row.innerHTML = [
+            '<input type="text" class="dept-map-ucm flex-1 ' + inpCls + '" placeholder="ชื่อแผนกใน UCM" value="' + escHtml(ucmName) + '">',
+            '<span class="text-slate-400 text-sm flex-shrink-0">→</span>',
+            '<input type="text" class="dept-map-ext flex-1 ' + inpCls + '" placeholder="รหัสแผนก / ค่าที่ระบบนอกใช้" value="' + escHtml(extCode) + '">',
+            '<button type="button" class="text-slate-400 hover:text-rose-500 transition flex-shrink-0" onclick="wizRemoveDeptMapRow(this)">',
+            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>',
+            '</button>',
+        ].join('');
+        rows.appendChild(row);
+        if (empty) { empty.style.display = 'none'; }
+    };
+
+    window.wizRemoveDeptMapRow = function (btn) {
+        var row = btn.closest('.dept-map-row');
+        if (row) { row.remove(); }
+        var rows  = document.getElementById('dept-map-rows');
+        var empty = document.getElementById('dept-map-empty');
+        if (empty && rows && rows.children.length === 0) { empty.style.display = ''; }
+    };
+
+    function wizGetDeptMap() {
+        var result = {};
+        document.querySelectorAll('#dept-map-rows .dept-map-row').forEach(function (row) {
+            var ucm = row.querySelector('.dept-map-ucm');
+            var ext = row.querySelector('.dept-map-ext');
+            if (ucm && ext && ucm.value.trim() && ext.value.trim()) {
+                result[ucm.value.trim()] = ext.value.trim();
+            }
+        });
+        return Object.keys(result).length > 0 ? JSON.stringify(result) : null;
+    }
+
     // ── CSS Animation ──────────────────────────────────────────────────────
     var spinStyle = document.createElement('style');
     spinStyle.textContent = '@keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }';
@@ -2295,10 +3479,29 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         selectPermMode(pMode);
         wizPermModeChange(pMode);
 
-        if (EDIT_CONFIG.user_status_col) wizToggleStatusVal();
+        if (EDIT_CONFIG.user_status_col) { wizToggleStatusVal(); }
+
+        if (EDIT_CONFIG.dept_map && Object.keys(EDIT_CONFIG.dept_map).length > 0) {
+            wizToggleDeptMap();
+            Object.entries(EDIT_CONFIG.dept_map).forEach(function (entry) {
+                wizAddDeptMapRow(entry[0], entry[1]);
+            });
+        }
 
         if (pMode === 'manual' && EDIT_CONFIG.manual_permissions) {
             EDIT_CONFIG.manual_permissions.forEach(function (p) { wizAddManualPerm(p); });
+        }
+
+        // Feature B: mixed mode — restore col perm options
+        if (pMode === 'mixed' && EDIT_CONFIG.perm_col_options) {
+            EDIT_CONFIG.perm_col_options.forEach(function (o) { wizAddColPermOption(o); });
+        }
+
+        // Feature A: restore user_table primary alias
+        if (EDIT_CONFIG.user_tables && EDIT_CONFIG.user_tables.length > 0) {
+            var primaryAlias = EDIT_CONFIG.user_tables[0].alias || '';
+            var aliasEl = document.getElementById('field_user_table_alias_0');
+            if (aliasEl && primaryAlias) aliasEl.value = primaryAlias;
         }
 
         wizFetchTablesInternal(function (tbls) {
@@ -2318,10 +3521,38 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             wizLoadPermColumns();
 
             // Restore composite cols in edit mode
-            if (pMode === 'junction' && EDIT_CONFIG.perm_composite_cols && EDIT_CONFIG.perm_composite_cols.length > 0) {
+            if ((pMode === 'junction' || pMode === 'mixed') && EDIT_CONFIG.perm_composite_cols && EDIT_CONFIG.perm_composite_cols.length > 0) {
                 setTimeout(function () {
                     EDIT_CONFIG.perm_composite_cols.forEach(function (cc) { wizAddCompositeCol(cc); });
                 }, 800);
+            }
+
+            // Feature A: restore additional JOIN tables
+            if (EDIT_CONFIG.user_tables && EDIT_CONFIG.user_tables.length > 1) {
+                var joinTables = EDIT_CONFIG.user_tables.slice(1);
+                // populate join-table selects with the same table list
+                joinTables.forEach(function (def) {
+                    wizAddUserTable(def);
+                    // select the correct table in the newly added row
+                    var rows = document.querySelectorAll('#user-tables-list .user-table-row');
+                    var lastRow = rows[rows.length - 1];
+                    if (lastRow && def.table) {
+                        tbls.forEach(function (t) {
+                            var sel = lastRow.querySelector('.user-table-join-select');
+                            if (sel) {
+                                var opt = document.createElement('option');
+                                opt.value = t; opt.textContent = t;
+                                if (t === def.table) opt.selected = true;
+                                sel.appendChild(opt);
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Feature B: mixed mode — load mixed col columns if perm_col_table set
+            if (pMode === 'mixed' && EDIT_CONFIG.perm_col_table) {
+                setTimeout(function () { wizLoadMixedColColumns(); }, 600);
             }
 
             // Restore master tables after tables list is ready so dropdown has options
@@ -2351,6 +3582,87 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 var sdvEl = document.getElementById('field_perm_def_soft_delete_val');
                 if (sdvEl && ! sdvEl.value) { sdvEl.value = EDIT_CONFIG.perm_def_soft_delete_val; }
             }
+        }
+    }
+
+    // ── Init junction enhancements for edit mode ───────────────────────────
+    if (IS_EDIT && EDIT_CONFIG) {
+        // Insert metadata rows
+        if (EDIT_CONFIG.perm_insert_meta_cols && Object.keys(EDIT_CONFIG.perm_insert_meta_cols).length > 0) {
+            var metaCb = document.getElementById('enable_insert_meta');
+            if (metaCb) { metaCb.checked = true; wizToggleInsertMeta(true); }
+            Object.entries(EDIT_CONFIG.perm_insert_meta_cols).forEach(function (entry) {
+                wizAddMetaRow();
+                var rows = document.querySelectorAll('#insert-meta-rows .flex');
+                var lastRow = rows[rows.length - 1];
+                if (lastRow) {
+                    var colInput = lastRow.querySelector('.meta-col-name');
+                    var tokInput = lastRow.querySelector('.meta-col-token');
+                    if (colInput) colInput.value = entry[0];
+                    if (tokInput) tokInput.value = entry[1];
+                }
+            });
+        }
+
+        // Group inheritance via table columns
+        if (EDIT_CONFIG.permission_mode === 'group_inheritance' && EDIT_CONFIG.perm_via_table) {
+            setTimeout(function () {
+                var vtSel = document.getElementById('field_perm_via_table');
+                if (vtSel) {
+                    var opt = document.createElement('option');
+                    opt.value = EDIT_CONFIG.perm_via_table;
+                    opt.textContent = EDIT_CONFIG.perm_via_table;
+                    opt.selected = true;
+                    vtSel.innerHTML = '<option value="">— เลือกตาราง —</option>';
+                    vtSel.appendChild(opt);
+                }
+                wizLoadViaColumns();
+            }, 300);
+        }
+
+        // JSON Column edit: pre-load user table columns into perm_json_col select
+        if (EDIT_CONFIG.permission_mode === 'json_column' && EDIT_CONFIG.perm_json_col) {
+            setTimeout(function () { wizLoadUserColumns('perm_json_col'); }, 400);
+        }
+
+        // Delimited Column edit: pre-load user table columns into perm_delimited_col select
+        if (EDIT_CONFIG.permission_mode === 'delimited_column' && EDIT_CONFIG.perm_delimited_col) {
+            setTimeout(function () { wizLoadUserColumns('perm_delimited_col'); }, 400);
+        }
+
+        // Bitmask edit: pre-load user table columns into perm_bitmask_col select
+        if (EDIT_CONFIG.permission_mode === 'bitmask' && EDIT_CONFIG.perm_bitmask_col) {
+            setTimeout(function () { wizLoadUserColumns('perm_bitmask_col'); }, 400);
+        }
+
+        // Multi-Level Hierarchy edit: load columns for all hierarchy tables
+        if (EDIT_CONFIG.permission_mode === 'multi_level_hierarchy') {
+            setTimeout(function () {
+                // Populate membership table select
+                var hierTables = [
+                    'perm_hier_user_role_table',
+                    'perm_hier_role_table',
+                    'perm_hier_perm_table',
+                ];
+                hierTables.forEach(function (fieldKey) {
+                    if (! EDIT_CONFIG[fieldKey]) { return; }
+                    var sel = document.getElementById('field_' + fieldKey);
+                    if (! sel) { return; }
+                    var existOpt = sel.querySelector('option[value="' + EDIT_CONFIG[fieldKey] + '"]');
+                    if (! existOpt) {
+                        var opt = document.createElement('option');
+                        opt.value = EDIT_CONFIG[fieldKey];
+                        opt.textContent = EDIT_CONFIG[fieldKey];
+                        opt.selected = true;
+                        sel.appendChild(opt);
+                    } else {
+                        existOpt.selected = true;
+                    }
+                });
+                wizLoadHierMemberColumns();
+                wizLoadHierRoleColumns();
+                wizLoadHierPermColumns();
+            }, 500);
         }
     }
 

@@ -10,9 +10,9 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PermissionCenterController;
 use App\Http\Controllers\PublicMatrixController;
 use App\Http\Controllers\QueueMonitorController;
-use App\Http\Controllers\UcmAccessController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SystemController;
+use App\Http\Controllers\UcmAccessController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -93,6 +93,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/connectors/ajax/preview-permissions', [ConnectorWizardController::class, 'previewPermissions'])->name('connectors.ajax.preview-permissions');
     Route::post('/connectors/ajax/analyze-schema', [ConnectorWizardController::class, 'analyzeSchema'])->name('connectors.ajax.analyze-schema');
     Route::post('/connectors/ajax/analyze-zip', [ConnectorWizardController::class, 'analyzeZip'])->name('connectors.ajax.analyze-zip');
+    Route::get('/connectors/ajax/ucm-departments', [ConnectorWizardController::class, 'fetchUcmDepartments'])->name('connectors.ajax.ucm-departments');
     Route::post('/connectors', [ConnectorWizardController::class, 'store'])->name('connectors.store');
     Route::match(['PUT', 'POST'], '/connectors/{connectorConfig}', [ConnectorWizardController::class, 'update'])->name('connectors.update');
 

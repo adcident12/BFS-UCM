@@ -115,6 +115,15 @@ abstract class BaseAdapter implements SystemAdapterInterface
     }
 
     /**
+     * Default: ไม่ต้องอัปเดตอะไรในระบบภายนอก
+     * Override ใน subclass ที่มี permission definition table
+     */
+    public function updatePermission(string $remoteValue, string $label, string $group): bool
+    {
+        return true;
+    }
+
+    /**
      * Default: ไม่ต้องลบอะไรในระบบภายนอก
      * Override ใน subclass ที่มี permission definition table
      */

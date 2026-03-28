@@ -169,7 +169,7 @@ class UserController extends Controller
                     'perms' => $remotePerms,
                     'ucmPerms' => $ucmPerms,
                     'source' => 'remote',
-                    'outOfSync' => $outOfSync && ! empty($ucmPerms),
+                    'outOfSync' => $outOfSync && (! empty($ucmPerms) || ! empty($remotePerms)),
                     'accountStatus' => $accountStatus,
                 ];
             } else {
@@ -300,12 +300,12 @@ class UserController extends Controller
             );
 
             app(NotificationService::class)->dispatch('account_status_changed', [
-                'user_id'     => $user->id,
-                'username'    => $user->username,
-                'name'        => $user->name,
-                'system_id'   => $system->id,
+                'user_id' => $user->id,
+                'username' => $user->username,
+                'name' => $user->name,
+                'system_id' => $system->id,
                 'system_name' => $system->name,
-                'active'      => $active,
+                'active' => $active,
                 'description' => "{$label} account {$user->name} ({$user->username}) ในระบบ {$system->name}",
             ]);
         }

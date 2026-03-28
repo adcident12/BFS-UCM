@@ -221,6 +221,7 @@ class ConnectorWizardController extends Controller
             'db_user' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.@\\\\]+$/'],
             'db_password' => 'nullable|string|max:255',
             'user_table' => 'required|string|regex:/^[\w.]+$/',
+            'user_tables' => 'nullable|json',
             'user_identifier_col' => 'required|string|regex:/^[\w.]+$/',
             'user_name_col' => 'nullable|string|regex:/^[\w.]+$/',
             'connector_config_id' => 'nullable|integer',
@@ -231,9 +232,11 @@ class ConnectorWizardController extends Controller
         try {
             $pdo = $this->makePdo($data);
             $driver = $data['db_driver'];
-            $table = $this->qi($data['user_table'], $driver);
-            $idCol = $this->qi($data['user_identifier_col'], $driver);
 
+            // Feature A: build JOIN SQL from user_tables array when provided
+            $fromSql = $this->buildPreviewJoinSql($data['user_tables'] ?? null, $data['user_table'], $driver);
+
+            $idCol = $this->qi($data['user_identifier_col'], $driver);
             $cols = [$idCol];
             if (! empty($data['user_name_col'])) {
                 $cols[] = $this->qi($data['user_name_col'], $driver);
@@ -241,14 +244,56 @@ class ConnectorWizardController extends Controller
 
             $colSql = implode(', ', $cols);
             $sql = $driver === 'sqlsrv'
-                ? "SELECT TOP 10 {$colSql} FROM {$table}"
-                : "SELECT {$colSql} FROM {$table} LIMIT 10";
+                ? "SELECT TOP 10 {$colSql} FROM {$fromSql}"
+                : "SELECT {$colSql} FROM {$fromSql} LIMIT 10";
             $rows = $pdo->query($sql)->fetchAll();
 
             return response()->json(['ok' => true, 'rows' => $rows]);
         } catch (PDOException $e) {
             return response()->json(['ok' => false, 'message' => $this->sanitizePdoError($e)]);
         }
+    }
+
+    /**
+     * สร้าง FROM clause สำหรับ preview query (ใช้ใน previewUsers)
+     * Mirrors DynamicAdapter::buildUserJoinSql() แต่อยู่ใน controller สำหรับ AJAX preview
+     */
+    private function buildPreviewJoinSql(?string $userTablesJson, string $primaryTable, string $driver): string
+    {
+        if (! $userTablesJson) {
+            return $this->qi($primaryTable, $driver);
+        }
+
+        $tables = json_decode($userTablesJson, true);
+
+        if (! is_array($tables) || count($tables) <= 1) {
+            return $this->qi($primaryTable, $driver);
+        }
+
+        $parts = [];
+
+        foreach ($tables as $i => $def) {
+            $tableName = $def['table'] ?? '';
+            $alias = $def['alias'] ?? null;
+
+            if (! $tableName) {
+                continue;
+            }
+
+            if ($i === 0) {
+                $parts[] = $alias ? $this->qi($tableName, $driver).' '.$alias : $this->qi($tableName, $driver);
+
+                continue;
+            }
+
+            $joinType = strtoupper($def['join_type'] ?? 'LEFT');
+            $localCol = $def['join_local_col'] ?? '';
+            $remoteCol = $def['join_remote_col'] ?? '';
+            $aliasStr = $alias ? ' '.$alias : '';
+            $parts[] = "{$joinType} JOIN ".$this->qi($tableName, $driver)."{$aliasStr} ON {$localCol} = {$remoteCol}";
+        }
+
+        return implode(' ', $parts) ?: $this->qi($primaryTable, $driver);
     }
 
     // ── AJAX: Preview Permissions ──────────────────────────────────────────
@@ -423,20 +468,23 @@ class ConnectorWizardController extends Controller
             'db_user' => ['required', 'string', 'max:100', 'regex:/^[\w\-\.@\\\\]+$/'],
             'db_password' => 'nullable|string|max:255',
 
-            // User Table
+            // User Table (single — required for backward-compat / primary table fallback)
             'user_table' => 'required|string|max:100|regex:/^[\w.]+$/',
+            // Multi-table JOIN (Feature A) — JSON array of {table, alias, join_type, ...}
+            'user_tables' => 'nullable|json',
             'user_ucm_identifier' => 'required|in:username,employee_number',
             'user_identifier_col' => 'required|string|max:100|regex:/^[\w.]+$/',
             'user_pk_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'user_name_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'user_email_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'user_dept_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'dept_map' => 'nullable|json',
             'user_status_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'user_status_active_val' => 'nullable|string|max:100',
             'user_status_inactive_val' => 'nullable|string|max:100',
 
             // Permission
-            'permission_mode' => 'required|in:junction,column,manual',
+            'permission_mode' => 'required|in:junction,column,manual,mixed,boolean_matrix,group_inheritance,json_column,delimited_column,bitmask,multi_level_hierarchy',
             'perm_table' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'perm_user_fk_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
             'perm_value_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
@@ -457,6 +505,57 @@ class ConnectorWizardController extends Controller
 
             // Master Tables
             'master_tables' => 'nullable|json',
+
+            // Mixed Permission Mode — column side (Feature B)
+            'perm_col_table' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_col_identifier' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_col_value_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_col_options' => 'nullable|json',
+
+            // Scenario I — Boolean Matrix
+            'perm_bool_columns' => 'nullable|json',
+
+            // Scenario J — Soft-Delete Junction
+            'perm_junction_active_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+            'perm_junction_active_val' => 'nullable|string|max:20',
+            'perm_junction_inactive_val' => 'nullable|string|max:20',
+
+            // Scenario K — Group Inheritance
+            'perm_via_table' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_via_user_fk_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+            'perm_via_group_fk_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+
+            // Scenario L — Time-Bounded Junction
+            'perm_valid_from_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+            'perm_valid_to_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+
+            // Scenario M — Insert Metadata
+            'perm_insert_meta_cols' => 'nullable|json',
+
+            // Mode: json_column — JSON array ใน 1 column บน user table
+            'perm_json_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_json_available' => 'nullable|json',
+
+            // Mode: delimited_column — string คั่น delimiter ใน 1 column บน user table
+            'perm_delimited_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_delimiter' => 'nullable|string|max:10',
+            'perm_delimited_available' => 'nullable|json',
+
+            // Mode: bitmask — integer bit flags บน user table
+            'perm_bitmask_col' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_bitmask_map' => 'nullable|json',
+
+            // Mode: multi_level_hierarchy — RBAC recursive
+            'perm_hier_user_role_table' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_hier_user_fk_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+            'perm_hier_role_fk_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+            'perm_hier_role_table' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_hier_role_pk_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+            'perm_hier_role_name_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+            'perm_hier_role_parent_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+            'perm_hier_perm_table' => 'nullable|string|max:100|regex:/^[\w.]+$/',
+            'perm_hier_perm_role_fk_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
+            'perm_hier_perm_value_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
         ]);
 
         $isNew = ! isset($data['system_id']);
@@ -471,144 +570,197 @@ class ConnectorWizardController extends Controller
 
         try {
             $system = DB::transaction(function () use ($data) {
-            // สร้างหรือใช้ System ที่มีอยู่
-            if (! empty($data['system_id'])) {
-                $system = System::findOrFail($data['system_id']);
-            } else {
-                $slug = $data['system_slug'];
-                abort_if(
-                    System::where('slug', $slug)->exists(),
-                    422,
-                    "Slug '{$slug}' มีอยู่แล้วในระบบ"
-                );
+                // สร้างหรือใช้ System ที่มีอยู่
+                if (! empty($data['system_id'])) {
+                    $system = System::findOrFail($data['system_id']);
+                } else {
+                    $slug = $data['system_slug'];
+                    abort_if(
+                        System::where('slug', $slug)->exists(),
+                        422,
+                        "Slug '{$slug}' มีอยู่แล้วในระบบ"
+                    );
 
-                $system = System::create([
-                    'name' => $data['system_name'],
-                    'slug' => $slug,
-                    'description' => $data['system_description'] ?? null,
-                    'color' => $data['system_color'] ?? '#6366f1',
-                    'icon' => $data['system_icon'] ?: 'server',
-                    'adapter_class' => DynamicAdapter::class,
+                    $system = System::create([
+                        'name' => $data['system_name'],
+                        'slug' => $slug,
+                        'description' => $data['system_description'] ?? null,
+                        'color' => $data['system_color'] ?? '#6366f1',
+                        'icon' => $data['system_icon'] ?: 'server',
+                        'adapter_class' => DynamicAdapter::class,
+                        'db_host' => $data['db_host'],
+                        'db_port' => $data['db_port'],
+                        'db_name' => $data['db_name'],
+                        'db_user' => $data['db_user'],
+                        'db_password' => $data['db_password'] ?? null,
+                        'is_active' => true,
+                    ]);
+                }
+
+                // สร้างหรืออัปเดต ConnectorConfig
+                $configData = [
+                    'system_id' => $system->id,
+                    'db_driver' => $data['db_driver'],
                     'db_host' => $data['db_host'],
                     'db_port' => $data['db_port'],
                     'db_name' => $data['db_name'],
                     'db_user' => $data['db_user'],
-                    'db_password' => $data['db_password'] ?? null,
-                    'is_active' => true,
-                ]);
-            }
+                    'db_password' => $data['db_password'] ?? '',
+                    'user_table' => $data['user_table'],
+                    'user_tables' => isset($data['user_tables'])
+                        ? (is_array($decoded = json_decode($data['user_tables'], true)) ? $decoded : null)
+                        : null,
+                    'user_ucm_identifier' => $data['user_ucm_identifier'],
+                    'user_identifier_col' => $data['user_identifier_col'],
+                    'user_pk_col' => $data['user_pk_col'] ?? null,
+                    'user_name_col' => $data['user_name_col'] ?? null,
+                    'user_email_col' => $data['user_email_col'] ?? null,
+                    'user_dept_col' => $data['user_dept_col'] ?? null,
+                    'dept_map' => filled($data['dept_map'] ?? null)
+                        ? json_decode($data['dept_map'], true)
+                        : null,
+                    'user_status_col' => $data['user_status_col'] ?? null,
+                    'user_status_active_val' => $data['user_status_active_val'] ?? null,
+                    'user_status_inactive_val' => $data['user_status_inactive_val'] ?? null,
+                    'permission_mode' => $data['permission_mode'],
+                    'perm_table' => $data['perm_table'] ?? null,
+                    'perm_user_fk_col' => $data['perm_user_fk_col'] ?? null,
+                    'perm_value_col' => $data['perm_value_col'] ?? null,
+                    'perm_label_col' => $data['perm_label_col'] ?? null,
+                    'perm_group_col' => $data['perm_group_col'] ?? null,
+                    'perm_composite_cols' => isset($data['perm_composite_cols'])
+                        ? (is_array($decoded = json_decode($data['perm_composite_cols'], true)) ? $decoded : null)
+                        : null,
+                    'manual_permissions' => isset($data['manual_permissions'])
+                        ? (is_array($decoded = json_decode($data['manual_permissions'], true)) ? $decoded : null)
+                        : null,
+                    'perm_def_table' => $data['perm_def_table'] ?? null,
+                    'perm_def_value_col' => $data['perm_def_value_col'] ?? null,
+                    'perm_def_pk_col' => $data['perm_def_pk_col'] ?? null,
+                    'perm_def_label_col' => $data['perm_def_label_col'] ?? null,
+                    'perm_def_group_col' => $data['perm_def_group_col'] ?? null,
+                    'perm_delete_mode' => $data['perm_delete_mode'] ?? null,
+                    'perm_def_soft_delete_col' => $data['perm_def_soft_delete_col'] ?? null,
+                    'perm_def_soft_delete_val' => $data['perm_def_soft_delete_val'] ?? null,
+                    'master_tables' => isset($data['master_tables'])
+                        ? (is_array($decoded = json_decode($data['master_tables'], true)) ? $decoded : null)
+                        : null,
+                    'perm_col_table' => $data['perm_col_table'] ?? null,
+                    'perm_col_identifier' => $data['perm_col_identifier'] ?? null,
+                    'perm_col_value_col' => $data['perm_col_value_col'] ?? null,
+                    'perm_col_options' => isset($data['perm_col_options'])
+                        ? (is_array($decoded = json_decode($data['perm_col_options'], true)) ? $decoded : null)
+                        : null,
+                    'perm_bool_columns' => isset($data['perm_bool_columns'])
+                        ? (is_array($decoded = json_decode($data['perm_bool_columns'], true)) ? $decoded : null)
+                        : null,
+                    'perm_junction_active_col' => $data['perm_junction_active_col'] ?? null,
+                    'perm_junction_active_val' => $data['perm_junction_active_val'] ?? '1',
+                    'perm_junction_inactive_val' => $data['perm_junction_inactive_val'] ?? '0',
+                    'perm_via_table' => $data['perm_via_table'] ?? null,
+                    'perm_via_user_fk_col' => $data['perm_via_user_fk_col'] ?? null,
+                    'perm_via_group_fk_col' => $data['perm_via_group_fk_col'] ?? null,
+                    'perm_valid_from_col' => $data['perm_valid_from_col'] ?? null,
+                    'perm_valid_to_col' => $data['perm_valid_to_col'] ?? null,
+                    'perm_insert_meta_cols' => isset($data['perm_insert_meta_cols'])
+                        ? (is_array($decoded = json_decode($data['perm_insert_meta_cols'], true)) ? $decoded : null)
+                        : null,
+                    // Mode: json_column
+                    'perm_json_col' => $data['perm_json_col'] ?? null,
+                    'perm_json_available' => isset($data['perm_json_available'])
+                        ? (is_array($decoded = json_decode($data['perm_json_available'], true)) ? $decoded : null)
+                        : null,
+                    // Mode: delimited_column
+                    'perm_delimited_col' => $data['perm_delimited_col'] ?? null,
+                    'perm_delimiter' => $data['perm_delimiter'] ?? ',',
+                    'perm_delimited_available' => isset($data['perm_delimited_available'])
+                        ? (is_array($decoded = json_decode($data['perm_delimited_available'], true)) ? $decoded : null)
+                        : null,
+                    // Mode: bitmask
+                    'perm_bitmask_col' => $data['perm_bitmask_col'] ?? null,
+                    'perm_bitmask_map' => isset($data['perm_bitmask_map'])
+                        ? (is_array($decoded = json_decode($data['perm_bitmask_map'], true)) ? $decoded : null)
+                        : null,
+                    // Mode: multi_level_hierarchy
+                    'perm_hier_user_role_table' => $data['perm_hier_user_role_table'] ?? null,
+                    'perm_hier_user_fk_col' => $data['perm_hier_user_fk_col'] ?? null,
+                    'perm_hier_role_fk_col' => $data['perm_hier_role_fk_col'] ?? null,
+                    'perm_hier_role_table' => $data['perm_hier_role_table'] ?? null,
+                    'perm_hier_role_pk_col' => $data['perm_hier_role_pk_col'] ?? null,
+                    'perm_hier_role_name_col' => $data['perm_hier_role_name_col'] ?? null,
+                    'perm_hier_role_parent_col' => $data['perm_hier_role_parent_col'] ?? null,
+                    'perm_hier_perm_table' => $data['perm_hier_perm_table'] ?? null,
+                    'perm_hier_perm_role_fk_col' => $data['perm_hier_perm_role_fk_col'] ?? null,
+                    'perm_hier_perm_value_col' => $data['perm_hier_perm_value_col'] ?? null,
+                ];
 
-            // สร้างหรืออัปเดต ConnectorConfig
-            $configData = [
-                'system_id' => $system->id,
-                'db_driver' => $data['db_driver'],
-                'db_host' => $data['db_host'],
-                'db_port' => $data['db_port'],
-                'db_name' => $data['db_name'],
-                'db_user' => $data['db_user'],
-                'db_password' => $data['db_password'] ?? '',
-                'user_table' => $data['user_table'],
-                'user_ucm_identifier' => $data['user_ucm_identifier'],
-                'user_identifier_col' => $data['user_identifier_col'],
-                'user_pk_col' => $data['user_pk_col'] ?? null,
-                'user_name_col' => $data['user_name_col'] ?? null,
-                'user_email_col' => $data['user_email_col'] ?? null,
-                'user_dept_col' => $data['user_dept_col'] ?? null,
-                'user_status_col' => $data['user_status_col'] ?? null,
-                'user_status_active_val' => $data['user_status_active_val'] ?? null,
-                'user_status_inactive_val' => $data['user_status_inactive_val'] ?? null,
-                'permission_mode' => $data['permission_mode'],
-                'perm_table' => $data['perm_table'] ?? null,
-                'perm_user_fk_col' => $data['perm_user_fk_col'] ?? null,
-                'perm_value_col' => $data['perm_value_col'] ?? null,
-                'perm_label_col' => $data['perm_label_col'] ?? null,
-                'perm_group_col' => $data['perm_group_col'] ?? null,
-                'perm_composite_cols' => isset($data['perm_composite_cols'])
-                    ? (is_array($decoded = json_decode($data['perm_composite_cols'], true)) ? $decoded : null)
-                    : null,
-                'manual_permissions' => isset($data['manual_permissions'])
-                    ? (is_array($decoded = json_decode($data['manual_permissions'], true)) ? $decoded : null)
-                    : null,
-                'perm_def_table' => $data['perm_def_table'] ?? null,
-                'perm_def_value_col' => $data['perm_def_value_col'] ?? null,
-                'perm_def_pk_col' => $data['perm_def_pk_col'] ?? null,
-                'perm_def_label_col' => $data['perm_def_label_col'] ?? null,
-                'perm_def_group_col' => $data['perm_def_group_col'] ?? null,
-                'perm_delete_mode' => $data['perm_delete_mode'] ?? null,
-                'perm_def_soft_delete_col' => $data['perm_def_soft_delete_col'] ?? null,
-                'perm_def_soft_delete_val' => $data['perm_def_soft_delete_val'] ?? null,
-                'master_tables' => isset($data['master_tables'])
-                    ? (is_array($decoded = json_decode($data['master_tables'], true)) ? $decoded : null)
-                    : null,
-            ];
+                ConnectorConfig::updateOrCreate(
+                    ['system_id' => $system->id],
+                    $configData
+                );
 
-            ConnectorConfig::updateOrCreate(
-                ['system_id' => $system->id],
-                $configData
-            );
+                // ตั้งค่า adapter_class ให้ system ถ้ายังไม่ได้เซ็ต
+                if ($system->adapter_class !== DynamicAdapter::class) {
+                    $system->update(['adapter_class' => DynamicAdapter::class]);
+                }
 
-            // ตั้งค่า adapter_class ให้ system ถ้ายังไม่ได้เซ็ต
-            if ($system->adapter_class !== DynamicAdapter::class) {
-                $system->update(['adapter_class' => DynamicAdapter::class]);
-            }
+                // Manual mode: sync manual_permissions → system_permissions
+                if ($configData['permission_mode'] === 'manual' && ! empty($configData['manual_permissions'])) {
+                    foreach ($configData['manual_permissions'] as $perm) {
+                        if (empty($perm['key'])) {
+                            continue;
+                        }
 
-            // Manual mode: sync manual_permissions → system_permissions
-            if ($configData['permission_mode'] === 'manual' && ! empty($configData['manual_permissions'])) {
-                foreach ($configData['manual_permissions'] as $perm) {
-                    if (empty($perm['key'])) {
-                        continue;
+                        SystemPermission::updateOrCreate(
+                            ['system_id' => $system->id, 'key' => $perm['key']],
+                            ['label' => $perm['label'] ?? $perm['key'], 'group' => $perm['group'] ?? null]
+                        );
                     }
+                }
 
-                    SystemPermission::updateOrCreate(
-                        ['system_id' => $system->id, 'key' => $perm['key']],
-                        ['label' => $perm['label'] ?? $perm['key'], 'group' => $perm['group'] ?? null]
-                    );
+                return $system;
+            });
+
+            // Sync two_way_permissions บน System ตามที่ wizard ตั้งค่า
+            $hasTwoWay = ! empty($data['perm_def_table']);
+            if ($system->two_way_permissions !== $hasTwoWay) {
+                $system->update(['two_way_permissions' => $hasTwoWay]);
+            }
+
+            // Auto-discover permissions หลังสร้างใหม่ (ยกเว้น manual mode ที่ sync ในตัว)
+            if ($isNew && $data['permission_mode'] !== 'manual') {
+                try {
+                    AdapterFactory::make($system->fresh())->discoverPermissions();
+                } catch (\Throwable $e) {
+                    Log::warning("[ConnectorWizard] Auto-discover skipped for {$system->slug}: ".$e->getMessage());
                 }
             }
 
-            return $system;
-        });
+            AuditLogger::log(
+                AuditLog::CATEGORY_CONNECTORS,
+                $isNew ? AuditLog::EVENT_CONNECTOR_CREATED : AuditLog::EVENT_CONNECTOR_UPDATED,
+                ($isNew ? 'สร้าง' : 'อัปเดต')." Connector สำหรับระบบ {$system->name} ({$data['db_driver']}://{$data['db_host']}/{$data['db_name']})",
+                ['system_id' => $system->id, 'system_name' => $system->name, 'db_driver' => $data['db_driver'], 'db_host' => $data['db_host'], 'db_name' => $data['db_name'], 'permission_mode' => $data['permission_mode']],
+                $this->authUser(),
+                'system', $system->id, $system->name,
+            );
 
-        // Sync two_way_permissions บน System ตามที่ wizard ตั้งค่า
-        $hasTwoWay = ! empty($data['perm_def_table']);
-        if ($system->two_way_permissions !== $hasTwoWay) {
-            $system->update(['two_way_permissions' => $hasTwoWay]);
-        }
+            app(NotificationService::class)->dispatch($isNew ? 'connector_created' : 'connector_updated', [
+                'system_id' => $system->id,
+                'system_name' => $system->name,
+                'db_driver' => $data['db_driver'],
+                'db_host' => $data['db_host'],
+                'db_name' => $data['db_name'],
+                'permission_mode' => $data['permission_mode'],
+                'description' => ($isNew ? 'สร้าง' : 'อัปเดต')." Connector สำหรับระบบ {$system->name}",
+            ]);
 
-        // Auto-discover permissions หลังสร้างใหม่ (ยกเว้น manual mode ที่ sync ในตัว)
-        if ($isNew && $data['permission_mode'] !== 'manual') {
-            try {
-                AdapterFactory::make($system->fresh())->discoverPermissions();
-            } catch (\Throwable $e) {
-                Log::warning("[ConnectorWizard] Auto-discover skipped for {$system->slug}: ".$e->getMessage());
-            }
-        }
-
-        AuditLogger::log(
-            AuditLog::CATEGORY_CONNECTORS,
-            $isNew ? AuditLog::EVENT_CONNECTOR_CREATED : AuditLog::EVENT_CONNECTOR_UPDATED,
-            ($isNew ? 'สร้าง' : 'อัปเดต')." Connector สำหรับระบบ {$system->name} ({$data['db_driver']}://{$data['db_host']}/{$data['db_name']})",
-            ['system_id' => $system->id, 'system_name' => $system->name, 'db_driver' => $data['db_driver'], 'db_host' => $data['db_host'], 'db_name' => $data['db_name'], 'permission_mode' => $data['permission_mode']],
-            $this->authUser(),
-            'system', $system->id, $system->name,
-        );
-
-        app(NotificationService::class)->dispatch($isNew ? 'connector_created' : 'connector_updated', [
-            'system_id' => $system->id,
-            'system_name' => $system->name,
-            'db_driver' => $data['db_driver'],
-            'db_host' => $data['db_host'],
-            'db_name' => $data['db_name'],
-            'permission_mode' => $data['permission_mode'],
-            'description' => ($isNew ? 'สร้าง' : 'อัปเดต')." Connector สำหรับระบบ {$system->name}",
-        ]);
-
-        return response()->json([
-            'ok' => true,
-            'message' => 'สร้าง Connector สำเร็จ',
-            'system_id' => $system->id,
-            'redirect' => route('systems.show', $system),
-        ]);
+            return response()->json([
+                'ok' => true,
+                'message' => 'สร้าง Connector สำเร็จ',
+                'system_id' => $system->id,
+                'redirect' => route('systems.show', $system),
+            ]);
         } catch (\Throwable $e) {
             Log::error('[ConnectorWizard] store error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
 
@@ -707,5 +859,27 @@ class ConnectorWizardController extends Controller
         $msg = preg_replace("/@'[^']+'/", "@'[hidden]'", $msg);
 
         return $msg;
+    }
+
+    // ── AJAX: UCM Departments ────────────────────────────────────────────────
+
+    /**
+     * คืน distinct department values จาก UCM users
+     * ใช้ใน wizard step 3 เพื่อ pre-populate dept_map UI
+     */
+    public function fetchUcmDepartments(): JsonResponse
+    {
+        $this->requireSuperAdmin();
+
+        $depts = UcmUser::query()
+            ->whereNotNull('department')
+            ->where('department', '!=', '')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department')
+            ->values()
+            ->all();
+
+        return response()->json(['departments' => $depts]);
     }
 }

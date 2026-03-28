@@ -304,6 +304,15 @@ class SystemController extends Controller
 
         $permission->update($data);
 
+        // อัปเดต permission definition ในระบบภายนอก เฉพาะเมื่อ 2-way เปิดอยู่
+        if (filled($permission->remote_value) && AdapterFactory::supports2WayPermissions($system)) {
+            AdapterFactory::make($system)->updatePermission(
+                $permission->remote_value,
+                $permission->label,
+                $permission->group ?? ''
+            );
+        }
+
         AuditLogger::log(
             AuditLog::CATEGORY_SYSTEMS,
             AuditLog::EVENT_PERM_DEF_UPDATED,
