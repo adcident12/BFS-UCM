@@ -1,5 +1,15 @@
 @extends('layouts.app')
 
+@push('styles')
+<style>
+@keyframes wizSlideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.wiz-entering { animation: wizSlideIn 0.22s ease-out both; }
+</style>
+@endpush
+
 @section('title', isset($editConfig) ? 'แก้ไข Connector' : 'Connector Wizard')
 
 @section('breadcrumbs')
@@ -177,7 +187,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             </div>
         </div>
         <div class="flex items-center justify-between mt-5">
-            <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 1 จาก 6</span>
+            <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 1 จาก 7</span>
             <button class="{{ $btnP }}" onclick="wizNext(1)">
                 ถัดไป
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -336,7 +346,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 ย้อนกลับ
             </button>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 2 จาก 6</span>
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 2 จาก 7</span>
                 <button class="{{ $btnP }}" id="step2-next" onclick="wizNext(2)">
                     ถัดไป
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -551,7 +561,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 ย้อนกลับ
             </button>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 3 จาก 6</span>
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 3 จาก 7</span>
                 <button class="{{ $btnP }}" onclick="wizNext(3)">
                     ถัดไป
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -579,7 +589,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             <div class="px-6 py-6 space-y-5">
 
                 {{-- Mode Selection --}}
-                <div class="flex flex-col gap-2.5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-indigo-500 bg-indigo-50/40" id="perm-card-junction" onclick="selectPermMode('junction')">
                         <input type="radio" name="permission_mode" value="junction" checked class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)">
                         <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0 text-base">🔗</div>
@@ -1390,7 +1400,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 ย้อนกลับ
             </button>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 4 จาก 6</span>
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 4 จาก 7</span>
                 <button class="{{ $btnP }}" onclick="wizNext(4)">
                     ถัดไป
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -1405,8 +1415,8 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     <div class="wiz-step hidden" data-step="5">
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
-                <div class="bg-orange-100 w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 from-violet-500 to-purple-600 shadow-lg shadow-violet-200/60">
-                    <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200/60">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
                     </svg>
                 </div>
@@ -1571,7 +1581,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 ย้อนกลับ
             </button>
             <div class="flex items-center gap-3">
-                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 5 จาก 6</span>
+                <span class="text-xs text-slate-400 font-semibold">ขั้นที่ 5 จาก 7</span>
                 <button class="{{ $btnP }}" onclick="wizNext(5)">
                     ถัดไป
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -1797,6 +1807,14 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         }
         wizHideAlert();
         window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Slide-in animation for the newly visible step
+        var entering = document.querySelector('.wiz-step:not(.hidden)');
+        if (entering) {
+            entering.classList.remove('wiz-entering');
+            void entering.offsetWidth; // force reflow
+            entering.classList.add('wiz-entering');
+        }
     }
 
     // ── Validation ─────────────────────────────────────────────────────────

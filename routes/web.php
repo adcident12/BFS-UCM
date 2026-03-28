@@ -134,9 +134,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/queue/failed/{uuid}', [QueueMonitorController::class, 'destroyFailed'])->name('queue.failed.destroy');
 
     // Managed Group CRUD (adapter-specific reference tables e.g. departments, document_categories)
-    Route::get('/systems/{system}/group-records/{group}', [SystemController::class, 'groupRecords'])->name('systems.group-records.index');
+    // {group} ต้องไม่มี / เพราะเป็น URL path separator — ใช้ - แทน
+    Route::get('/systems/{system}/group-records/{group}', [SystemController::class, 'groupRecords'])->where('group', '[^/]+')->name('systems.group-records.index');
     Route::post('/systems/{system}/group-records', [SystemController::class, 'storeGroupRecord'])->name('systems.group-records.store');
-    Route::put('/systems/{system}/group-records/{group}/{recordId}', [SystemController::class, 'updateGroupRecord'])->name('systems.group-records.update');
-    Route::delete('/systems/{system}/group-records/{group}/{recordId}', [SystemController::class, 'destroyGroupRecord'])->name('systems.group-records.destroy');
-    Route::post('/systems/{system}/group-records/{group}/discover', [SystemController::class, 'discoverGroupRecords'])->name('systems.group-records.discover');
+    Route::put('/systems/{system}/group-records/{group}/{recordId}', [SystemController::class, 'updateGroupRecord'])->where('group', '[^/]+')->name('systems.group-records.update');
+    Route::delete('/systems/{system}/group-records/{group}/{recordId}', [SystemController::class, 'destroyGroupRecord'])->where('group', '[^/]+')->name('systems.group-records.destroy');
+    Route::post('/systems/{system}/group-records/{group}/discover', [SystemController::class, 'discoverGroupRecords'])->where('group', '[^/]+')->name('systems.group-records.discover');
 });

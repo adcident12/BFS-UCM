@@ -469,7 +469,9 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
         // Mixed mode: junction side + column side options
         if ($this->isMixed()) {
-            $junctionPerms = $this->fetchJunctionAvailablePerms();
+            $junctionPerms = filled($cfg->perm_def_table) && filled($cfg->perm_def_value_col)
+                ? $this->fetchPermDefAvailablePerms()
+                : $this->fetchJunctionAvailablePerms();
             $columnPerms = array_map(fn ($opt) => [
                 'key' => 'col:'.($opt['key'] ?? ''),
                 'label' => $opt['label'] ?? ($opt['key'] ?? ''),
@@ -479,7 +481,66 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
             return array_merge($junctionPerms, $columnPerms);
         }
 
+        // มี perm_def_table → อ่าน canonical list พร้อม label/group
+        if (filled($cfg->perm_def_table) && filled($cfg->perm_def_value_col)) {
+            return $this->fetchPermDefAvailablePerms();
+        }
+
         return $this->fetchJunctionAvailablePerms();
+    }
+
+    /**
+     * อ่าน available permissions จาก perm_def_table (canonical list สำหรับ 2-way sync)
+     * คืน label/group/remote_value จากตาราง definition ใน remote DB
+     *
+     * @return array<int, array{key: string, label: string, group: string, remote_value: string}>
+     */
+    private function fetchPermDefAvailablePerms(): array
+    {
+        $cfg = $this->config;
+
+        try {
+            $pdo = $this->getConnection();
+            $defTable = $this->quoteIdentifier($cfg->perm_def_table);
+            $valCol = $this->quoteIdentifier($cfg->perm_def_value_col);
+            $pkCol = $cfg->perm_def_pk_col ?: 'id';
+            $quotedPk = $this->quoteIdentifier($pkCol);
+
+            $cols = [$quotedPk, $valCol];
+            if (filled($cfg->perm_def_label_col)) {
+                $cols[] = $this->quoteIdentifier($cfg->perm_def_label_col);
+            }
+            if (filled($cfg->perm_def_group_col)) {
+                $cols[] = $this->quoteIdentifier($cfg->perm_def_group_col);
+            }
+
+            $where = '';
+            $params = [];
+            if (filled($cfg->perm_def_soft_delete_col)) {
+                $softCol = $this->quoteIdentifier($cfg->perm_def_soft_delete_col);
+                if (filled($cfg->perm_def_soft_delete_val)) {
+                    $where = " WHERE ({$softCol} IS NULL OR {$softCol} != ?)";
+                    $params[] = $cfg->perm_def_soft_delete_val;
+                } else {
+                    $where = " WHERE {$softCol} IS NULL";
+                }
+            }
+
+            $stmt = $pdo->prepare('SELECT '.implode(', ', $cols)." FROM {$defTable}{$where}");
+            $stmt->execute($params);
+            $rows = $stmt->fetchAll();
+
+            return array_map(fn ($row) => [
+                'key' => (string) $row[$cfg->perm_def_value_col],
+                'label' => $cfg->perm_def_label_col ? ($row[$cfg->perm_def_label_col] ?? $row[$cfg->perm_def_value_col]) : $row[$cfg->perm_def_value_col],
+                'group' => $cfg->perm_def_group_col ? ($row[$cfg->perm_def_group_col] ?? 'ทั่วไป') : 'ทั่วไป',
+                'remote_value' => (string) $row[$pkCol],
+            ], $rows);
+        } catch (PDOException $e) {
+            Log::error("[DynamicAdapter:{$this->system->slug}] fetchPermDefAvailablePerms: ".$e->getMessage());
+
+            return [];
+        }
     }
 
     /**
@@ -561,6 +622,31 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         // Multi-Level Hierarchy: user's direct role assignments from membership table
         if ($this->isMultiLevelHierarchy()) {
             return $this->getMultiLevelHierarchyPermissions($user);
+        }
+
+        // Column mode: read permission value directly from the user table (no junction FK needed)
+        // Use resolveUserIdentifier() not $identifier (which is FK/PK value used for junction tables)
+        if ($cfg->permission_mode === 'column') {
+            if (! $cfg->perm_table || ! $cfg->perm_value_col) {
+                return [];
+            }
+
+            try {
+                $pdo = $this->getConnection();
+                $table = $this->quoteIdentifier($cfg->perm_table);
+                $valCol = $this->quoteIdentifier($cfg->perm_value_col);
+                $idCol = $this->quoteIdentifier($cfg->user_identifier_col);
+                $userIdentifier = $this->resolveUserIdentifier($user);
+                $stmt = $pdo->prepare("SELECT {$valCol} FROM {$table} WHERE {$idCol} = ? LIMIT 1");
+                $stmt->execute([$userIdentifier]);
+                $val = $stmt->fetchColumn();
+
+                return ($val !== false && $val !== null && $val !== '') ? [$val] : [];
+            } catch (PDOException $e) {
+                Log::error("[DynamicAdapter:{$this->system->slug}] getCurrentPermissions (column mode): ".$e->getMessage());
+
+                return [];
+            }
         }
 
         if (! $cfg->perm_table || ! $cfg->perm_value_col || ! $cfg->perm_user_fk_col) {
@@ -1561,23 +1647,34 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
     {
         $cfg = $this->config;
         $identifier = $this->resolveUserIdentifier($user);
+        $val = $permissions[0] ?? null;
 
         try {
             $pdo = $this->getConnection();
             $table = $this->quoteIdentifier($cfg->perm_table);
             $valCol = $this->quoteIdentifier($cfg->perm_value_col);
             $idCol = $this->quoteIdentifier($cfg->user_identifier_col);
-            $val = $permissions[0] ?? null;
 
             // ตรวจสอบว่า user มีอยู่ไหม
             $chk = $pdo->prepare("SELECT 1 FROM {$table} WHERE {$idCol} = ? LIMIT 1");
             $chk->execute([$identifier]);
             if (! $chk->fetchColumn()) {
+                if ($val === null) {
+                    // ไม่มี permission และ user ยังไม่มี → ไม่มีอะไรต้องทำ
+                    return true;
+                }
                 Log::info("[DynamicAdapter:{$this->system->slug}] Column mode — User {$identifier} ยังไม่มี → กำลังสร้าง...");
                 if (! $this->createUser($user, $permissions)) {
                     return false;
                 }
                 Log::info("[DynamicAdapter:{$this->system->slug}] สร้าง user {$identifier} สำเร็จ");
+
+                return true;
+            }
+
+            if ($val === null) {
+                // ไม่มี permission ที่เลือก → ข้าม UPDATE เพื่อป้องกัน NOT NULL violation
+                Log::info("[DynamicAdapter:{$this->system->slug}] Column mode — User {$identifier} ไม่มี permission ที่เลือก → ข้าม UPDATE");
 
                 return true;
             }
@@ -1758,21 +1855,33 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
             $rows = $this->fetchPermissionRows();
 
+            // column mode เก็บสิทธิ์เดียวต่อ user → ต้องให้ทุก permission อยู่ใน
+            // group เดียวกัน เพื่อให้ UI แสดงเป็น radio button ชุดเดียว
+            $forceGroup = ($cfg->permission_mode === 'column') ? 'บทบาท' : null;
+
             foreach ($rows as $row) {
                 $key = trim((string) ($row['key'] ?? ''));
                 $remoteValue = isset($row['remote_value']) && $row['remote_value'] !== '' ? $row['remote_value'] : null;
+                $group = $forceGroup ?? ($row['group'] ?? null);
 
                 if ($key === '') {
                     continue;
                 }
 
                 if (in_array($key, $existingKeys, true)) {
+                    $updates = [];
                     // อัปเดต remote_value ของ record เดิมที่ยังว่างอยู่ (backfill)
                     if ($remoteValue !== null) {
+                        $updates['remote_value'] = $remoteValue;
+                    }
+                    // column mode: normalize group ของ permission เดิมให้ตรงกันด้วย
+                    if ($forceGroup !== null) {
+                        $updates['group'] = $forceGroup;
+                    }
+                    if (! empty($updates)) {
                         SystemPermission::where('system_id', $this->system->id)
                             ->where('key', $key)
-                            ->whereNull('remote_value')
-                            ->update(['remote_value' => $remoteValue]);
+                            ->update($updates);
                     }
 
                     continue;
@@ -1782,7 +1891,7 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                     ['system_id' => $this->system->id, 'key' => $key],
                     [
                         'label' => $row['label'] ?? $key,
-                        'group' => $row['group'] ?? null,
+                        'group' => $group,
                         'remote_value' => $remoteValue,
                     ]
                 );

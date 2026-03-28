@@ -558,6 +558,21 @@ class ConnectorWizardController extends Controller
             'perm_hier_perm_value_col' => 'nullable|string|max:80|regex:/^[\w.]+$/',
         ]);
 
+        // Validate master_tables labels: must not contain '/' (URL path separator causes routing issues)
+        if (! empty($data['master_tables'])) {
+            $decodedTables = json_decode($data['master_tables'], true);
+            if (is_array($decodedTables)) {
+                foreach ($decodedTables as $index => $tableEntry) {
+                    $label = $tableEntry['label'] ?? '';
+                    if (str_contains($label, '/')) {
+                        return back()->withErrors([
+                            'master_tables' => "ชื่อ Master Table '{$label}' ห้ามมีอักขระ '/' (ใช้ '-' แทน)",
+                        ])->withInput();
+                    }
+                }
+            }
+        }
+
         $isNew = ! isset($data['system_id']);
 
         // Edit mode: ถ้าไม่ได้กรอก password ใหม่ ให้ใช้ password เดิมจาก ConnectorConfig

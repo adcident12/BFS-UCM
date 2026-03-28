@@ -1159,8 +1159,9 @@ $sections = [
                         ['href' => '#wiz-advanced-junction', 'label' => 'Advanced Junction Options'],
                         ['href' => '#wiz-composite',         'label' => 'Composite Junction'],
                         ['href' => '#wiz-2way',              'label' => '2-Way Sync & Delete Mode'],
-                        ['href' => '#wiz-example-gov-hr',    'label' => '📋 ตัวอย่าง: ระบบ HR ภาครัฐ'],
-                        ['href' => '#wiz-after',             'label' => 'หลังสร้างแล้ว'],
+                        ['href' => '#wiz-example-gov-hr',       'label' => '📋 ตัวอย่าง: ระบบ HR ภาครัฐ'],
+                        ['href' => '#wiz-example-repair-sc',    'label' => '📋 ตัวอย่าง: ระบบแจ้งซ่อม'],
+                        ['href' => '#wiz-after',                'label' => 'หลังสร้างแล้ว'],
                     ] as $t)
                     <a href="{{ $t['href'] }}" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors font-medium">{{ $t['label'] }}</a>
                     @endforeach
@@ -2995,6 +2996,572 @@ FLUSH PRIVILEGES;</pre>
                                     ['n' => '3', 'color' => 'emerald', 'title' => 'ทดสอบ Health Check',        'desc' => 'กด "ทดสอบการเชื่อมต่อ" ในหน้าจัดการระบบ เพื่อยืนยันว่า UCM ยังสื่อสารกับ hr_db ได้สำเร็จ'],
                                     ['n' => '4', 'color' => 'sky',     'title' => 'ตรวจสอบ Out of Sync',       'desc' => 'ในหน้า User Profile หากพบ badge "Out of Sync" แสดงว่าสิทธิ์ใน UCM ไม่ตรงกับ tb_emp_permission — กด "Discover" เพื่อดึงจากระบบจริง หรือ "Sync" เพื่อเขียน UCM → ระบบจริง'],
                                     ['n' => '5', 'color' => 'teal',    'title' => 'จัดการ Master Data',         'desc' => 'ไปที่ ระบบที่เชื่อมต่อ → gov-hr → แท็บ "ข้อมูล Reference" → "แผนก" เพื่อเพิ่ม/แก้ไข/ลบข้อมูลในตาราง departments โดยตรง'],
+                                ] as $s)
+                                <div class="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100">
+                                    <div class="w-6 h-6 bg-{{ $s['color'] }}-100 text-{{ $s['color'] }}-700 text-[11px] font-bold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">{{ $s['n'] }}</div>
+                                    <div>
+                                        <p class="font-semibold text-slate-800">{{ $s['title'] }}</p>
+                                        <p class="text-slate-500 text-[11px] mt-0.5">{{ $s['desc'] }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                {{-- ── ตัวอย่าง: ระบบแจ้งซ่อม (Single Column) ── --}}
+                <div id="wiz-example-repair-sc" class="border-t border-slate-100 pt-5">
+                    <div class="flex items-center gap-3 mb-1">
+                        <h3 class="font-bold text-slate-900 text-base">ตัวอย่างการตั้งค่าแบบครบถ้วน</h3>
+                        <span class="text-[11px] font-bold bg-sky-100 text-sky-700 px-2 py-0.5 rounded-full">Single Column Mode</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-5">เชื่อมต่อ <strong class="text-slate-700">ระบบแจ้งซ่อม</strong> (<code class="font-mono text-slate-700">repair-system-sc</code>) เข้ากับ UCM ทีละขั้นตอน ตั้งแต่ Step 1 ถึง Step 7 โดยใช้ข้อมูลจริงจากฐานข้อมูล <code class="font-mono text-slate-700">repair_system_db</code> พร้อม 2-Way Sync และ Master Data Tables 2 ตาราง</p>
+
+                    {{-- โครงสร้างฐานข้อมูลจริง --}}
+                    <div class="mb-6 rounded-2xl border border-slate-200 overflow-hidden">
+                        <div class="px-5 py-3 bg-slate-800 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582 4-8 4m16 0c0 2.21-3.582 4-8 4"/></svg>
+                            <p class="font-bold text-white text-sm">โครงสร้างฐานข้อมูล <code class="font-mono text-emerald-300">repair_system_db</code></p>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200">
+                            @foreach ([
+                                [
+                                    'table' => 'staff',
+                                    'desc'  => 'ตารางพนักงานช่าง (User Table + Permission Column)',
+                                    'color' => 'sky',
+                                    'cols'  => [
+                                        ['name' => 'id',          'type' => 'INT PK AUTO'],
+                                        ['name' => 'staff_code',  'type' => 'VARCHAR(20) — รหัสช่าง (= UCM username)'],
+                                        ['name' => 'full_name',   'type' => 'VARCHAR(100) NOT NULL'],
+                                        ['name' => 'email',       'type' => 'VARCHAR(100) NULL'],
+                                        ['name' => 'department',  'type' => 'VARCHAR(50) NULL'],
+                                        ['name' => 'role',        'type' => 'VARCHAR(30) NOT NULL DEFAULT technician'],
+                                        ['name' => 'status',      'type' => 'TINYINT (1=ใช้งาน, 0=ปิด)'],
+                                        ['name' => 'created_at',  'type' => 'TIMESTAMP'],
+                                    ],
+                                ],
+                                [
+                                    'table' => 'role_definitions',
+                                    'desc'  => 'Permission Definition (2-Way Sync)',
+                                    'color' => 'violet',
+                                    'cols'  => [
+                                        ['name' => 'id',            'type' => 'INT PK AUTO'],
+                                        ['name' => 'role_code',     'type' => 'VARCHAR(30) — ค่าที่เก็บใน staff.role'],
+                                        ['name' => 'role_name',     'type' => 'VARCHAR(100) — ชื่อภาษาไทย'],
+                                        ['name' => 'role_category', 'type' => 'VARCHAR(50) NULL — หมวดหมู่'],
+                                        ['name' => 'is_active',     'type' => 'TINYINT DEFAULT 1 (0=soft-delete)'],
+                                        ['name' => 'created_at',    'type' => 'TIMESTAMP'],
+                                    ],
+                                ],
+                                [
+                                    'table' => 'buildings',
+                                    'desc'  => 'Master Data (อาคาร-สถานที่)',
+                                    'color' => 'teal',
+                                    'cols'  => [
+                                        ['name' => 'id',            'type' => 'INT PK AUTO'],
+                                        ['name' => 'building_code', 'type' => 'VARCHAR(20) UNI'],
+                                        ['name' => 'building_name', 'type' => 'VARCHAR(100) NOT NULL'],
+                                        ['name' => 'floor_count',   'type' => 'TINYINT NULL'],
+                                        ['name' => 'is_active',     'type' => 'TINYINT DEFAULT 1 (0=soft-delete)'],
+                                    ],
+                                ],
+                                [
+                                    'table' => 'equipment_categories',
+                                    'desc'  => 'Master Data (ประเภทอุปกรณ์)',
+                                    'color' => 'orange',
+                                    'cols'  => [
+                                        ['name' => 'id',          'type' => 'INT PK AUTO'],
+                                        ['name' => 'cat_code',    'type' => 'VARCHAR(20) UNI'],
+                                        ['name' => 'cat_name',    'type' => 'VARCHAR(100) NOT NULL'],
+                                        ['name' => 'description', 'type' => 'VARCHAR(255) NULL'],
+                                        ['name' => 'is_active',   'type' => 'TINYINT DEFAULT 1 (0=soft-delete)'],
+                                    ],
+                                ],
+                            ] as $tbl)
+                            <div class="p-4">
+                                <div class="flex items-center gap-1.5 mb-2">
+                                    <span class="w-2 h-2 rounded-full bg-{{ $tbl['color'] }}-500 flex-shrink-0"></span>
+                                    <code class="text-xs font-bold font-mono text-{{ $tbl['color'] }}-700">{{ $tbl['table'] }}</code>
+                                </div>
+                                <p class="text-[10px] text-slate-500 mb-2">{{ $tbl['desc'] }}</p>
+                                <div class="space-y-0.5">
+                                    @foreach ($tbl['cols'] as $c)
+                                    <div class="flex gap-1.5 text-[10px]">
+                                        <code class="font-mono text-slate-800 font-semibold flex-shrink-0">{{ $c['name'] }}</code>
+                                        <span class="text-slate-400">{{ $c['type'] }}</span>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        {{-- role_code จริงในระบบ --}}
+                        <div class="px-5 py-3 border-t border-slate-200 bg-slate-50">
+                            <p class="text-[10px] font-semibold text-slate-600 mb-1.5">role_code จริงใน role_definitions (5 รายการ):</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach ([
+                                    'technician'  => 'ช่างซ่อม',
+                                    'senior_tech' => 'ช่างซ่อมอาวุโส',
+                                    'supervisor'  => 'หัวหน้าช่าง',
+                                    'admin'       => 'ผู้ดูแลระบบ',
+                                    'readonly'    => 'ดูข้อมูลอย่างเดียว',
+                                ] as $code => $label)
+                                <div class="flex items-center gap-1 bg-sky-50 border border-sky-200 rounded px-2 py-0.5">
+                                    <code class="text-[10px] font-mono font-bold text-sky-800">{{ $code }}</code>
+                                    <span class="text-[10px] text-slate-500">{{ $label }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-2">⚠️ แต่ละ staff มี role ได้แค่ 1 ค่า เพราะเก็บใน VARCHAR column เดียว — ต่างจาก Junction Table ที่มีได้หลายค่า</p>
+                        </div>
+                    </div>
+
+                    {{-- Step-by-Step --}}
+                    <div class="space-y-5">
+
+                        {{-- Step 1 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-indigo-600">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">1</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 1 — ข้อมูลระบบ</p>
+                                    <p class="text-indigo-200 text-[11px]">กรอกชื่อและรายละเอียดระบบแจ้งซ่อม</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @foreach ([
+                                        ['field' => 'ชื่อระบบ',  'val' => 'ระบบแจ้งซ่อม',       'req' => true],
+                                        ['field' => 'Slug',       'val' => 'repair-system-sc',    'req' => true,  'hint' => 'ระบบสร้างให้อัตโนมัติ หรือพิมพ์เอง'],
+                                        ['field' => 'คำอธิบาย', 'val' => 'ระบบจัดการแจ้งซ่อมและบำรุงรักษา', 'req' => false],
+                                    ] as $f)
+                                    <div class="flex items-start gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-semibold text-slate-600 text-[10px] mb-0.5">
+                                                {{ $f['field'] }}
+                                                @if($f['req'])<span class="text-rose-500">*</span>@endif
+                                            </p>
+                                            <p class="font-mono text-slate-900 font-bold truncate">{{ $f['val'] }}</p>
+                                            @if(isset($f['hint']))<p class="text-slate-400 text-[10px] mt-0.5">{{ $f['hint'] }}</p>@endif
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                <div class="flex items-start gap-2 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-[11px] text-indigo-800">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                                    <span>Slug <code class="font-mono bg-white px-1 rounded border border-indigo-200">repair-system-sc</code> จะถูกใช้เป็น identifier ของระบบนี้ในทุก URL และ log — เปลี่ยนภายหลังไม่ได้</span>
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 2</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 2 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-slate-700">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">2</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 2 — การเชื่อมต่อฐานข้อมูล</p>
+                                    <p class="text-slate-300 text-[11px]">กรอก connection string ไปยัง repair_system_db</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    @foreach ([
+                                        ['field' => 'Database Driver', 'val' => '🐬 MySQL / MariaDB'],
+                                        ['field' => 'Host',            'val' => 'ucm-db'],
+                                        ['field' => 'Port',            'val' => '3306'],
+                                        ['field' => 'Database Name',   'val' => 'repair_system_db'],
+                                        ['field' => 'Username',        'val' => 'root'],
+                                        ['field' => 'Password',        'val' => 'ucm_root_password'],
+                                    ] as $f)
+                                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <p class="font-semibold text-slate-500 text-[10px] mb-0.5">{{ $f['field'] }}</p>
+                                        <p class="font-mono text-slate-900 font-bold">{{ $f['val'] }}</p>
+                                    </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="px-3 py-2 bg-slate-100 border-b border-slate-200">
+                                        <p class="text-[10px] font-bold text-slate-600">สิทธิ์ขั้นต่ำที่ DB User ต้องการ (SQL ตัวอย่าง)</p>
+                                    </div>
+                                    <pre class="px-4 py-3 text-[10px] font-mono text-slate-700 bg-slate-800 text-emerald-300 overflow-x-auto leading-relaxed">CREATE USER 'repair_ucm_user'@'%' IDENTIFIED BY 'StrongP@ssword!';
+GRANT SELECT, INSERT, UPDATE ON repair_system_db.staff TO 'repair_ucm_user'@'%';
+GRANT SELECT ON repair_system_db.role_definitions TO 'repair_ucm_user'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON repair_system_db.buildings TO 'repair_ucm_user'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON repair_system_db.equipment_categories TO 'repair_ucm_user'@'%';
+FLUSH PRIVILEGES;</pre>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800">
+                                        <svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>กด <strong>"ทดสอบการเชื่อมต่อ"</strong> ก่อนทำขั้นตอนถัดไปเสมอ หากขึ้น "เชื่อมต่อสำเร็จ" แสดงว่า credentials ถูกต้องและ UCM เข้าถึง repair_system_db ได้</span>
+                                    </div>
+                                    <div class="flex items-start gap-2 p-3 bg-violet-50 border border-violet-200 rounded-xl text-[11px] text-violet-800">
+                                        <span class="text-base leading-none flex-shrink-0">🤖</span>
+                                        <span>หลัง Test Connection สำเร็จ ลองกด <strong>"วิเคราะห์ Schema อัตโนมัติ"</strong> — ระบบจะตรวจจับตาราง staff และแนะนำ Single Column Mode ให้อัตโนมัติ กด "ใช้การตั้งค่านี้" เพื่อ autofill Step 3–4</span>
+                                    </div>
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 3</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 3 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-sky-600">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">3</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 3 — ตาราง Users</p>
+                                    <p class="text-sky-100 text-[11px]">แมปตาราง staff กับ UCM</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-4 text-xs">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="p-3 bg-sky-50 border border-sky-200 rounded-xl">
+                                        <p class="font-semibold text-sky-700 text-[10px] mb-1">ตาราง Users หลัก <span class="text-rose-500">*</span></p>
+                                        <code class="font-mono font-bold text-slate-900">staff</code>
+                                        <p class="text-slate-500 text-[10px] mt-1">เลือกจาก dropdown ที่ดึงจาก repair_system_db</p>
+                                    </div>
+                                    <div class="p-3 bg-sky-50 border border-sky-200 rounded-xl">
+                                        <p class="font-semibold text-sky-700 text-[10px] mb-1">UCM ใช้อะไรระบุตัวตน <span class="text-rose-500">*</span></p>
+                                        <code class="font-mono font-bold text-slate-900">Username (จาก AD)</code>
+                                        <p class="text-slate-500 text-[10px] mt-1">ช่างล็อกอินด้วย AD username → UCM จะ match กับ staff_code</p>
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                                        <p class="font-bold text-slate-700 text-[10px]">การ map คอลัมน์ (Column Mapping)</p>
+                                    </div>
+                                    <div class="divide-y divide-slate-100">
+                                        @foreach ([
+                                            ['field' => 'Identifier Column', 'req' => true,  'col' => 'staff_code', 'note' => 'staff_code ตรงกับ AD username ของช่าง ใช้เพื่อ match กับ UCM User'],
+                                            ['field' => 'Primary Key',       'req' => false, 'col' => 'id',         'note' => 'PK (INT) ของตาราง — ระบุเพราะ Identifier (staff_code) ไม่ใช่ PK'],
+                                            ['field' => 'ชื่อ-นามสกุล',     'req' => false, 'col' => 'full_name',  'note' => 'ใช้แสดงชื่อช่างใน UCM เมื่อ sync'],
+                                            ['field' => 'อีเมล',            'req' => false, 'col' => 'email',      'note' => 'sync อีเมลจาก UCM เข้า staff ด้วย'],
+                                            ['field' => 'แผนก',             'req' => false, 'col' => 'department', 'note' => 'ชื่อแผนกตรงกันกับ UCM เลย — ไม่ต้องทำ Dept Mapping'],
+                                            ['field' => 'สถานะ Active',     'req' => false, 'col' => 'status',     'note' => 'ค่า Active = 1 / Inactive = 0'],
+                                        ] as $f)
+                                        <div class="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-50">
+                                            <span class="w-16 flex-shrink-0 text-center text-[9px] font-bold px-1 py-0.5 rounded mt-0.5 {{ $f['req'] ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500' }}">{{ $f['req'] ? 'บังคับ' : 'ไม่บังคับ' }}</span>
+                                            <div class="w-32 flex-shrink-0">
+                                                <p class="font-semibold text-slate-700">{{ $f['field'] }}</p>
+                                            </div>
+                                            <div class="flex-1 flex items-center gap-2">
+                                                <code class="font-mono font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-100">{{ $f['col'] }}</code>
+                                                <span class="text-slate-500">{{ $f['note'] }}</span>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-2 p-3 bg-sky-50 border border-sky-200 rounded-xl text-[11px] text-sky-800">
+                                    <svg class="w-3.5 h-3.5 text-sky-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                                    <span>ระบบนี้ <strong>ไม่ต้องทำ Department Mapping</strong> เพราะ <code class="font-mono bg-white px-1 rounded border border-sky-200">staff.department</code> เก็บชื่อแผนกเต็มตรงกับ UCM อยู่แล้ว</span>
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 4</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 4 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-violet-700">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">4</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 4 — Permission Mode</p>
+                                    <p class="text-violet-200 text-[11px]">เลือก 📄 Single Column และตั้งค่า staff.role</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-4 text-xs">
+
+                                <div class="flex items-center gap-3 p-3.5 bg-sky-50 border-2 border-sky-400 rounded-xl">
+                                    <div class="w-8 h-8 bg-sky-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                        <span class="text-base">📄</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-sky-900">เลือก "Single Column"</p>
+                                        <p class="text-sky-700 text-[11px]">เหมาะที่สุด เพราะ staff.role เป็น VARCHAR column ที่เก็บ role ได้เพียง 1 ค่าต่อ user — ไม่มีตาราง junction แยกต่างหาก</p>
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                                        <p class="font-bold text-slate-700 text-[10px]">ค่าที่ต้องกรอกสำหรับ Single Column</p>
+                                    </div>
+                                    <div class="divide-y divide-slate-100">
+                                        @foreach ([
+                                            ['field' => 'ตาราง Permission',          'req' => true,  'val' => 'staff',        'note' => 'ตารางเดียวกับ User Table — role อยู่ที่นี่'],
+                                            ['field' => 'Permission Value Column',   'req' => true,  'val' => 'role',         'note' => 'คอลัมน์ที่เก็บค่า role เช่น technician, admin'],
+                                            ['field' => 'User FK Column',            'req' => false, 'val' => '(ว่าง)',       'note' => 'Single Column ไม่ใช้ junction table — ไม่ต้องระบุ'],
+                                        ] as $f)
+                                        <div class="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-50">
+                                            <span class="w-16 flex-shrink-0 text-center text-[9px] font-bold px-1 py-0.5 rounded mt-0.5 {{ $f['req'] ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500' }}">{{ $f['req'] ? 'บังคับ' : 'ไม่บังคับ' }}</span>
+                                            <div class="w-40 flex-shrink-0">
+                                                <p class="font-semibold text-slate-700">{{ $f['field'] }}</p>
+                                            </div>
+                                            <div class="flex-1 flex items-center gap-2">
+                                                <code class="font-mono font-bold text-violet-700 bg-violet-50 px-2 py-0.5 rounded border border-violet-100 whitespace-nowrap">{{ $f['val'] }}</code>
+                                                <span class="text-slate-500">{{ $f['note'] }}</span>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl border border-amber-200 overflow-hidden">
+                                    <div class="px-4 py-2.5 bg-amber-50 border-b border-amber-200 flex items-center gap-2">
+                                        <span class="text-sm">⚠️</span>
+                                        <p class="font-bold text-amber-800 text-[10px]">ข้อจำกัดของ Single Column Mode</p>
+                                    </div>
+                                    <div class="p-4 space-y-2">
+                                        @foreach ([
+                                            ['icon' => 'text-amber-500', 'text' => 'user 1 คนมีได้แค่ 1 role — เมื่อบันทึกสิทธิ์ใหม่ค่าเดิมจะถูกเขียนทับทันที'],
+                                            ['icon' => 'text-amber-500', 'text' => 'UI จะแสดง permissions เป็น radio button (เลือกได้ทีละ 1) ไม่ใช่ checkbox'],
+                                            ['icon' => 'text-amber-500', 'text' => 'การบันทึกโดยไม่เลือก role จะ ไม่เปลี่ยนค่าในฐานข้อมูล (role เดิมยังคงอยู่)'],
+                                        ] as $w)
+                                        <div class="flex items-start gap-2 text-[11px]">
+                                            <svg class="w-3.5 h-3.5 {{ $w['icon'] }} flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                            <span class="text-slate-700">{{ $w['text'] }}</span>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800">
+                                    <svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <span>กด <strong>"ดูตัวอย่างสิทธิ์"</strong> เพื่อยืนยันว่า query ดึงค่า role ได้ถูกต้อง ควรเห็นค่า เช่น technician, senior_tech, admin ปรากฏขึ้น</span>
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 5</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 5 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-orange-500">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">5</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 5 — 2-Way Permission Sync</p>
+                                    <p class="text-orange-100 text-[11px]">เปิดให้ UCM อ่าน role_definitions เป็น Permission Definition</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-4 text-xs">
+                                <div class="flex items-start gap-2 p-3 bg-orange-50 border border-orange-200 rounded-xl text-[11px] text-orange-800">
+                                    <svg class="w-3.5 h-3.5 text-orange-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                                    <span>สลับ Toggle <strong>"เปิด 2-Way Sync"</strong> ให้เป็น ON เพื่อให้ UCM อ่านรายการ role ทั้งหมดจาก <code class="font-mono bg-orange-50 px-1 rounded border border-orange-200">role_definitions</code> พร้อม label ภาษาไทย แทนที่จะสแกนจาก staff.role โดยตรง</span>
+                                </div>
+
+                                <div class="rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                                        <p class="font-bold text-slate-700 text-[10px]">การตั้งค่า Permission Definition Table</p>
+                                    </div>
+                                    <div class="divide-y divide-slate-100">
+                                        @foreach ([
+                                            ['field' => 'Permission Definition Table', 'req' => true,  'val' => 'role_definitions', 'note' => 'ตารางที่เก็บนิยาม role ทั้งหมดของระบบแจ้งซ่อม'],
+                                            ['field' => 'Value Column',               'req' => true,  'val' => 'role_code',        'note' => 'ตรงกับค่าที่เก็บใน staff.role เช่น technician'],
+                                            ['field' => 'Primary Key Column',         'req' => false, 'val' => 'id',               'note' => 'PK ของตาราง role_definitions'],
+                                            ['field' => 'Label Column',               'req' => false, 'val' => 'role_name',        'note' => 'ชื่อภาษาไทย เช่น "ช่างซ่อม", "ผู้ดูแลระบบ" — แสดงใน UCM แทน role_code'],
+                                            ['field' => 'Group Column',               'req' => false, 'val' => 'role_category',    'note' => 'หมวดหมู่ เช่น ปฏิบัติการ, บริหาร — UCM จะรวมเป็นกลุ่มเดียวอัตโนมัติสำหรับ Single Column'],
+                                        ] as $f)
+                                        <div class="flex items-start gap-3 px-4 py-2.5 hover:bg-slate-50">
+                                            <span class="w-16 flex-shrink-0 text-center text-[9px] font-bold px-1 py-0.5 rounded mt-0.5 {{ $f['req'] ? 'bg-rose-100 text-rose-600' : 'bg-slate-100 text-slate-500' }}">{{ $f['req'] ? 'บังคับ' : 'ไม่บังคับ' }}</span>
+                                            <div class="w-44 flex-shrink-0">
+                                                <p class="font-semibold text-slate-700">{{ $f['field'] }}</p>
+                                            </div>
+                                            <div class="flex-1 flex items-center gap-2">
+                                                <code class="font-mono font-bold text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-100 whitespace-nowrap">{{ $f['val'] }}</code>
+                                                <span class="text-slate-500">{{ $f['note'] }}</span>
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl border border-amber-200 overflow-hidden">
+                                    <div class="px-4 py-2.5 bg-amber-50 border-b border-amber-200 flex items-center gap-2">
+                                        <span class="text-sm">🗑️</span>
+                                        <p class="font-bold text-amber-800 text-[10px]">Delete Mode — เลือก "Soft Delete" (เหมาะกับ role_definitions ที่มี is_active)</p>
+                                    </div>
+                                    <div class="p-4 space-y-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="grid grid-cols-3 gap-2 flex-1">
+                                                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center opacity-50">
+                                                    <p class="text-[10px] font-bold text-slate-600">Detach Only</p>
+                                                    <p class="text-[10px] text-slate-500 mt-0.5">ไม่แตะ DB ปลายทาง</p>
+                                                </div>
+                                                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center opacity-50">
+                                                    <p class="text-[10px] font-bold text-red-600">Hard Delete</p>
+                                                    <p class="text-[10px] text-slate-500 mt-0.5">DELETE ถาวร</p>
+                                                </div>
+                                                <div class="p-2.5 bg-amber-50 border-2 border-amber-400 rounded-xl text-center">
+                                                    <p class="text-[10px] font-bold text-amber-700">✓ Soft Delete</p>
+                                                    <p class="text-[10px] text-amber-600 mt-0.5">อัปเดต flag</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+                                                <p class="text-[10px] font-semibold text-amber-700 mb-0.5">Soft Delete Column</p>
+                                                <code class="font-mono font-bold text-slate-900">is_active</code>
+                                                <p class="text-slate-500 text-[10px] mt-0.5">flag TINYINT ที่บ่งบอกว่า role นี้ยังใช้งานอยู่ไหม</p>
+                                            </div>
+                                            <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+                                                <p class="text-[10px] font-semibold text-amber-700 mb-0.5">Soft Delete Value</p>
+                                                <code class="font-mono font-bold text-slate-900">0</code>
+                                                <p class="text-slate-500 text-[10px] mt-0.5">ค่าที่หมายถึง "ปิดใช้งาน" (is_active = 0) — ตรงข้ามกับ Active = 1</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-start gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] text-slate-600">
+                                            <span class="font-bold text-slate-700 flex-shrink-0">ผลที่ได้:</span>
+                                            <div class="space-y-0.5 font-mono">
+                                                <p><span class="text-sky-600">-- Discover กรอง role ที่ปิดใช้งานออก:</span></p>
+                                                <p class="text-slate-800">SELECT * FROM role_definitions WHERE is_active != 0</p>
+                                                <p class="mt-1.5"><span class="text-amber-600">-- Soft-delete role (ปิดใช้งาน):</span></p>
+                                                <p class="text-slate-800">UPDATE role_definitions SET is_active = 0 WHERE id = ?</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 6</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 6 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-teal-600">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">6</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 6 — Master Data Tables</p>
+                                    <p class="text-teal-100 text-[11px]">ลงทะเบียน buildings และ equipment_categories ให้ Admin จัดการผ่าน UCM ได้</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-4 text-xs">
+                                <p class="text-slate-600">กด <strong>"+ เพิ่มตาราง"</strong> 2 ครั้ง เพื่อลงทะเบียน <code class="font-mono bg-slate-100 px-1 rounded">buildings</code> และ <code class="font-mono bg-slate-100 px-1 rounded">equipment_categories</code> เป็น Master Data ที่ Admin สามารถเพิ่ม/แก้ไข/ลบข้อมูลได้จาก UCM โดยตรง</p>
+
+                                {{-- buildings --}}
+                                <div class="rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="px-4 py-2.5 bg-teal-50 border-b border-teal-200 flex items-center gap-2">
+                                        <span class="text-sm">🏢</span>
+                                        <p class="font-bold text-teal-800 text-[10px]">ตารางที่ 1 — buildings (อาคาร-สถานที่)</p>
+                                    </div>
+                                    <div class="divide-y divide-slate-100">
+                                        @foreach ([
+                                            ['field' => 'ชื่อกลุ่ม (Label)',         'val' => 'อาคาร-สถานที่',   'note' => 'ชื่อที่แสดงใน UCM ใต้แท็บ "ข้อมูล Reference" — ห้ามใช้ / ใช้ - แทน'],
+                                            ['field' => 'ตาราง',                     'val' => 'buildings',       'note' => 'เลือกจาก dropdown'],
+                                            ['field' => 'Primary Key Column',        'val' => 'id',              'note' => 'PK สำหรับ UPDATE/DELETE'],
+                                            ['field' => 'Label Column',              'val' => 'building_name',   'note' => 'คอลัมน์ชื่ออาคารที่แสดงในรายการ'],
+                                            ['field' => 'Delete Mode',               'val' => 'Soft Delete',     'note' => 'ใช้ is_active = 0 แทนการลบถาวร'],
+                                            ['field' => 'Soft Delete Column',        'val' => 'is_active',       'note' => 'flag ที่บ่งบอกสถานะอาคาร'],
+                                            ['field' => 'Soft Delete Value',         'val' => '0',               'note' => 'ค่าที่หมายถึง "ปิดใช้งาน/ลบแล้ว"'],
+                                            ['field' => 'Extra Column: building_code', 'val' => 'building_code', 'note' => 'รหัสอาคาร (Required) — เพิ่มผ่าน "+ เพิ่ม Column" type=text'],
+                                            ['field' => 'Extra Column: floor_count',  'val' => 'floor_count',   'note' => 'จำนวนชั้น (ไม่บังคับ) — type=number'],
+                                        ] as $f)
+                                        <div class="flex items-start gap-3 px-4 py-2 hover:bg-slate-50">
+                                            <div class="w-44 flex-shrink-0 font-semibold text-slate-700">{{ $f['field'] }}</div>
+                                            <code class="font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded border border-teal-100 whitespace-nowrap">{{ $f['val'] }}</code>
+                                            <span class="flex-1 text-slate-500">{{ $f['note'] }}</span>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                {{-- equipment_categories --}}
+                                <div class="rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="px-4 py-2.5 bg-orange-50 border-b border-orange-200 flex items-center gap-2">
+                                        <span class="text-sm">🔧</span>
+                                        <p class="font-bold text-orange-800 text-[10px]">ตารางที่ 2 — equipment_categories (ประเภทอุปกรณ์)</p>
+                                    </div>
+                                    <div class="divide-y divide-slate-100">
+                                        @foreach ([
+                                            ['field' => 'ชื่อกลุ่ม (Label)',       'val' => 'ประเภทอุปกรณ์',   'note' => 'ชื่อที่แสดงใน UCM ใต้แท็บ "ข้อมูล Reference"'],
+                                            ['field' => 'ตาราง',                   'val' => 'equipment_categories', 'note' => 'เลือกจาก dropdown'],
+                                            ['field' => 'Primary Key Column',      'val' => 'id',              'note' => 'PK สำหรับ UPDATE/DELETE'],
+                                            ['field' => 'Label Column',            'val' => 'cat_name',        'note' => 'คอลัมน์ชื่อหมวดหมู่ที่แสดงในรายการ'],
+                                            ['field' => 'Delete Mode',             'val' => 'Soft Delete',     'note' => 'ใช้ is_active = 0 แทนการลบถาวร'],
+                                            ['field' => 'Soft Delete Column',      'val' => 'is_active',       'note' => 'flag ที่บ่งบอกสถานะหมวดหมู่'],
+                                            ['field' => 'Soft Delete Value',       'val' => '0',               'note' => 'ค่าที่หมายถึง "ปิดใช้งาน/ลบแล้ว"'],
+                                            ['field' => 'Extra Column: cat_code',  'val' => 'cat_code',        'note' => 'รหัสหมวดหมู่ (Required) — type=text'],
+                                            ['field' => 'Extra Column: description', 'val' => 'description',  'note' => 'คำอธิบาย (ไม่บังคับ) — type=text'],
+                                        ] as $f)
+                                        <div class="flex items-start gap-3 px-4 py-2 hover:bg-slate-50">
+                                            <div class="w-44 flex-shrink-0 font-semibold text-slate-700">{{ $f['field'] }}</div>
+                                            <code class="font-mono font-bold text-orange-700 bg-orange-50 px-2 py-0.5 rounded border border-orange-100 whitespace-nowrap">{{ $f['val'] }}</code>
+                                            <span class="flex-1 text-slate-500">{{ $f['note'] }}</span>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800">
+                                    <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    <span>ชื่อกลุ่ม (Label) <strong>ห้ามมีอักขระ /</strong> เพราะ / เป็น URL path separator จะทำให้ routing ผิดพลาด — ใช้ <code class="font-mono bg-amber-50 border border-amber-300 px-1 rounded">-</code> หรือ <code class="font-mono bg-amber-50 border border-amber-300 px-1 rounded">เว้นวรรค</code> แทน</span>
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 7</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 7 --}}
+                        <div class="rounded-2xl border border-emerald-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-emerald-600">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">7</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 7 — ยืนยันการสร้าง Connector</p>
+                                    <p class="text-emerald-100 text-[11px]">ตรวจสอบสรุปทั้งหมดก่อนกด "สร้าง"</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-4 text-xs">
+                                <p class="text-slate-600">ใน Step 7 ระบบจะแสดงสรุปการตั้งค่าทั้งหมด ตรวจสอบให้ครบก่อนกด <strong>"สร้าง Connector"</strong></p>
+
+                                <div class="rounded-xl border border-emerald-200 overflow-hidden">
+                                    <div class="px-4 py-2.5 bg-emerald-50 border-b border-emerald-200">
+                                        <p class="font-bold text-emerald-800 text-[10px]">Checklist ก่อนกด "สร้าง Connector"</p>
+                                    </div>
+                                    <div class="divide-y divide-slate-100">
+                                        @foreach ([
+                                            ['ok' => true, 'item' => 'ชื่อระบบ',        'val' => 'ระบบแจ้งซ่อม (repair-system-sc)'],
+                                            ['ok' => true, 'item' => 'DB Connection',    'val' => 'MySQL — ucm-db:3306/repair_system_db ✓ เชื่อมต่อสำเร็จ'],
+                                            ['ok' => true, 'item' => 'User Table',       'val' => 'staff — Identifier: staff_code, PK: id, Name: full_name, Dept: department, Status: status (Active=1)'],
+                                            ['ok' => true, 'item' => 'Permission Mode',  'val' => 'Single Column — staff.role (VARCHAR เก็บ role ได้ 1 ค่า)'],
+                                            ['ok' => true, 'item' => '2-Way Sync',       'val' => 'ON — role_definitions (role_code / role_name / role_category), Soft Delete: is_active = 0'],
+                                            ['ok' => true, 'item' => 'Master Data 1',    'val' => 'buildings — Label: อาคาร-สถานที่, PK: id, Soft Delete: is_active=0, Extra: building_code (req), floor_count'],
+                                            ['ok' => true, 'item' => 'Master Data 2',    'val' => 'equipment_categories — Label: ประเภทอุปกรณ์, PK: id, Soft Delete: is_active=0, Extra: cat_code (req), description'],
+                                        ] as $c)
+                                        <div class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50">
+                                            <svg class="w-4 h-4 {{ $c['ok'] ? 'text-emerald-500' : 'text-slate-300' }} flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                            <div class="w-32 flex-shrink-0 font-semibold text-slate-700">{{ $c['item'] }}</div>
+                                            <span class="text-slate-600">{{ $c['val'] }}</span>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-center">
+                                    <div class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-sm shadow-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        สร้าง Connector
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800">
+                                    <svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>หลังกด "สร้าง Connector" สำเร็จ ระบบจะสร้าง System <strong>repair-system-sc</strong> พร้อม DynamicAdapter และ redirect ไปยังหน้าจัดการระบบ — จากนั้นกด <strong>"Discover Permissions"</strong> เพื่อดึง role_code ทั้งหมดจาก role_definitions เข้า UCM ทันที</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ขั้นตอนหลังสร้าง --}}
+                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
+                            <h4 class="font-bold text-slate-900">ขั้นตอนหลังสร้าง Connector สำเร็จ</h4>
+                            <div class="space-y-2">
+                                @foreach ([
+                                    ['n' => '1', 'color' => 'sky',     'title' => 'Discover Permissions',   'desc' => 'ไปที่ ระบบที่เชื่อมต่อ → repair-system-sc → กด "Discover Permissions" — UCM จะดึง role_code ทั้งหมดจาก role_definitions ที่ is_active != 0 มาสร้างเป็น Permission list พร้อม label ภาษาไทย'],
+                                    ['n' => '2', 'color' => 'violet',  'title' => 'Assign สิทธิ์ให้ช่าง',  'desc' => 'ไปที่ จัดการผู้ใช้ → เลือกช่าง → เลือก role จาก radio button ใต้ "ระบบแจ้งซ่อม" → กด "บันทึกสิทธิ์ระบบนี้" — UCM จะ UPDATE staff.role โดยตรง (เปลี่ยนได้ทีละ 1 role เท่านั้น)'],
+                                    ['n' => '3', 'color' => 'emerald', 'title' => 'ทดสอบ Health Check',     'desc' => 'กด "ทดสอบการเชื่อมต่อ" ในหน้าจัดการระบบ เพื่อยืนยันว่า UCM ยังสื่อสารกับ repair_system_db ได้สำเร็จ'],
+                                    ['n' => '4', 'color' => 'amber',   'title' => 'ตรวจสอบ Out of Sync',    'desc' => 'ในหน้า User Profile หากพบ badge "Out of Sync" แสดงว่า role ใน UCM ไม่ตรงกับ staff.role — กด "Sync" เพื่อเขียน UCM → repair_system_db'],
+                                    ['n' => '5', 'color' => 'teal',    'title' => 'จัดการ Master Data',      'desc' => 'ไปที่ ระบบที่เชื่อมต่อ → repair-system-sc → แท็บ "ข้อมูล Reference" → "อาคาร-สถานที่" หรือ "ประเภทอุปกรณ์" เพื่อเพิ่ม/แก้ไข/ลบข้อมูลอ้างอิงโดยตรง'],
                                 ] as $s)
                                 <div class="flex items-start gap-3 p-3 bg-white rounded-xl border border-slate-100">
                                     <div class="w-6 h-6 bg-{{ $s['color'] }}-100 text-{{ $s['color'] }}-700 text-[11px] font-bold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">{{ $s['n'] }}</div>
