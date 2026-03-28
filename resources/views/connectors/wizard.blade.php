@@ -226,22 +226,26 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                     <div class="col-span-3">
                         <label class="{{ $lbl }}">Host <span class="text-rose-500">*</span></label>
                         <input type="text" id="field_db_host" class="{{ $mono }}" placeholder="192.168.1.100" value="{{ $editConfig->db_host ?? '' }}">
+                        <p class="{{ $hint }}">IP address, hostname หรือชื่อ Docker container เช่น <code class="font-mono text-[10px]">192.168.1.100</code>, <code class="font-mono text-[10px]">db-server</code></p>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">Port <span class="text-rose-500">*</span></label>
                         <input type="number" id="field_db_port" class="{{ $mono }}" value="{{ $editConfig->db_port ?? 3306 }}" min="1" max="65535">
+                        <p class="{{ $hint }}">MySQL: 3306 · PostgreSQL: 5432 · SQL Server: 1433</p>
                     </div>
                 </div>
 
                 <div>
                     <label class="{{ $lbl }}">Database Name <span class="text-rose-500">*</span></label>
                     <input type="text" id="field_db_name" class="{{ $mono }}" placeholder="myapp_db" value="{{ $editConfig->db_name ?? '' }}">
+                    <p class="{{ $hint }}">ชื่อ database ที่เก็บข้อมูลของระบบภายนอก (case-sensitive)</p>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="{{ $lbl }}">Username <span class="text-rose-500">*</span></label>
                         <input type="text" id="field_db_user" class="{{ $mono }}" placeholder="db_readonly" value="{{ $editConfig->db_user ?? '' }}" autocomplete="off">
+                        <p class="{{ $hint }}">ต้องมีสิทธิ์ SELECT บนทุกตารางที่ใช้ และ INSERT/UPDATE/DELETE หากเปิด 2-Way Sync</p>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">Password
@@ -249,6 +253,9 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </label>
                         <input type="password" id="field_db_password" class="{{ $mono }}"
                                placeholder="{{ isset($editConfig) ? '••••••••' : 'password' }}" autocomplete="new-password">
+                        @if(isset($editConfig))
+                        <p class="{{ $hint }}">เว้นว่างเพื่อคงรหัสผ่านเดิม กรอกใหม่เพื่อเปลี่ยน</p>
+                        @endif
                     </div>
                 </div>
 
@@ -451,6 +458,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                 @endif
                             </select>
                         </div>
+                        <p class="{{ $hint }}">ชื่อที่จะแสดงในหน้า User Profile ของ UCM</p>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">อีเมล <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
@@ -462,6 +470,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                 @endif
                             </select>
                         </div>
+                        <p class="{{ $hint }}">อีเมลที่จะแสดงใน UCM (ไม่ได้ใช้สำหรับ authentication)</p>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">แผนก <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
@@ -473,6 +482,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                 @endif
                             </select>
                         </div>
+                        <p class="{{ $hint }}">เลือกเพื่อ sync ข้อมูลแผนกไปยังระบบภายนอก — หากรูปแบบแผนกต่างกัน ตั้งค่า Dept Mapping ด้านล่าง</p>
                     </div>
                     <div id="dept-map-panel" class="hidden col-span-2">
                         <div class="border border-indigo-200 rounded-xl p-4 bg-indigo-50/40">
@@ -504,6 +514,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                 @endif
                             </select>
                         </div>
+                        <p class="{{ $hint }}">คอลัมน์ที่บอกว่า account ใช้งานได้หรือถูกปิด — UCM จะกรองเฉพาะ user ที่ active</p>
                     </div>
                     <div id="status-val-wrap" class="hidden col-span-2 grid grid-cols-2 gap-4">
                         <div>
@@ -721,6 +732,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">คอลัมน์ที่อ้างอิงไปหา user — ต้องตรงกับ "คอลัมน์ PK" หรือ "คอลัมน์ Identifier" ใน Step 3</p>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Permission Value <span class="text-rose-500">*</span></label>
@@ -732,6 +744,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">คอลัมน์ที่เก็บ key/code ของสิทธิ์ เช่น <code class="font-mono text-[10px]">role_code</code>, <code class="font-mono text-[10px]">perm_code</code> — ค่านี้คือ key ที่ UCM ใช้</p>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Label <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
@@ -743,6 +756,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">ชื่อที่อ่านง่ายสำหรับแสดงใน UCM เช่น "ดูรายงาน" แทน <code class="font-mono text-[10px]">report.view</code></p>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Group <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
@@ -754,6 +768,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">หมวดหมู่สิทธิ์ เช่น "Finance", "HR" — ใช้จัดกลุ่มใน UCM Permission UI</p>
                         </div>
                     </div>
 
@@ -913,6 +928,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">เช่น <code class="font-mono text-[10px]">user_id</code> — ต้องตรงกับ PK/Identifier ของตาราง users</p>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">FK ชี้ไปยัง Group ใน Via Table <span class="text-rose-500">*</span></label>
@@ -924,6 +940,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">เช่น <code class="font-mono text-[10px]">role_id</code>, <code class="font-mono text-[10px]">group_id</code> — FK ชี้ไปยังตาราง roles/groups</p>
                         </div>
                     </div>
 
@@ -950,6 +967,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">คอลัมน์ที่อ้างอิงไปยัง PK ของตาราง roles/groups เช่น <code class="font-mono text-[10px]">role_id</code></p>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Permission Value Col <span class="text-rose-500">*</span></label>
@@ -961,6 +979,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">คอลัมน์ที่เก็บ key/code ของสิทธิ์ที่ group นี้ได้รับ เช่น <code class="font-mono text-[10px]">perm_code</code></p>
                         </div>
                     </div>
                 </div>
@@ -1244,6 +1263,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">FK ที่ชี้ไปยัง PK ของ Roles Table เช่น <code class="font-mono text-[10px]">role_id</code></p>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">Permission Value Column <span class="text-rose-500">*</span></label>
@@ -1255,6 +1275,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">คอลัมน์ที่เก็บ key/code ของสิทธิ์ที่ role นี้มี เช่น <code class="font-mono text-[10px]">permission_code</code></p>
                         </div>
                     </div>
                 </div>
@@ -1282,18 +1303,21 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     <input type="text" id="field_perm_junction_active_col" name="perm_junction_active_col"
                                            value="{{ isset($editConfig) ? ($editConfig->perm_junction_active_col ?? '') : '' }}"
                                            class="{{ $inp }}" placeholder="is_active">
+                                    <p class="{{ $hint }}">ชื่อคอลัมน์ flag บนตาราง junction เช่น <code class="font-mono text-[10px]">is_active</code>, <code class="font-mono text-[10px]">status</code></p>
                                 </div>
                                 <div>
                                     <label class="{{ $lbl }}">Active Value</label>
                                     <input type="text" id="field_perm_junction_active_val" name="perm_junction_active_val"
                                            value="{{ isset($editConfig) ? ($editConfig->perm_junction_active_val ?? '1') : '1' }}"
                                            class="{{ $inp }}" placeholder="1">
+                                    <p class="{{ $hint }}">ค่าที่ SET เมื่อ<strong>มอบ</strong>สิทธิ์ (grant) เช่น <code class="font-mono text-[10px]">1</code>, <code class="font-mono text-[10px]">Y</code></p>
                                 </div>
                                 <div>
                                     <label class="{{ $lbl }}">Inactive Value</label>
                                     <input type="text" id="field_perm_junction_inactive_val" name="perm_junction_inactive_val"
                                            value="{{ isset($editConfig) ? ($editConfig->perm_junction_inactive_val ?? '0') : '0' }}"
                                            class="{{ $inp }}" placeholder="0">
+                                    <p class="{{ $hint }}">ค่าที่ SET เมื่อ<strong>เพิกถอน</strong>สิทธิ์ (revoke) แทนการ DELETE เช่น <code class="font-mono text-[10px]">0</code>, <code class="font-mono text-[10px]">N</code></p>
                                 </div>
                             </div>
                         </div>
@@ -1317,12 +1341,14 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     <input type="text" id="field_perm_valid_from_col" name="perm_valid_from_col"
                                            value="{{ isset($editConfig) ? ($editConfig->perm_valid_from_col ?? '') : '' }}"
                                            class="{{ $inp }}" placeholder="valid_from">
+                                    <p class="{{ $hint }}">คอลัมน์ DATE/DATETIME วันที่เริ่มมีสิทธิ์ — UCM จะกรองแถวที่ valid_from ≤ วันนี้</p>
                                 </div>
                                 <div>
                                     <label class="{{ $lbl }}">Valid To Column <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
                                     <input type="text" id="field_perm_valid_to_col" name="perm_valid_to_col"
                                            value="{{ isset($editConfig) ? ($editConfig->perm_valid_to_col ?? '') : '' }}"
                                            class="{{ $inp }}" placeholder="valid_to">
+                                    <p class="{{ $hint }}">คอลัมน์ DATE/DATETIME วันหมดอายุ — UCM จะกรองแถวที่ valid_to > วันนี้ หรือ NULL</p>
                                 </div>
                             </div>
                         </div>
@@ -1435,6 +1461,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">คอลัมน์ที่เก็บ key/code ของ permission เช่น <code class="font-mono text-[10px]">perm_code</code>, <code class="font-mono text-[10px]">role_code</code> — ต้องตรงกับ "Permission Value" ใน Step 4</p>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">คอลัมน์ Primary Key</label>
@@ -1446,6 +1473,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">PK ของตาราง Definitions — UCM ใช้ค่านี้เป็น remote_value สำหรับ tracking ปล่อยว่างหาก PK ชื่อ <code class="font-mono text-[10px]">id</code></p>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">คอลัมน์ Label <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
@@ -1457,6 +1485,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">ชื่อที่อ่านง่าย เช่น "ดูรายงาน" — แสดงแทน key ใน UCM Permission UI</p>
                         </div>
                         <div>
                             <label class="{{ $lbl }}">คอลัมน์ Group <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
@@ -1468,6 +1497,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                     @endif
                                 </select>
                             </div>
+                            <p class="{{ $hint }}">หมวดหมู่ เช่น "Finance", "HR" — ใช้จัดกลุ่ม permission ใน UCM</p>
                         </div>
                     </div>
 
@@ -1510,18 +1540,23 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-amber-700 mb-1.5">คอลัมน์ Soft Delete <span class="text-rose-500">*</span></label>
-                                <p class="text-xs text-amber-600 mb-1.5">คอลัมน์ที่จะ UPDATE เช่น <code class="font-mono bg-amber-100 px-1 rounded">is_deleted</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted_at</code></p>
+                                <p class="text-xs text-amber-600 mb-1.5">คอลัมน์ที่จะ UPDATE เมื่อลบ เช่น <code class="font-mono bg-amber-100 px-1 rounded">is_deleted</code> (TINYINT), <code class="font-mono bg-amber-100 px-1 rounded">deleted_at</code> (TIMESTAMP)</p>
                                 <input type="text" id="field_perm_def_soft_delete_col" name="perm_def_soft_delete_col"
                                        value="{{ isset($editConfig) ? ($editConfig->perm_def_soft_delete_col ?? '') : '' }}"
                                        placeholder="เช่น is_deleted"
                                        class="{{ $mono }} border-amber-200 focus:border-amber-500">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-amber-700 mb-1.5">ค่าที่หมายถึง "ลบแล้ว" <span class="text-rose-500">*</span></label>
-                                <p class="text-xs text-amber-600 mb-1.5">ค่าที่จะ SET เช่น <code class="font-mono bg-amber-100 px-1 rounded">1</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted</code></p>
+                                <label class="block text-xs font-bold text-amber-700 mb-1.5">ค่าที่หมายถึง "ลบแล้ว"
+                                    <span class="inline text-[10px] font-bold px-1.5 py-px bg-amber-100 text-amber-500 rounded ml-1">ไม่บังคับ</span>
+                                </label>
+                                <p class="text-xs text-amber-600 mb-1.5">
+                                    สำหรับ <strong>TINYINT / flag</strong>: กรอกค่า เช่น <code class="font-mono bg-amber-100 px-1 rounded">1</code>, <code class="font-mono bg-amber-100 px-1 rounded">deleted</code><br>
+                                    สำหรับ <strong>TIMESTAMP</strong> (<code class="font-mono bg-amber-100 px-1 rounded">deleted_at</code>): <strong class="text-amber-700">เว้นว่างไว้</strong> — ระบบจะ SET เป็นเวลาปัจจุบันโดยอัตโนมัติ
+                                </p>
                                 <input type="text" id="field_perm_def_soft_delete_val" name="perm_def_soft_delete_val"
-                                       value="{{ isset($editConfig) ? ($editConfig->perm_def_soft_delete_val ?? '1') : '1' }}"
-                                       placeholder="เช่น 1 หรือ deleted"
+                                       value="{{ isset($editConfig) ? ($editConfig->perm_def_soft_delete_val ?? '') : '' }}"
+                                       placeholder="เช่น 1 (ว่างเปล่า = ใช้ TIMESTAMP style)"
                                        class="{{ $mono }} border-amber-200 focus:border-amber-500">
                             </div>
                         </div>
@@ -2967,7 +3002,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             perm_def_group_col:       twoWayEnabled ? (val('perm_def_group_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_group_col || null : null)) : null,
             perm_delete_mode:         twoWayEnabled ? (radioVal('perm_delete_mode') || (IS_EDIT ? EDIT_CONFIG?.perm_delete_mode || null : null) || 'detach_only') : null,
             perm_def_soft_delete_col: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? (val('perm_def_soft_delete_col') || (IS_EDIT ? EDIT_CONFIG?.perm_def_soft_delete_col || null : null)) : null,
-            perm_def_soft_delete_val: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? (val('perm_def_soft_delete_val') || (IS_EDIT ? EDIT_CONFIG?.perm_def_soft_delete_val || null : null)) : null,
+            perm_def_soft_delete_val: twoWayEnabled && radioVal('perm_delete_mode') === 'soft' ? (val('perm_def_soft_delete_val') || null) : null,
             // Boolean Matrix
             perm_bool_columns:       mode === 'boolean_matrix'
                                         ? JSON.stringify((document.getElementById('field_perm_bool_columns_text')?.value || '').split(/[\n,]/).map(function(s){return s.trim();}).filter(Boolean))
