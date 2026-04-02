@@ -138,7 +138,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                 @endforeach
                             </select>
                         </div>
-                        <p class="{{ $hint }}">เลือกเฉพาะถ้าต้องการเพิ่ม Connector ให้ระบบที่มีอยู่แล้ว</p>
+                        <p class="{{ $hint }}">เลือกเมื่อต้องการเพิ่ม Connector ให้ระบบที่สร้างไว้แล้วใน UCM — ปล่อยว่างเพื่อสร้างระบบใหม่พร้อมกัน</p>
                     </div>
 
                     <hr class="border-t border-slate-100">
@@ -150,11 +150,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <div>
                                 <label class="{{ $lbl }}">ชื่อระบบ <span class="text-rose-500">*</span></label>
                                 <input type="text" id="field_system_name" class="{{ $inp }}" placeholder="เช่น ระบบซ่อมบำรุง">
+                                <p class="{{ $hint }}">ชื่อที่แสดงใน UCM Dashboard เช่น ระบบ ERP, ระบบ HR, ระบบเอกสาร</p>
                             </div>
                             <div>
                                 <label class="{{ $lbl }}">Slug <span class="text-rose-500">*</span></label>
                                 <input type="text" id="field_system_slug" class="{{ $mono }}" placeholder="repair-system">
-                                <p class="{{ $hint }}">ตัวพิมพ์เล็ก, ตัวเลข และ "-" เท่านั้น</p>
+                                <p class="{{ $hint }}">ตัวพิมพ์เล็ก, ตัวเลข และ "-" เท่านั้น — ใช้ระบุระบบใน sync job เช่น <code class="font-mono text-[10px]">erp-system</code></p>
                             </div>
                         </div>
 
@@ -173,12 +174,14 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                            class="w-10 h-10 border border-slate-200 rounded-xl p-0.5 cursor-pointer bg-white flex-shrink-0">
                                     <input type="text" id="field_system_color_text" value="#6366f1" class="{{ $mono }}" placeholder="#6366f1">
                                 </div>
+                                <p class="{{ $hint }}">สีที่ใช้แสดง badge และหัวข้อของระบบนี้ใน UCM</p>
                             </div>
                             <div>
                                 <label class="{{ $lbl }}">ไอคอน (Emoji)
                                     <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span>
                                 </label>
                                 <input type="text" id="field_system_icon" class="{{ $inp }} text-2xl text-center" placeholder="🔧" maxlength="5">
+                                <p class="{{ $hint }}">แสดงข้างชื่อระบบใน UCM เช่น 📊 สำหรับระบบรายงาน, 🔧 ซ่อมบำรุง, 💼 HR</p>
                             </div>
                         </div>
                     </div>
@@ -271,12 +274,15 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
 
                 <hr class="border-t border-slate-100">
 
-                <button class="{{ $btnO }} w-full justify-center py-2.5" onclick="wizTestConnection()" id="test-conn-btn">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                    </svg>
-                    ทดสอบการเชื่อมต่อ
-                </button>
+                <div>
+                    <button class="{{ $btnO }} w-full justify-center py-2.5" onclick="wizTestConnection()" id="test-conn-btn">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        ทดสอบการเชื่อมต่อ
+                    </button>
+                    <p class="{{ $hint }} mt-2 text-center">ต้องทดสอบสำเร็จก่อนจึงจะไปขั้นตอนถัดไปได้ — UCM จะเก็บ credentials ไว้สำหรับ sync ข้อมูล</p>
+                </div>
                 <div id="conn-result" style="display:none" class="rounded-xl text-sm font-medium p-3 flex items-center gap-2"></div>
 
                 {{-- ── AI Schema Analysis Panel (shown after successful connection test) ── --}}
@@ -286,7 +292,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.347.416A3 3 0 0118 19.5H6a3 3 0 01-2.39-2.751L3.263 16.1a5.002 5.002 0 012.08-4.1"/>
                         </svg>
                         <span class="text-sm font-bold text-indigo-700">วิเคราะห์ Schema อัตโนมัติ</span>
-                        <span class="ml-auto text-[11px] text-slate-400">ช่วยแนะนำการตั้งค่า Steps 3–4</span>
+                        <span class="ml-auto text-[11px] text-slate-400">แนะนำการตั้งค่า Steps 3–4 จาก DB structure</span>
                     </div>
                     <div class="px-4 py-3 bg-white space-y-3">
 
@@ -375,8 +381,11 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
 
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
-                        <label class="{{ $lbl }} mb-0">ตาราง Users <span class="text-rose-500">*</span></label>
-                        <button type="button" class="{{ $btnO }} text-[11px]" onclick="wizAddUserTable()">
+                        <div>
+                            <label class="{{ $lbl }} mb-0">ตาราง Users <span class="text-rose-500">*</span></label>
+                            <p class="text-[11px] text-slate-400 mt-0.5">ตารางหลักที่เก็บข้อมูลผู้ใช้ในระบบภายนอก</p>
+                        </div>
+                        <button type="button" class="{{ $btnO }} text-[11px]" onclick="wizAddUserTable()" title="เพิ่มตาราง JOIN เมื่อข้อมูลผู้ใช้กระจายอยู่หลายตาราง">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             เพิ่ม JOIN
                         </button>
@@ -409,14 +418,15 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
 
                 {{-- UCM Identifier --}}
                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                    <p class="text-xs font-bold text-slate-600 mb-3">UCM จะจับคู่ผู้ใช้โดยใช้:</p>
+                    <p class="text-xs font-bold text-slate-600 mb-1">UCM จะจับคู่ผู้ใช้โดยใช้:</p>
+                    <p class="text-[11px] text-slate-400 mb-3">เลือกว่า UCM ใช้ข้อมูลใดในการระบุตัวตนผู้ใช้ เพื่อจับคู่กับ "คอลัมน์ Identifier" ด้านล่าง</p>
                     <div class="flex gap-3">
                         <label class="flex-1 flex items-start gap-3 p-3.5 border-2 rounded-xl cursor-pointer transition border-indigo-500 bg-indigo-50/40" id="ucm-id-card-username" onclick="selectUcmId('username')">
                             <input type="radio" name="user_ucm_identifier" value="username" checked class="mt-0.5 accent-indigo-600 flex-shrink-0">
                             <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0 text-base">👤</div>
                             <div>
                                 <p class="text-sm font-bold text-slate-700">Username (LDAP)</p>
-                                <p class="text-[11px] text-slate-400 mt-0.5">ใช้ username จาก Active Directory</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5">ใช้ username จาก Active Directory เพื่อจับคู่กับคอลัมน์ identifier ในระบบปลายทาง</p>
                             </div>
                         </label>
                         <label class="flex-1 flex items-start gap-3 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="ucm-id-card-employee_number" onclick="selectUcmId('employee_number')">
@@ -424,7 +434,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 text-base">🪪</div>
                             <div>
                                 <p class="text-sm font-bold text-slate-700">Employee Number</p>
-                                <p class="text-[11px] text-slate-400 mt-0.5">ใช้รหัสพนักงาน</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5">ใช้รหัสพนักงานเพื่อจับคู่ — เหมาะเมื่อระบบปลายทางใช้รหัสพนักงานแทน username</p>
                             </div>
                         </label>
                     </div>
@@ -444,7 +454,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                 @endif
                             </select>
                         </div>
-                        <p class="{{ $hint }}">ตรงกับ UCM username / employee_number</p>
+                        <p class="{{ $hint }}">คอลัมน์ที่มีค่าตรงกับ UCM username หรือรหัสพนักงาน — ใช้จับคู่ผู้ใช้ระหว่าง UCM กับระบบปลายทาง เช่น <code class="font-mono text-[10px]">login_name</code>, <code class="font-mono text-[10px]">emp_code</code></p>
                     </div>
                     <div>
                         <label class="{{ $lbl }}">คอลัมน์ PK ของ User Table <span class="inline text-[10px] font-bold px-1.5 py-px bg-slate-100 text-slate-400 rounded ml-1">ไม่บังคับ</span></label>
@@ -589,9 +599,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             <div class="px-6 py-6 space-y-5">
 
                 {{-- Mode Selection --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">รูปแบบมาตรฐาน</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-indigo-500 bg-indigo-50/40" id="perm-card-junction" onclick="selectPermMode('junction')">
-                        <input type="radio" name="permission_mode" value="junction" checked class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)">
+                        <input type="radio" name="permission_mode" value="junction" checked class="sr-only" onchange="wizPermModeChange(this.value)">
                         <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0 text-base">🔗</div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold text-slate-800">Junction Table</p>
@@ -602,7 +615,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </div>
                     </label>
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-column" onclick="selectPermMode('column')">
-                        <input type="radio" name="permission_mode" value="column" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)">
+                        <input type="radio" name="permission_mode" value="column" class="sr-only" onchange="wizPermModeChange(this.value)">
                         <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 text-base">📋</div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold text-slate-800">Single Column</p>
@@ -613,7 +626,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </div>
                     </label>
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-manual" onclick="selectPermMode('manual')">
-                        <input type="radio" name="permission_mode" value="manual" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)">
+                        <input type="radio" name="permission_mode" value="manual" class="sr-only" onchange="wizPermModeChange(this.value)">
                         <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0 text-base">✍️</div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold text-slate-800">กำหนดด้วยตนเอง</p>
@@ -624,7 +637,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </div>
                     </label>
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-mixed" onclick="selectPermMode('mixed')">
-                        <input type="radio" name="permission_mode" value="mixed" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)">
+                        <input type="radio" name="permission_mode" value="mixed" class="sr-only" onchange="wizPermModeChange(this.value)">
                         <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0 text-base">⚡</div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold text-slate-800">Junction + Column <span class="text-[10px] font-bold px-1.5 py-0.5 bg-violet-100 text-violet-600 rounded-full ml-1">Mixed</span></p>
@@ -635,7 +648,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </div>
                     </label>
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-boolean_matrix" onclick="selectPermMode('boolean_matrix')">
-                        <input type="radio" name="permission_mode" value="boolean_matrix" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)">
+                        <input type="radio" name="permission_mode" value="boolean_matrix" class="sr-only" onchange="wizPermModeChange(this.value)">
                         <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0 text-base">☑️</div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold text-slate-800">Boolean Matrix</p>
@@ -646,7 +659,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </div>
                     </label>
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-group_inheritance" onclick="selectPermMode('group_inheritance')">
-                        <input type="radio" name="permission_mode" value="group_inheritance" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)">
+                        <input type="radio" name="permission_mode" value="group_inheritance" class="sr-only" onchange="wizPermModeChange(this.value)">
                         <div class="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center flex-shrink-0 text-base">👥</div>
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold text-slate-800">Group Inheritance</p>
@@ -656,8 +669,20 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <div class="w-2 h-2 rounded-full bg-indigo-500" id="perm-dot-group_inheritance" style="display:none"></div>
                         </div>
                     </label>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 py-1">
+                        <div class="flex-1 h-px bg-slate-100"></div>
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap px-2">รูปแบบขั้นสูง / Schema พิเศษ</span>
+                        <div class="flex-1 h-px bg-slate-100"></div>
+                    </div>
+
+                    <div>
+                        <p class="text-[11px] text-slate-400 mb-2.5">สำหรับระบบที่เก็บสิทธิ์ในรูปแบบ JSON, string คั่น, bit flags หรือ role hierarchy หลายชั้น</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-json_column" onclick="selectPermMode('json_column')">
-                        <input type="radio" name="permission_mode" value="json_column" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)"
+                        <input type="radio" name="permission_mode" value="json_column" class="sr-only" onchange="wizPermModeChange(this.value)"
                                {{ isset($editConfig) && $editConfig->permission_mode === 'json_column' ? 'checked' : '' }}>
                         <div class="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center flex-shrink-0 text-base">🗂️</div>
                         <div class="flex-1 min-w-0">
@@ -669,7 +694,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </div>
                     </label>
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-delimited_column" onclick="selectPermMode('delimited_column')">
-                        <input type="radio" name="permission_mode" value="delimited_column" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)"
+                        <input type="radio" name="permission_mode" value="delimited_column" class="sr-only" onchange="wizPermModeChange(this.value)"
                                {{ isset($editConfig) && $editConfig->permission_mode === 'delimited_column' ? 'checked' : '' }}>
                         <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0 text-base">📝</div>
                         <div class="flex-1 min-w-0">
@@ -681,7 +706,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </div>
                     </label>
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-bitmask" onclick="selectPermMode('bitmask')">
-                        <input type="radio" name="permission_mode" value="bitmask" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)"
+                        <input type="radio" name="permission_mode" value="bitmask" class="sr-only" onchange="wizPermModeChange(this.value)"
                                {{ isset($editConfig) && $editConfig->permission_mode === 'bitmask' ? 'checked' : '' }}>
                         <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0 text-base">🔢</div>
                         <div class="flex-1 min-w-0">
@@ -693,7 +718,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                         </div>
                     </label>
                     <label class="flex items-start gap-3.5 p-3.5 border-2 rounded-xl cursor-pointer transition border-slate-200 bg-white" id="perm-card-multi_level_hierarchy" onclick="selectPermMode('multi_level_hierarchy')">
-                        <input type="radio" name="permission_mode" value="multi_level_hierarchy" class="mt-0.5 accent-indigo-600 flex-shrink-0" onchange="wizPermModeChange(this.value)"
+                        <input type="radio" name="permission_mode" value="multi_level_hierarchy" class="sr-only" onchange="wizPermModeChange(this.value)"
                                {{ isset($editConfig) && $editConfig->permission_mode === 'multi_level_hierarchy' ? 'checked' : '' }}>
                         <div class="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0 text-base">🌳</div>
                         <div class="flex-1 min-w-0">
@@ -704,12 +729,17 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <div class="w-2 h-2 rounded-full bg-indigo-500" id="perm-dot-multi_level_hierarchy" style="display:none"></div>
                         </div>
                     </label>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Junction / Column DB Fields --}}
                 <div id="perm-db-fields">
                     <hr class="border-t border-slate-100">
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Mapping คอลัมน์</p>
+                    <div class="mb-4">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Mapping คอลัมน์</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">ระบุตารางและคอลัมน์ใน DB ระบบปลายทางที่ใช้เก็บข้อมูลสิทธิ์ — กดปุ่ม ⟳ เพื่อโหลดรายการตาราง/คอลัมน์จาก DB ที่เชื่อมต่อ</p>
+                    </div>
 
                     <div class="mb-4">
                         <label class="{{ $lbl }}">ตาราง Permissions <span class="text-rose-500">*</span></label>
@@ -815,6 +845,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 {{-- Manual Fields --}}
                 <div id="perm-manual-fields" class="hidden">
                     <hr class="border-t border-slate-100">
+                    <p class="text-[11px] text-slate-400 mb-3">กำหนดรายการสิทธิ์ด้วยตนเอง — UCM จะจัดการสิทธิ์ผ่านฐานข้อมูลของตัวเองโดยไม่ sync ไปยัง DB ระบบปลายทาง</p>
                     <div class="flex items-center justify-between mb-3.5">
                         <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">รายการ Permissions</p>
                         <button class="{{ $btnO }}" onclick="wizAddManualPerm()">
@@ -835,7 +866,10 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 {{-- Mixed Mode — Column Side Fields (Feature B) --}}
                 <div id="perm-mixed-col-fields" class="hidden">
                     <hr class="border-t border-slate-100">
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Column Side <span class="text-[10px] font-normal text-slate-400 normal-case">(ส่วนที่เก็บ permission ในคอลัมน์บน user table)</span></p>
+                    <div class="mb-4">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Column Side <span class="text-[10px] font-normal text-slate-400 normal-case">(ส่วนที่เก็บ permission ในคอลัมน์บน user table)</span></p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Mixed mode มีสิทธิ์ 2 ส่วน: (1) Junction Table ตั้งค่าด้านบนแล้ว · (2) Column บน user table ด้านล่างนี้ — ทั้งสองส่วน sync พร้อมกันในการดำเนินการเดียว</p>
+                    </div>
 
                     <div class="grid grid-cols-3 gap-4 mb-4">
                         <div>
@@ -1293,7 +1327,10 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 {{-- Junction Enhancements (optional panels for junction/mixed modes) --}}
                 <div id="perm-junction-enhancements" class="hidden">
                     <hr class="border-t border-slate-100">
-                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Junction Enhancements <span class="text-[10px] font-normal text-slate-400 normal-case">(ตัวเลือกเสริมสำหรับ Junction / Mixed mode)</span></p>
+                    <div class="mb-3">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">ตัวเลือกเพิ่มเติม <span class="text-[10px] font-normal text-slate-400 normal-case">(Junction Enhancements — ไม่บังคับ)</span></p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">ปรับพฤติกรรมของ Junction Table ให้เข้ากับระบบปลายทาง — เปิดใช้เฉพาะที่ DB ของระบบนั้นรองรับ</p>
+                    </div>
 
                     {{-- Soft-Delete Panel --}}
                     <div class="mb-3 border border-slate-200 rounded-xl overflow-hidden">
@@ -1433,7 +1470,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                            class="mt-0.5 w-4 h-4 text-violet-600 rounded border-slate-300 cursor-pointer">
                     <div>
                         <label for="enable_two_way" class="text-sm font-semibold text-slate-800 cursor-pointer">เปิดใช้งาน 2-Way Sync</label>
-                        <p class="text-xs text-slate-500 mt-0.5">เมื่อ Admin เพิ่ม Permission ใน UCM → สร้าง record ใน DB ระบบปลายทาง<br>เมื่อ Admin ลบ Permission ใน UCM → ดำเนินการตาม Delete Mode ที่เลือก</p>
+                        <p class="text-xs text-slate-500 mt-0.5">เมื่อ Admin <strong>เพิ่ม</strong> Permission ใน UCM → สร้าง record ใน DB ระบบปลายทางอัตโนมัติ<br>เมื่อ Admin <strong>ลบ</strong> Permission ใน UCM → ดำเนินการตาม Delete Mode ด้านล่าง<br><span class="text-violet-600 text-[11px]">ปิดใช้งาน = UCM จัดการสิทธิ์เพียงฝั่งเดียว ไม่สร้าง/ลบ record ใน DB ระบบปลายทาง</span></p>
                     </div>
                 </div>
 
@@ -1513,15 +1550,19 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
 
                     {{-- Delete Mode --}}
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-3">Delete Mode — พฤติกรรมเมื่อ Admin ลบ Permission ใน UCM</label>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Delete Mode — พฤติกรรมเมื่อ Admin ลบ Permission ใน UCM</label>
+                        <p class="text-[11px] text-slate-400 mb-3">เลือกว่าจะทำอะไรกับ record ใน DB ระบบปลายทางเมื่อ Permission ถูกลบออกจาก UCM</p>
                         <div class="space-y-2">
-                            <label class="flex items-start gap-3 p-3.5 border rounded-xl cursor-pointer transition hover:bg-slate-50 border-slate-200" id="dmode-card-detach_only">
+                            <label class="flex items-start gap-3 p-3.5 border rounded-xl cursor-pointer transition hover:bg-emerald-50/50 border-slate-200" id="dmode-card-detach_only">
                                 <input type="radio" name="perm_delete_mode" value="detach_only" checked
                                        onchange="wizToggleDeleteMode('detach_only')"
                                        class="mt-0.5 w-4 h-4 text-violet-600">
                                 <div>
-                                    <div class="text-sm font-semibold text-slate-800">Detach Only</div>
-                                    <div class="text-xs text-slate-500 mt-0.5">ลบเฉพาะใน UCM — ไม่แตะ record ในระบบปลายทาง (ปลอดภัยที่สุด)</div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-semibold text-slate-800">Detach Only</span>
+                                        <span class="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">แนะนำ</span>
+                                    </div>
+                                    <div class="text-xs text-slate-500 mt-0.5">ลบเฉพาะใน UCM — ไม่แตะ record ในระบบปลายทาง (ปลอดภัยที่สุด เหมาะสำหรับส่วนใหญ่)</div>
                                 </div>
                             </label>
                             <label class="flex items-start gap-3 p-3.5 border rounded-xl cursor-pointer transition hover:bg-red-50 border-slate-200" id="dmode-card-hard">
@@ -1529,8 +1570,11 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                        onchange="wizToggleDeleteMode('hard')"
                                        class="mt-0.5 w-4 h-4 text-violet-600">
                                 <div>
-                                    <div class="text-sm font-semibold text-slate-800">Hard Delete</div>
-                                    <div class="text-xs text-slate-500 mt-0.5">DELETE FROM definition table — ลบถาวร ไม่สามารถกู้คืนได้</div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-semibold text-slate-800">Hard Delete</span>
+                                        <span class="text-[10px] font-bold px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full">ลบถาวร</span>
+                                    </div>
+                                    <div class="text-xs text-slate-500 mt-0.5">DELETE FROM ตาราง definition — ลบถาวรจาก DB ระบบปลายทาง ไม่สามารถกู้คืนได้</div>
                                 </div>
                             </label>
                             <label class="flex items-start gap-3 p-3.5 border rounded-xl cursor-pointer transition hover:bg-amber-50 border-slate-200" id="dmode-card-soft">
@@ -1538,8 +1582,11 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                                        onchange="wizToggleDeleteMode('soft')"
                                        class="mt-0.5 w-4 h-4 text-violet-600">
                                 <div>
-                                    <div class="text-sm font-semibold text-slate-800">Soft Delete</div>
-                                    <div class="text-xs text-slate-500 mt-0.5">UPDATE ด้วยค่า "ลบแล้ว" — record ยังอยู่ใน DB แต่ถูก mark ว่าลบ</div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-sm font-semibold text-slate-800">Soft Delete</span>
+                                        <span class="text-[10px] font-bold px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full">ซ่อน record</span>
+                                    </div>
+                                    <div class="text-xs text-slate-500 mt-0.5">UPDATE คอลัมน์ flag เป็น "ลบแล้ว" — record ยังอยู่ใน DB แต่ถูก mark ว่าลบ กู้คืนได้</div>
                                 </div>
                             </label>
                         </div>
@@ -1614,7 +1661,8 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
                         </svg>
                     </div>
-                    <p class="text-sm text-slate-400">ยังไม่มีตาราง Master Data — กด "+ เพิ่มตาราง" เพื่อเพิ่ม</p>
+                    <p class="text-sm text-slate-500 font-medium">ยังไม่มีตาราง Master Data</p>
+                    <p class="text-xs text-slate-400 mt-1">ตัวอย่าง: ตาราง <code class="font-mono text-[10px] bg-slate-100 px-1 rounded">departments</code>, <code class="font-mono text-[10px] bg-slate-100 px-1 rounded">document_types</code><br>— กด "เพิ่มตาราง" เพื่อให้ UCM จัดการข้อมูล Reference นี้ได้โดยตรง</p>
                 </div>
                 <button type="button" id="master-add-btn" onclick="wizAddMasterTable()" class="{{ $btnO }}">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -1654,6 +1702,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
                 </div>
             </div>
             <div class="px-6 py-6">
+                <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-100 rounded-xl mb-5">
+                    <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-xs text-amber-700">ตรวจสอบข้อมูลด้านล่างให้ครบก่อนกด <strong>บันทึก</strong> — หลังบันทึกแล้วยังสามารถแก้ไขได้ผ่านหน้า Connector Settings</p>
+                </div>
                 <div id="confirm-summary"></div>
             </div>
         </div>
@@ -2577,6 +2631,17 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
             '<button type="button" onclick="wizRemoveColPermOption(this)" class="w-7 h-7 flex items-center justify-center rounded bg-rose-50 border border-rose-200 text-rose-500 hover:bg-rose-100 cursor-pointer flex-shrink-0">×</button>',
         ].join('');
         list.appendChild(row);
+
+        // แจ้งเตือน duplicate key แบบ real-time
+        var keyInput = row.querySelector('[data-col-opt="key"]');
+        keyInput.addEventListener('blur', function () {
+            var k = this.value.trim();
+            if (!k) return;
+            var dup = Array.from(document.querySelectorAll('#col-perm-options-list [data-col-opt="key"]'))
+                .filter(function (el) { return el !== keyInput && el.value.trim() === k; }).length > 0;
+            this.style.borderColor = dup ? '#f87171' : '';
+            this.title = dup ? 'key "' + k + '" ซ้ำ — จะถูกนับเพียงครั้งเดียว' : '';
+        });
     };
 
     window.wizRemoveColPermOption = function (btn) {
@@ -2589,11 +2654,12 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
     function getColPermOptions() {
         var rows = document.querySelectorAll('#col-perm-options-list > .col-opt-row');
         var result = [];
+        var seen = {};
         rows.forEach(function (row) {
             var k = row.querySelector('[data-col-opt="key"]')?.value.trim() || '';
             var l = row.querySelector('[data-col-opt="label"]')?.value.trim() || '';
             var g = row.querySelector('[data-col-opt="group"]')?.value.trim() || '';
-            if (k) result.push({ key: k, label: l || k, group: g || 'Column' });
+            if (k && !seen[k]) { seen[k] = true; result.push({ key: k, label: l || k, group: g || 'Column' }); }
         });
         return result;
     }
@@ -2818,7 +2884,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
         row.innerHTML = [
             '<div><label class="block text-[10px] text-slate-400 mb-0.5">Column</label><div class="relative"><select class="mt-extra-col-select ' + selCls + '">' + colOpts + '</select></div></div>',
             '<div><label class="block text-[10px] text-slate-400 mb-0.5">Label</label><input type="text" class="mt-extra-label-input ' + inpCls + '" placeholder="ชื่อที่แสดง" value="' + escAttr(preset.label || '') + '"></div>',
-            '<div><label class="block text-[10px] text-slate-400 mb-0.5">Type</label><select class="mt-extra-type-select ' + selCls + '"><option value="text"' + (preset.type === 'text' ? ' selected' : '') + '>text</option><option value="number"' + (preset.type === 'number' ? ' selected' : '') + '>number</option></select></div>',
+            '<div><label class="block text-[10px] text-slate-400 mb-0.5">Type</label><select class="mt-extra-type-select ' + selCls + '"><option value="text"' + (preset.type === 'text' ? ' selected' : '') + '>text</option><option value="number"' + (preset.type === 'number' ? ' selected' : '') + '>number</option><option value="toggle"' + (preset.type === 'toggle' ? ' selected' : '') + '>toggle</option><option value="textarea"' + (preset.type === 'textarea' ? ' selected' : '') + '>textarea</option></select></div>',
             '<div><label class="block text-[10px] text-slate-400 mb-0.5">Required</label><div class="flex justify-center mt-1"><input type="checkbox" class="mt-extra-required-check" ' + (preset.required ? 'checked' : '') + '></div></div>',
             '<button type="button" onclick="wizRemoveMasterExtraCol(this)" class="mt-1 text-slate-400 hover:text-rose-500 transition flex-shrink-0"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>',
         ].join('');

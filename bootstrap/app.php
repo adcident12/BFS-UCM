@@ -23,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\MinifyHtml::class,
         ]);
+
+        $middleware->alias([
+            'oauth.scope' => \App\Http\Middleware\CheckOAuthScope::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

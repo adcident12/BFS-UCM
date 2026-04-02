@@ -532,12 +532,27 @@
                             <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
                                 {{ $def['label'] }}{{ ($def['required'] ?? false) ? ' *' : '' }}
                             </label>
-                            <input type="{{ $def['type'] }}"
-                                name="{{ $fieldName }}"
-                                {{ ($def['required'] ?? false) ? 'required' : '' }}
-                                {{ isset($def['min']) ? 'min="'.$def['min'].'"' : '' }}
-                                placeholder="{{ $def['placeholder'] ?? '' }}"
-                                class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 transition-all">
+                            @if($def['type'] === 'toggle')
+                                <div class="flex items-center h-9 gap-2">
+                                    <input type="hidden" name="{{ $fieldName }}" value="0">
+                                    <input type="checkbox" name="{{ $fieldName }}" value="1"
+                                        class="w-4 h-4 rounded accent-indigo-600 cursor-pointer">
+                                    <span class="text-xs text-slate-500">เปิดใช้งาน</span>
+                                </div>
+                            @elseif($def['type'] === 'textarea')
+                                <textarea name="{{ $fieldName }}"
+                                    {{ ($def['required'] ?? false) ? 'required' : '' }}
+                                    placeholder="{{ $def['placeholder'] ?? '' }}"
+                                    rows="2"
+                                    class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 transition-all resize-none"></textarea>
+                            @else
+                                <input type="{{ $def['type'] }}"
+                                    name="{{ $fieldName }}"
+                                    {{ ($def['required'] ?? false) ? 'required' : '' }}
+                                    {{ isset($def['min']) ? 'min="'.$def['min'].'"' : '' }}
+                                    placeholder="{{ $def['placeholder'] ?? '' }}"
+                                    class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 transition-all">
+                            @endif
                         </div>
                         @endforeach
                     </div>
@@ -633,13 +648,20 @@
             fields.forEach(function(f) {
                 var val = row[f];
                 if (val !== null && val !== undefined && val !== '') {
-                    if (schema[f].type === 'number') {
+                    if (schema[f].type === 'toggle') {
+                        var isOn = val == 1 || val === true || val === 'true' || val === 'Y';
+                        metaHtml += isOn
+                            ? '<span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">✓ ' + escHtml(schema[f].label) + '</span>'
+                            : '<span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full line-through">' + escHtml(schema[f].label) + '</span>';
+                    } else if (schema[f].type === 'number') {
                         metaHtml += '<span class="inline-flex items-center gap-0.5 text-[10px] font-bold text-indigo-500 tabular-nums">' +
                             '<span class="text-indigo-300 font-normal">#</span>' + escHtml(String(val)) + '</span>';
                     } else {
                         metaHtml += '<span class="text-[10px] font-mono text-slate-400 bg-slate-50 px-1 rounded">' +
                             escHtml(String(val)) + '</span>';
                     }
+                } else if (schema[f].type === 'toggle') {
+                    metaHtml += '<span class="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full line-through">' + escHtml(schema[f].label) + '</span>';
                 }
             });
 
@@ -664,16 +686,34 @@
                 extraInputsHtml = '<div class="grid grid-cols-' + cols + ' gap-2 mt-2">';
                 fields.forEach(function(f) {
                     var def = schema[f];
+                    var currentVal = row[f] !== null && row[f] !== undefined ? String(row[f]) : '';
+                    var fieldHtml;
+                    if (def.type === 'toggle') {
+                        var isChecked = currentVal == '1' || currentVal === 'true' || currentVal === 'Y';
+                        fieldHtml = '<div class="flex items-center gap-2 h-9">' +
+                            '<input type="hidden" name="' + f + '" value="0">' +
+                            '<input type="checkbox" name="' + f + '" value="1"' + (isChecked ? ' checked' : '') +
+                            ' class="w-4 h-4 rounded accent-indigo-600 cursor-pointer">' +
+                            '<span class="text-xs text-slate-500">' + escHtml(def.label) + '</span></div>';
+                    } else if (def.type === 'textarea') {
+                        fieldHtml = '<textarea name="' + f + '"' +
+                            (def.required ? ' required' : '') +
+                            ' placeholder="' + escAttr(def.placeholder || '') + '"' +
+                            ' rows="2"' +
+                            ' class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-all resize-none">' +
+                            escHtml(currentVal) + '</textarea>';
+                    } else {
+                        fieldHtml = '<input type="' + def.type + '" name="' + f + '" value="' +
+                            escAttr(currentVal) + '"' +
+                            (def.required ? ' required' : '') +
+                            (def.min !== undefined ? ' min="' + def.min + '"' : '') +
+                            ' placeholder="' + escAttr(def.placeholder || '') + '"' +
+                            ' class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-all">';
+                    }
                     extraInputsHtml += '<div>' +
                         '<label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">' +
                         escHtml(def.label) + (def.required ? ' *' : '') + '</label>' +
-                        '<input type="' + def.type + '" name="' + f + '" value="' +
-                        escAttr(row[f] !== null && row[f] !== undefined ? String(row[f]) : '') + '"' +
-                        (def.required ? ' required' : '') +
-                        (def.min !== undefined ? ' min="' + def.min + '"' : '') +
-                        ' placeholder="' + escAttr(def.placeholder || '') + '"' +
-                        ' class="w-full px-2.5 py-1.5 border border-slate-200 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:border-indigo-400 transition-all">' +
-                        '</div>';
+                        fieldHtml + '</div>';
                 });
                 extraInputsHtml += '</div>';
             }

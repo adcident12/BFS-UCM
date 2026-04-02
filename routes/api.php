@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\OAuthController;
+use App\Http\Controllers\Api\OidcController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\UserExportController;
+use App\Http\Controllers\Api\V1\MeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -56,4 +59,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User export
     Route::get('/users/export', [UserExportController::class, 'export']);
+});
+
+// ── OAuth 2.0 Token Endpoints (no session cookie — stateless) ─────────────────
+// Token issuance (auth_code / refresh_token / client_credentials)
+Route::post('/oauth/token', [OAuthController::class, 'token'])->middleware('throttle:60,1');
+// Token revocation (RFC 7009)
+Route::post('/oauth/token/revoke', [OAuthController::class, 'revoke']);
+
+// OIDC UserInfo endpoint
+Route::get('/oauth/userinfo', [OidcController::class, 'userinfo']);
+
+// ── UCM Resource API v1 ───────────────────────────────────────────────────────
+// All routes validated by Bearer token inside each controller via OAuthService
+Route::prefix('v1')->group(function (): void {
+    Route::get('/me', [MeController::class, 'show']);
+    Route::get('/me/permissions', [MeController::class, 'permissions']);
+    Route::get('/me/systems', [MeController::class, 'systems']);
 });

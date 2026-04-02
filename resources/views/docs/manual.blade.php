@@ -1161,6 +1161,7 @@ $sections = [
                         ['href' => '#wiz-2way',              'label' => '2-Way Sync & Delete Mode'],
                         ['href' => '#wiz-example-gov-hr',       'label' => '📋 ตัวอย่าง: ระบบ HR ภาครัฐ'],
                         ['href' => '#wiz-example-repair-sc',    'label' => '📋 ตัวอย่าง: ระบบแจ้งซ่อม'],
+                        ['href' => '#wiz-example-legal-dms',    'label' => '📋 ตัวอย่าง: ระบบเอกสารกฎหมาย'],
                         ['href' => '#wiz-after',                'label' => 'หลังสร้างแล้ว'],
                     ] as $t)
                     <a href="{{ $t['href'] }}" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors font-medium">{{ $t['label'] }}</a>
@@ -3575,6 +3576,341 @@ FLUSH PRIVILEGES;</pre>
                         </div>
 
                     </div>
+                </div>
+
+                {{-- ═══════════════════════════════════════════════════════════
+                     ตัวอย่าง: ระบบจัดการเอกสารกฎหมาย (Mixed Mode)
+                ═══════════════════════════════════════════════════════════ --}}
+                <div id="wiz-example-legal-dms" class="border-t border-slate-100 pt-5">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-lg flex-shrink-0">⚡</div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base">ตัวอย่างการตั้งค่าแบบครบถ้วน — Mixed Mode (Junction + Column)</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">ระบบจัดการเอกสารกฎหมาย • <code class="font-mono bg-slate-100 px-1 rounded">legal_dms_db</code> • MySQL • เปิด 2-Way Sync + Master Data Tables</p>
+                        </div>
+                    </div>
+
+                    {{-- บริบทระบบ --}}
+                    <div class="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-5">
+                        <p class="text-sm font-bold text-violet-800 mb-1">บริบทระบบ</p>
+                        <p class="text-xs text-violet-700 leading-relaxed">ระบบจัดการเอกสารกฎหมายของบริษัท มีทนายความ 10 คน แต่ละคนมี <strong>ระดับอาวุโส</strong> (junior / senior / partner / managing_partner) เก็บเป็น <code class="font-mono bg-violet-100 px-1 rounded">seniority</code> column บนตาราง users <em>และ</em> มี <strong>สิทธิ์รายโมดูล</strong> (เช่น doc.approve, case.manage) เก็บแยกใน junction table <code class="font-mono bg-violet-100 px-1 rounded">doc_permissions</code> — จึงต้องใช้ <strong>Mixed Mode</strong></p>
+                    </div>
+
+                    {{-- Schema --}}
+                    <div class="mb-5">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">โครงสร้าง Database (<code class="font-mono normal-case">legal_dms_db</code>)</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                            <div class="bg-slate-900 rounded-xl p-4 text-[11px] font-mono text-slate-300 leading-relaxed">
+                                <p class="text-violet-400 font-bold mb-2">-- ① ตาราง users หลัก</p>
+                                <p class="text-slate-400">CREATE TABLE <span class="text-yellow-300">lawyers</span> (</p>
+                                <p class="pl-4">id           INT UNSIGNED PK,</p>
+                                <p class="pl-4 text-emerald-300">staff_code   VARCHAR(20) UNIQUE,<span class="text-slate-500"> -- username</span></p>
+                                <p class="pl-4">full_name    VARCHAR(100),</p>
+                                <p class="pl-4">email        VARCHAR(120),</p>
+                                <p class="pl-4">dept_code    VARCHAR(20),</p>
+                                <p class="pl-4 text-sky-300">seniority    ENUM('junior','senior',<span class="text-slate-500"> -- col perm</span></p>
+                                <p class="pl-4 text-sky-300">             'partner','managing_partner'),</p>
+                                <p class="pl-4">is_active    TINYINT(1)</p>
+                                <p class="text-slate-400">);</p>
+                            </div>
+
+                            <div class="bg-slate-900 rounded-xl p-4 text-[11px] font-mono text-slate-300 leading-relaxed">
+                                <p class="text-violet-400 font-bold mb-2">-- ② Junction table</p>
+                                <p class="text-slate-400">CREATE TABLE <span class="text-yellow-300">doc_permissions</span> (</p>
+                                <p class="pl-4">id              INT UNSIGNED PK,</p>
+                                <p class="pl-4 text-rose-300">lawyer_id       INT UNSIGNED, <span class="text-slate-500">-- FK→lawyers.id</span></p>
+                                <p class="pl-4 text-emerald-300">permission_code VARCHAR(60),  <span class="text-slate-500">-- perm key</span></p>
+                                <p class="pl-4">is_active       TINYINT(1),</p>
+                                <p class="pl-4 text-slate-400">granted_by      VARCHAR(80),  <span class="text-slate-500">-- metadata</span></p>
+                                <p class="pl-4 text-slate-400">granted_at      TIMESTAMP</p>
+                                <p class="text-slate-400">);</p>
+                            </div>
+
+                            <div class="bg-slate-900 rounded-xl p-4 text-[11px] font-mono text-slate-300 leading-relaxed">
+                                <p class="text-violet-400 font-bold mb-2">-- ③ 2-Way Sync definitions</p>
+                                <p class="text-slate-400">CREATE TABLE <span class="text-yellow-300">permission_catalog</span> (</p>
+                                <p class="pl-4">id           INT UNSIGNED PK,</p>
+                                <p class="pl-4 text-emerald-300">perm_code    VARCHAR(60) UNIQUE, <span class="text-slate-500">-- key</span></p>
+                                <p class="pl-4">perm_name    VARCHAR(120),       <span class="text-slate-500">-- label</span></p>
+                                <p class="pl-4">module_group VARCHAR(60),        <span class="text-slate-500">-- group</span></p>
+                                <p class="pl-4">is_active    TINYINT(1)</p>
+                                <p class="text-slate-400">);</p>
+                            </div>
+
+                            <div class="bg-slate-900 rounded-xl p-4 text-[11px] font-mono text-slate-300 leading-relaxed">
+                                <p class="text-violet-400 font-bold mb-2">-- ④⑤ Master Data Tables</p>
+                                <p class="text-slate-400">CREATE TABLE <span class="text-yellow-300">departments</span> (</p>
+                                <p class="pl-4">id, dept_code UNIQUE, dept_name,</p>
+                                <p class="pl-4">dept_head, is_active</p>
+                                <p class="text-slate-400">);</p>
+                                <br>
+                                <p class="text-slate-400">CREATE TABLE <span class="text-yellow-300">document_types</span> (</p>
+                                <p class="pl-4">id, type_code UNIQUE, type_name,</p>
+                                <p class="pl-4">requires_approval TINYINT(1),</p>
+                                <p class="pl-4">description, is_active</p>
+                                <p class="text-slate-400">);</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- สิทธิ์ MySQL --}}
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-5 text-xs text-amber-800">
+                        <strong>สิทธิ์ MySQL ที่ต้องมี (เปิด 2-Way Sync):</strong><br>
+                        <code class="font-mono text-[11px]">GRANT SELECT, INSERT, UPDATE, DELETE ON legal_dms_db.* TO 'root'@'%';</code>
+                    </div>
+
+                    {{-- STEP 1 --}}
+                    <div class="border border-slate-200 rounded-xl overflow-hidden mb-4">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-indigo-50 border-b border-indigo-100">
+                            <div class="w-6 h-6 rounded-full bg-indigo-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">1</div>
+                            <span class="font-bold text-indigo-800 text-sm">Step 1 — ข้อมูลระบบ</span>
+                        </div>
+                        <div class="px-4 py-3 text-sm space-y-2">
+                            <div class="grid grid-cols-2 gap-4 text-xs">
+                                <div><p class="font-bold text-slate-500 mb-1">เชื่อมกับระบบที่มีอยู่แล้ว</p><p class="text-slate-400">— สร้างระบบใหม่ —</p></div>
+                                <div></div>
+                                <div><p class="font-bold text-slate-500 mb-1">ชื่อระบบ <span class="text-rose-500">*</span></p><code class="bg-slate-100 px-2 py-0.5 rounded">ระบบจัดการเอกสารกฎหมาย</code></div>
+                                <div><p class="font-bold text-slate-500 mb-1">Slug <span class="text-rose-500">*</span></p><code class="bg-slate-100 px-2 py-0.5 rounded font-mono">legal-dms</code></div>
+                                <div><p class="font-bold text-slate-500 mb-1">คำอธิบาย</p><p class="text-slate-600">ระบบจัดการเอกสารกฎหมายและคดีของบริษัท</p></div>
+                                <div>
+                                    <p class="font-bold text-slate-500 mb-1">สีประจำระบบ</p><code class="bg-slate-100 px-2 py-0.5 rounded font-mono">#7c3aed</code>
+                                    <p class="font-bold text-slate-500 mb-1 mt-2">ไอคอน</p><code class="bg-slate-100 px-2 py-0.5 rounded">⚖️</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- STEP 2 --}}
+                    <div class="border border-slate-200 rounded-xl overflow-hidden mb-4">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-indigo-50 border-b border-indigo-100">
+                            <div class="w-6 h-6 rounded-full bg-indigo-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">2</div>
+                            <span class="font-bold text-indigo-800 text-sm">Step 2 — เชื่อมต่อฐานข้อมูล</span>
+                        </div>
+                        <div class="px-4 py-3 text-xs space-y-2">
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+                                <div><span class="font-bold text-slate-500">Driver:</span> 🐬 MySQL / MariaDB</div>
+                                <div><span class="font-bold text-slate-500">Host:</span> <code class="font-mono bg-slate-100 px-1 rounded">ucm-db</code></div>
+                                <div><span class="font-bold text-slate-500">Port:</span> <code class="font-mono bg-slate-100 px-1 rounded">3306</code></div>
+                                <div><span class="font-bold text-slate-500">Database:</span> <code class="font-mono bg-slate-100 px-1 rounded">legal_dms_db</code></div>
+                                <div><span class="font-bold text-slate-500">Username:</span> <code class="font-mono bg-slate-100 px-1 rounded">root</code></div>
+                                <div><span class="font-bold text-slate-500">Password:</span> <code class="font-mono bg-slate-100 px-1 rounded">ucm_root_password</code></div>
+                            </div>
+                            <p class="text-slate-500 mt-2">กด <strong>ทดสอบการเชื่อมต่อ</strong> → รอ "เชื่อมต่อสำเร็จ" แล้วจึงกด <strong>ถัดไป</strong></p>
+                        </div>
+                    </div>
+
+                    {{-- STEP 3 --}}
+                    <div class="border border-slate-200 rounded-xl overflow-hidden mb-4">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-indigo-50 border-b border-indigo-100">
+                            <div class="w-6 h-6 rounded-full bg-indigo-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">3</div>
+                            <span class="font-bold text-indigo-800 text-sm">Step 3 — ตาราง Users</span>
+                        </div>
+                        <div class="px-4 py-3 text-xs space-y-3">
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+                                <div><span class="font-bold text-slate-500">ตาราง Users:</span> กด ⟳ แล้วเลือก <code class="font-mono bg-slate-100 px-1 rounded">lawyers</code></div>
+                                <div><span class="font-bold text-slate-500">UCM จับคู่โดย:</span> ✅ Username (LDAP)</div>
+                                <div><span class="font-bold text-slate-500">คอลัมน์ Identifier:</span> <code class="font-mono bg-slate-100 px-1 rounded">staff_code</code></div>
+                                <div><span class="font-bold text-slate-500">คอลัมน์ PK:</span> <code class="font-mono bg-slate-100 px-1 rounded">id</code> <span class="text-amber-600 font-bold">← สำคัญ!</span></div>
+                                <div><span class="font-bold text-slate-500">ชื่อ-นามสกุล:</span> <code class="font-mono bg-slate-100 px-1 rounded">full_name</code></div>
+                                <div><span class="font-bold text-slate-500">อีเมล:</span> <code class="font-mono bg-slate-100 px-1 rounded">email</code></div>
+                                <div><span class="font-bold text-slate-500">แผนก:</span> <code class="font-mono bg-slate-100 px-1 rounded">dept_code</code></div>
+                                <div><span class="font-bold text-slate-500">สถานะ Active:</span> <code class="font-mono bg-slate-100 px-1 rounded">is_active</code> → Active=<code class="font-mono bg-slate-100 px-1 rounded">1</code></div>
+                            </div>
+                            <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 text-amber-800">
+                                <strong>⚠️ ต้องระบุ PK (id):</strong> เพราะ junction table <code class="font-mono">doc_permissions.lawyer_id</code> อ้างอิง <code class="font-mono">lawyers.id</code> (INT) ไม่ใช่ staff_code โดยตรง
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- STEP 4 --}}
+                    <div class="border border-slate-200 rounded-xl overflow-hidden mb-4">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-indigo-50 border-b border-indigo-100">
+                            <div class="w-6 h-6 rounded-full bg-indigo-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">4</div>
+                            <span class="font-bold text-indigo-800 text-sm">Step 4 — Permission Mode: <span class="text-violet-700">⚡ Junction + Column (Mixed)</span></span>
+                        </div>
+                        <div class="px-4 py-3 text-xs space-y-4">
+                            <p class="text-slate-600">เลือก <strong>⚡ Junction + Column (Mixed)</strong> — หน้าจะแสดงการตั้งค่า 2 ส่วน</p>
+
+                            <div class="border border-indigo-200 rounded-xl overflow-hidden">
+                                <div class="px-3 py-2 bg-indigo-50 font-bold text-indigo-700 text-[11px] uppercase tracking-wider">ส่วนที่ 1 — Junction Side (doc_permissions)</div>
+                                <div class="px-4 py-3 grid grid-cols-2 gap-x-8 gap-y-2">
+                                    <div><span class="font-bold text-slate-500">ตาราง Permissions:</span> กด ⟳ เลือก <code class="font-mono bg-slate-100 px-1 rounded">doc_permissions</code></div>
+                                    <div><span class="font-bold text-slate-500">FK ชี้ไปยัง User:</span> <code class="font-mono bg-slate-100 px-1 rounded">lawyer_id</code></div>
+                                    <div><span class="font-bold text-slate-500">Permission Value:</span> <code class="font-mono bg-slate-100 px-1 rounded">permission_code</code></div>
+                                    <div><span class="font-bold text-slate-500">Label:</span> (ไม่ระบุ — ดึงจาก permission_catalog ด้วย 2-Way Sync)</div>
+                                    <div><span class="font-bold text-slate-500">Group:</span> (ไม่ระบุ — เช่นกัน)</div>
+                                    <div></div>
+                                </div>
+                                <div class="px-4 pb-3">
+                                    <p class="text-[11px] text-slate-500 mb-2 font-bold">Advanced Junction Options:</p>
+                                    <div class="grid grid-cols-2 gap-x-8 gap-y-1 pl-2">
+                                        <div>✅ เปิด <strong>Soft Delete (Flag)</strong></div>
+                                        <div>Active Column: <code class="font-mono bg-slate-100 px-1 rounded">is_active</code></div>
+                                        <div>Active Value: <code class="font-mono bg-slate-100 px-1 rounded">1</code></div>
+                                        <div>Inactive Value: <code class="font-mono bg-slate-100 px-1 rounded">0</code></div>
+                                    </div>
+                                    <div class="mt-2">
+                                        <p class="text-[11px] text-slate-500 mb-1 font-bold">✅ เพิ่ม Metadata ตอน INSERT:</p>
+                                        <div class="grid grid-cols-2 gap-x-8 gap-y-1 pl-2">
+                                            <div>คอลัมน์ <code class="font-mono bg-slate-100 px-1 rounded">granted_by</code></div>
+                                            <div>Token: <code class="font-mono bg-slate-100 px-1 rounded">__ucm_admin__</code></div>
+                                            <div>คอลัมน์ <code class="font-mono bg-slate-100 px-1 rounded">granted_at</code></div>
+                                            <div>Token: <code class="font-mono bg-slate-100 px-1 rounded">__now__</code></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border border-sky-200 rounded-xl overflow-hidden">
+                                <div class="px-3 py-2 bg-sky-50 font-bold text-sky-700 text-[11px] uppercase tracking-wider">ส่วนที่ 2 — Column Side (lawyers.seniority)</div>
+                                <div class="px-4 py-3 grid grid-cols-2 gap-x-8 gap-y-2">
+                                    <div><span class="font-bold text-slate-500">ตาราง:</span> (ใช้ตาราง users หลัก = <code class="font-mono bg-slate-100 px-1 rounded">lawyers</code>)</div>
+                                    <div><span class="font-bold text-slate-500">คอลัมน์ Identifier:</span> (ใช้ user_identifier_col = <code class="font-mono bg-slate-100 px-1 rounded">staff_code</code>)</div>
+                                    <div class="col-span-2"><span class="font-bold text-slate-500">คอลัมน์ Permission Value:</span> <code class="font-mono bg-slate-100 px-1 rounded">seniority</code></div>
+                                </div>
+                                <div class="px-4 pb-3">
+                                    <p class="text-[11px] text-slate-500 mb-2 font-bold">ค่าที่เป็นไปได้ของ Column (ต้องเพิ่มทีละค่า):</p>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        @foreach ([
+                                            ['col:junior',           'col:junior',           'ระดับอาวุโส', 'ระดับ Junior'],
+                                            ['col:senior',           'col:senior',           'ระดับอาวุโส', 'ระดับ Senior'],
+                                            ['col:partner',          'col:partner',          'ระดับอาวุโส', 'ระดับ Partner'],
+                                            ['col:managing_partner', 'col:managing_partner', 'ระดับอาวุโส', 'Managing Partner'],
+                                        ] as [$key, $dbVal, $group, $label])
+                                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-mono text-[10px]">
+                                            <p><span class="text-slate-400">Key (ค่าใน DB):</span> <span class="text-emerald-700">{{ $dbVal }}</span></p>
+                                            <p><span class="text-slate-400">Label:</span> {{ $label }}</p>
+                                            <p><span class="text-slate-400">Group:</span> {{ $group }}</p>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    <p class="text-[11px] text-amber-700 mt-2 bg-amber-50 border border-amber-200 rounded-lg p-2">
+                                        <strong>หมายเหตุ:</strong> ค่า Key ต้องตรงกับค่าใน DB จริงๆ (เช่น <code class="font-mono">junior</code>, <code class="font-mono">senior</code>) — ระบบจะเติม prefix <code class="font-mono">col:</code> ให้อัตโนมัติเพื่อแยกออกจาก junction permissions
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- STEP 5 --}}
+                    <div class="border border-slate-200 rounded-xl overflow-hidden mb-4">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-violet-50 border-b border-violet-100">
+                            <div class="w-6 h-6 rounded-full bg-violet-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">5</div>
+                            <span class="font-bold text-violet-800 text-sm">Step 5 — 2-Way Sync (เปิดใช้งาน)</span>
+                        </div>
+                        <div class="px-4 py-3 text-xs space-y-3">
+                            <p class="text-slate-600">✅ เปิด <strong>เปิดใช้งาน 2-Way Sync</strong></p>
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+                                <div><span class="font-bold text-slate-500">ตาราง Permission Definitions:</span> กด "โหลดตาราง" แล้วเลือก <code class="font-mono bg-slate-100 px-1 rounded">permission_catalog</code></div>
+                                <div><span class="font-bold text-slate-500">คอลัมน์ Key/Value:</span> <code class="font-mono bg-slate-100 px-1 rounded">perm_code</code></div>
+                                <div><span class="font-bold text-slate-500">คอลัมน์ PK:</span> <code class="font-mono bg-slate-100 px-1 rounded">id</code> (default)</div>
+                                <div><span class="font-bold text-slate-500">คอลัมน์ Label:</span> <code class="font-mono bg-slate-100 px-1 rounded">perm_name</code></div>
+                                <div><span class="font-bold text-slate-500">คอลัมน์ Group:</span> <code class="font-mono bg-slate-100 px-1 rounded">module_group</code></div>
+                                <div></div>
+                            </div>
+                            <div class="border-t border-slate-100 pt-3">
+                                <p class="font-bold text-slate-600 mb-2">Delete Mode:</p>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="border-2 border-amber-400 bg-amber-50 rounded-xl p-3 text-center">
+                                        <p class="font-bold text-amber-800">✅ Soft Delete</p>
+                                        <p class="text-amber-700 mt-1">อัปเดต flag แทนลบถาวร</p>
+                                    </div>
+                                    <div class="border border-slate-200 rounded-xl p-3 text-center opacity-40">
+                                        <p class="font-bold text-slate-600">Detach Only</p>
+                                    </div>
+                                    <div class="border border-slate-200 rounded-xl p-3 text-center opacity-40">
+                                        <p class="font-bold text-slate-600">Hard Delete</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3 grid grid-cols-2 gap-4">
+                                    <div><span class="font-bold text-slate-500">คอลัมน์ Soft Delete:</span> <code class="font-mono bg-slate-100 px-1 rounded">is_active</code></div>
+                                    <div><span class="font-bold text-slate-500">ค่า "ลบแล้ว":</span> <code class="font-mono bg-slate-100 px-1 rounded">0</code></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- STEP 6 --}}
+                    <div class="border border-slate-200 rounded-xl overflow-hidden mb-4">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-teal-50 border-b border-teal-100">
+                            <div class="w-6 h-6 rounded-full bg-teal-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">6</div>
+                            <span class="font-bold text-teal-800 text-sm">Step 6 — Master Data Tables</span>
+                        </div>
+                        <div class="px-4 py-3 text-xs space-y-4">
+                            <p class="text-slate-600">กด <strong>+ เพิ่มตาราง</strong> 2 ครั้ง สำหรับ <code class="font-mono">departments</code> และ <code class="font-mono">document_types</code></p>
+
+                            <div class="border border-slate-200 rounded-xl overflow-hidden">
+                                <div class="px-3 py-2 bg-slate-50 font-bold text-slate-600 text-[11px] border-b border-slate-200">ตารางที่ 1 — แผนก (departments)</div>
+                                <div class="px-4 py-3 grid grid-cols-2 gap-x-8 gap-y-2">
+                                    <div><span class="font-bold text-slate-500">ตาราง:</span> <code class="font-mono bg-slate-100 px-1 rounded">departments</code></div>
+                                    <div><span class="font-bold text-slate-500">Label (ชื่อเมนู):</span> <code class="bg-slate-100 px-1 rounded">แผนก</code></div>
+                                    <div><span class="font-bold text-slate-500">Primary Key:</span> <code class="font-mono bg-slate-100 px-1 rounded">id</code></div>
+                                    <div><span class="font-bold text-slate-500">Display Column:</span> <code class="font-mono bg-slate-100 px-1 rounded">dept_name</code></div>
+                                    <div class="col-span-2">
+                                        <span class="font-bold text-slate-500">Extra Columns (เพิ่มทีละอัน):</span>
+                                        <div class="mt-1 space-y-1 pl-2">
+                                            <p><code class="font-mono bg-slate-100 px-1 rounded">dept_code</code> — รหัสแผนก — input</p>
+                                            <p><code class="font-mono bg-slate-100 px-1 rounded">dept_head</code> — หัวหน้าแผนก — input</p>
+                                            <p><code class="font-mono bg-slate-100 px-1 rounded">is_active</code> — สถานะ — toggle</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border border-slate-200 rounded-xl overflow-hidden">
+                                <div class="px-3 py-2 bg-slate-50 font-bold text-slate-600 text-[11px] border-b border-slate-200">ตารางที่ 2 — ประเภทเอกสาร (document_types)</div>
+                                <div class="px-4 py-3 grid grid-cols-2 gap-x-8 gap-y-2">
+                                    <div><span class="font-bold text-slate-500">ตาราง:</span> <code class="font-mono bg-slate-100 px-1 rounded">document_types</code></div>
+                                    <div><span class="font-bold text-slate-500">Label (ชื่อเมนู):</span> <code class="bg-slate-100 px-1 rounded">ประเภทเอกสาร</code></div>
+                                    <div><span class="font-bold text-slate-500">Primary Key:</span> <code class="font-mono bg-slate-100 px-1 rounded">id</code></div>
+                                    <div><span class="font-bold text-slate-500">Display Column:</span> <code class="font-mono bg-slate-100 px-1 rounded">type_name</code></div>
+                                    <div class="col-span-2">
+                                        <span class="font-bold text-slate-500">Extra Columns:</span>
+                                        <div class="mt-1 space-y-1 pl-2">
+                                            <p><code class="font-mono bg-slate-100 px-1 rounded">type_code</code> — รหัสประเภท — input</p>
+                                            <p><code class="font-mono bg-slate-100 px-1 rounded">requires_approval</code> — ต้องอนุมัติ — toggle</p>
+                                            <p><code class="font-mono bg-slate-100 px-1 rounded">description</code> — คำอธิบาย — textarea</p>
+                                            <p><code class="font-mono bg-slate-100 px-1 rounded">is_active</code> — สถานะ — toggle</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-800">
+                                <strong>⚠️ ห้ามใช้ "/" ในชื่อ Label</strong> — เช่น "ประเภท/เอกสาร" จะทำให้ route พัง ใช้ "ประเภทเอกสาร" หรือ "ประเภท-เอกสาร" แทน
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- STEP 7 --}}
+                    <div class="border border-slate-200 rounded-xl overflow-hidden mb-5">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-emerald-50 border-b border-emerald-100">
+                            <div class="w-6 h-6 rounded-full bg-emerald-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">7</div>
+                            <span class="font-bold text-emerald-800 text-sm">Step 7 — ยืนยันและสร้าง</span>
+                        </div>
+                        <div class="px-4 py-3 text-xs">
+                            <p class="text-slate-600 mb-3">ตรวจสอบ Summary แล้วกด <strong class="text-emerald-700">สร้าง Connector</strong></p>
+                            <div class="space-y-2">
+                                @foreach ([
+                                    ['ไปที่ระบบ → กด "Discover Permissions"', 'ดึง 12 permission จาก permission_catalog มาสร้างใน UCM พร้อม Label และ Group', 'indigo'],
+                                    ['ตรวจสอบ Permissions ที่ Discover ได้', 'จะเห็น 4 กลุ่ม: เอกสาร (6), คดีความ (3), รายงาน (2), ผู้ดูแล (1) + 1 กลุ่ม "ระดับอาวุโส" จาก Column side (4 ค่า)', 'violet'],
+                                    ['ลอง Sync สิทธิ์ให้ SantikoonA', 'ควรเห็น 12 junction permissions + seniority=managing_partner', 'emerald'],
+                                    ['ทดสอบ 2-Way Sync — เพิ่ม Permission ใหม่ใน UCM', 'UCM จะ INSERT record ใหม่ใน permission_catalog.is_active=1 ทันที', 'sky'],
+                                    ['ทดสอบ 2-Way Sync — ลบ Permission ใน UCM', 'UCM จะ UPDATE permission_catalog SET is_active=0 (Soft Delete) ไม่ลบถาวร', 'amber'],
+                                ] as [$title, $detail, $color])
+                                <div class="flex gap-3 p-3 bg-{{ $color }}-50 border border-{{ $color }}-100 rounded-xl">
+                                    <div class="w-1 rounded-full bg-{{ $color }}-400 flex-shrink-0"></div>
+                                    <div>
+                                        <p class="font-bold text-{{ $color }}-800">{{ $title }}</p>
+                                        <p class="text-{{ $color }}-700 mt-0.5">{{ $detail }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div id="wiz-after" class="border-t border-slate-100 pt-5">

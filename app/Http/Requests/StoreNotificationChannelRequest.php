@@ -56,6 +56,16 @@ class StoreNotificationChannelRequest extends FormRequest
         // Share Links
         'share_link_created',
         'share_link_revoked',
+        // OAuth / SSO
+        'oauth_client_created',
+        'oauth_client_updated',
+        'oauth_client_deleted',
+        'oauth_secret_rotated',
+        'oauth_authorized',
+        'oauth_denied',
+        'oauth_token_issued',
+        'oauth_token_refreshed',
+        'oauth_token_revoked',
     ];
 
     public function authorize(): bool

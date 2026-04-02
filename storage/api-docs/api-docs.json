@@ -2,11 +2,11 @@
     "openapi": "3.0.0",
     "info": {
         "title": "UCM — User Centralized Management API",
-        "description": "API สำหรับระบบภายนอกที่ต้องการใช้ UCM เป็น Authentication & Permission Hub\n\n## การทำงาน\n1. เรียก POST /api/auth/user-login เพื่อ authenticate ผู้ใช้ผ่าน LDAP\n2. UCM คืน Bearer Token + ข้อมูล user + permissions กลับมา\n3. ใช้ token สำหรับเรียก permission endpoints เพิ่มเติม\n\n## ระบบ Legacy (server-to-server)\nใช้ POST /api/auth/token ด้วย admin credentials เพื่อรับ long-lived token",
+        "description": "API สำหรับระบบภายนอกที่ต้องการใช้ UCM เป็น Authentication & Permission Hub\n\n## วิธีการ Authenticate\n\n### 1. OAuth 2.0 / OIDC (แนะนำ — SSO)\n- **Authorization Code + PKCE**: สำหรับ web app / SPA ที่มีผู้ใช้ login\n- **Client Credentials**: สำหรับ M2M / server-to-server\n- รับ `access_token` (RS256 JWT) มาใช้เป็น `Bearer` header\n\n### 2. Sanctum Token (legacy)\n- POST /api/auth/user-login → รับ Sanctum token\n- POST /api/auth/token → admin token (server-to-server)\n\n## OIDC Discovery\nดู endpoint metadata ทั้งหมดได้ที่ `GET /.well-known/openid-configuration`",
         "contact": {
             "name": "UCM Admin"
         },
-        "version": "1.0.0"
+        "version": "2.0.0"
     },
     "servers": [
         {
@@ -697,6 +697,378 @@
                     }
                 ]
             }
+        },
+        "/oauth/token": {
+            "post": {
+                "tags": [
+                    "OAuth 2.0"
+                ],
+                "summary": "Token Endpoint (OAuth 2.0)",
+                "description": "ออก access_token / refresh_token ด้วย 3 grant types:\n\n**authorization_code** — แลก authorization code เป็น tokens (ต้องส่ง code_verifier ถ้าใช้ PKCE)\n\n**refresh_token** — ต่ออายุ token (rotation: refresh token เก่าถูก revoke)\n\n**client_credentials** — M2M token (ต้องใช้ confidential client)\n\n**Rate Limit:** 60 requests / minute",
+                "operationId": "oauthToken",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "grant_type"
+                                ],
+                                "properties": {
+                                    "grant_type": {
+                                        "type": "string",
+                                        "example": "authorization_code",
+                                        "enum": [
+                                            "authorization_code",
+                                            "refresh_token",
+                                            "client_credentials"
+                                        ]
+                                    },
+                                    "client_id": {
+                                        "description": "ส่งใน body หรือ HTTP Basic auth",
+                                        "type": "string",
+                                        "example": "ucm_AbCdEf..."
+                                    },
+                                    "client_secret": {
+                                        "description": "สำหรับ confidential client",
+                                        "type": "string",
+                                        "example": "secret..."
+                                    },
+                                    "code": {
+                                        "description": "authorization_code grant",
+                                        "type": "string"
+                                    },
+                                    "redirect_uri": {
+                                        "description": "authorization_code grant",
+                                        "type": "string",
+                                        "format": "uri"
+                                    },
+                                    "code_verifier": {
+                                        "description": "PKCE verifier (authorization_code + PKCE)",
+                                        "type": "string"
+                                    },
+                                    "refresh_token": {
+                                        "description": "refresh_token grant",
+                                        "type": "string"
+                                    },
+                                    "scope": {
+                                        "description": "client_credentials grant",
+                                        "type": "string",
+                                        "example": "openid profile"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Token ออกสำเร็จ",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "access_token": {
+                                            "type": "string",
+                                            "example": "eyJhbGci..."
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        },
+                                        "expires_in": {
+                                            "type": "integer",
+                                            "example": 3600
+                                        },
+                                        "refresh_token": {
+                                            "type": "string",
+                                            "example": "XyZaBcDe...",
+                                            "nullable": true
+                                        },
+                                        "id_token": {
+                                            "description": "ส่งเมื่อ scope มี openid",
+                                            "type": "string",
+                                            "example": "eyJhbGci...",
+                                            "nullable": true
+                                        },
+                                        "scope": {
+                                            "type": "string",
+                                            "example": "openid profile"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid_grant / invalid_client / unsupported_grant_type",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "invalid_grant"
+                                        },
+                                        "error_description": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/token/revoke": {
+            "post": {
+                "tags": [
+                    "OAuth 2.0"
+                ],
+                "summary": "Revoke Token (RFC 7009)",
+                "description": "ยกเลิก access_token หรือ refresh_token ส่ง client credentials ใน HTTP Basic auth หรือ body",
+                "operationId": "oauthRevoke",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "required": [
+                                    "token"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "description": "access_token หรือ refresh_token ที่ต้องการยกเลิก",
+                                        "type": "string"
+                                    },
+                                    "client_id": {
+                                        "type": "string"
+                                    },
+                                    "client_secret": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "สำเร็จ (RFC 7009: 200 เสมอแม้ token ไม่พบ)"
+                    },
+                    "401": {
+                        "description": "invalid_client"
+                    }
+                }
+            }
+        },
+        "/v1/me": {
+            "get": {
+                "tags": [
+                    "Me (OAuth)"
+                ],
+                "summary": "โปรไฟล์ผู้ใช้ที่ authenticated",
+                "description": "คืนข้อมูลโปรไฟล์ของผู้ใช้ที่ส่ง OAuth Bearer token มา\n\n**Required scope:** `profile` หรือ `openid`",
+                "operationId": "meShow",
+                "responses": {
+                    "200": {
+                        "description": "ข้อมูลโปรไฟล์",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "username": {
+                                            "type": "string",
+                                            "example": "john.doe"
+                                        },
+                                        "name": {
+                                            "type": "string",
+                                            "example": "John Doe"
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "john@company.com",
+                                            "nullable": true
+                                        },
+                                        "department": {
+                                            "type": "string",
+                                            "example": "IT",
+                                            "nullable": true
+                                        },
+                                        "title": {
+                                            "type": "string",
+                                            "example": "Developer",
+                                            "nullable": true
+                                        },
+                                        "employee_number": {
+                                            "type": "string",
+                                            "example": "EMP001",
+                                            "nullable": true
+                                        },
+                                        "is_admin": {
+                                            "type": "integer",
+                                            "example": 0
+                                        },
+                                        "is_active": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "last_login_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized / invalid_token"
+                    },
+                    "403": {
+                        "description": "insufficient_scope"
+                    }
+                },
+                "security": [
+                    {
+                        "oauthBearer": []
+                    }
+                ]
+            }
+        },
+        "/v1/me/permissions": {
+            "get": {
+                "tags": [
+                    "Me (OAuth)"
+                ],
+                "summary": "Permissions ของผู้ใช้ในระบบนี้",
+                "description": "คืนรายการ permissions ของผู้ใช้ในระบบที่ตรงกับ OAuth client slug\n\n**Required scope:** `permissions`",
+                "operationId": "mePermissions",
+                "responses": {
+                    "200": {
+                        "description": "Permissions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "system": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "slug": {
+                                                    "type": "string",
+                                                    "example": "repair-system"
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Repair System"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "permissions": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            },
+                                            "example": [
+                                                "view_report",
+                                                "approve"
+                                            ]
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized / invalid_token"
+                    },
+                    "403": {
+                        "description": "insufficient_scope"
+                    }
+                },
+                "security": [
+                    {
+                        "oauthBearer": []
+                    }
+                ]
+            }
+        },
+        "/v1/me/systems": {
+            "get": {
+                "tags": [
+                    "Me (OAuth)"
+                ],
+                "summary": "ระบบทั้งหมดที่ผู้ใช้มีสิทธิ์",
+                "description": "คืนรายการระบบ (active) ที่ผู้ใช้มี permission อย่างน้อยหนึ่งรายการ พร้อมรายการ permissions\n\n**Required scope:** `profile`",
+                "operationId": "meSystems",
+                "responses": {
+                    "200": {
+                        "description": "ระบบที่มีสิทธิ์",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "systems": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    },
+                                                    "slug": {
+                                                        "type": "string",
+                                                        "example": "repair-system"
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Repair System"
+                                                    },
+                                                    "permissions": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "unauthorized / invalid_token"
+                    },
+                    "403": {
+                        "description": "insufficient_scope"
+                    }
+                },
+                "security": [
+                    {
+                        "oauthBearer": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -763,13 +1135,27 @@
                 "description": "Sanctum Bearer Token — รับได้จาก POST /api/auth/token หรือ POST /api/auth/user-login",
                 "bearerFormat": "Sanctum Token",
                 "scheme": "bearer"
+            },
+            "oauthBearer": {
+                "type": "http",
+                "description": "OAuth 2.0 Access Token (RS256 JWT) — รับได้จาก POST /api/oauth/token",
+                "bearerFormat": "RS256 JWT",
+                "scheme": "bearer"
             }
         }
     },
     "tags": [
         {
             "name": "Authentication",
-            "description": "Login, logout และออก token"
+            "description": "Login, logout และออก Sanctum token (legacy)"
+        },
+        {
+            "name": "OAuth 2.0",
+            "description": "Token endpoint สำหรับ OAuth 2.0 / OIDC"
+        },
+        {
+            "name": "Me (OAuth)",
+            "description": "ข้อมูลผู้ใช้ที่ authenticated ด้วย OAuth Bearer token"
         },
         {
             "name": "Permissions",

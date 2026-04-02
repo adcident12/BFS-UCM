@@ -80,6 +80,27 @@ class AuditLog extends Model
     const EVENT_API_TOKEN_REVOKED = 'api_token_revoked';
     const EVENT_API_USER_LOGIN = 'api_user_login';
 
+    // Categories — OAuth 2.0 / OIDC
+    const CATEGORY_OAUTH = 'oauth';
+
+    // Event types — OAuth Clients (admin management)
+    const EVENT_OAUTH_CLIENT_CREATED       = 'oauth_client_created';
+    const EVENT_OAUTH_CLIENT_UPDATED       = 'oauth_client_updated';
+    const EVENT_OAUTH_CLIENT_DELETED       = 'oauth_client_deleted';
+    const EVENT_OAUTH_SECRET_ROTATED       = 'oauth_secret_rotated';
+
+    // Event types — OAuth authorization flow
+    const EVENT_OAUTH_AUTHORIZED           = 'oauth_authorized';     // user approved consent
+    const EVENT_OAUTH_DENIED               = 'oauth_denied';         // user denied consent
+
+    // Event types — OAuth tokens
+    const EVENT_OAUTH_TOKEN_ISSUED         = 'oauth_token_issued';   // any grant type
+    const EVENT_OAUTH_TOKEN_REFRESHED      = 'oauth_token_refreshed';
+    const EVENT_OAUTH_TOKEN_REVOKED        = 'oauth_token_revoked';
+
+    // Event types — OIDC
+    const EVENT_OIDC_USERINFO_ACCESSED     = 'oidc_userinfo_accessed';
+
     // Categories — Notifications
     const CATEGORY_NOTIFICATIONS = 'notifications';
 

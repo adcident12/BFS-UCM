@@ -20,8 +20,23 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* ── Code font ── */
+        /* ── Code font + global code colours ── */
         code, pre, kbd { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+        /* Light text inside every dark code block (applies to all docs pages, not just .docs-prose) */
+        pre code {
+            color: #e2e8f0;
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-size: inherit;
+            line-height: inherit;
+        }
+
+        /* Inline code on all docs pages (colour only — layout classes from Tailwind are preserved) */
+        :not(pre) > code {
+            color: #4338ca;
+        }
 
         /* ── Docs-specific prose ── */
         .docs-prose h2 {
@@ -206,6 +221,11 @@
                     <span class="nav-dot"></span>
                     Install Guide
                 </a>
+                <a href="{{ route('docs.oauth-guide') }}"
+                   class="docs-nav-link {{ request()->routeIs('docs.oauth-guide') ? 'active' : '' }}">
+                    <span class="nav-dot"></span>
+                    OAuth / SSO Guide
+                </a>
                 <a href="{{ route('api-docs') }}"
                    class="docs-nav-link {{ request()->routeIs('api-docs') ? 'active' : '' }}">
                     <span class="nav-dot"></span>
@@ -288,6 +308,7 @@
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">นักพัฒนา</p>
                             <div class="space-y-1.5">
                                 <a href="{{ route('docs.install') }}" class="block text-slate-500 hover:text-indigo-600 transition-colors">Install Guide</a>
+                                <a href="{{ route('docs.oauth-guide') }}" class="block text-slate-500 hover:text-indigo-600 transition-colors">OAuth / SSO Guide</a>
                                 <a href="{{ route('api-docs') }}" class="block text-slate-500 hover:text-indigo-600 transition-colors">API Reference</a>
                                 <a href="{{ url('api-docs/swagger') }}" class="block text-slate-500 hover:text-indigo-600 transition-colors">Swagger UI</a>
                             </div>

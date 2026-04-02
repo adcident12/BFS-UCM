@@ -91,11 +91,11 @@
             $activeSection = '';
             if (request()->routeIs('dashboard') || request()->routeIs('users.*') || request()->routeIs('systems.*'))
                 $activeSection = 'main';
-            elseif (request()->routeIs('admin.levels') || request()->routeIs('queue.monitor') || request()->routeIs('connectors.*') || request()->routeIs('audit.*') || request()->routeIs('notifications.*') || request()->routeIs('reports.*') || request()->routeIs('share-links.*'))
+            elseif (request()->routeIs('admin.levels') || request()->routeIs('queue.monitor') || request()->routeIs('connectors.*') || request()->routeIs('audit.*') || request()->routeIs('notifications.*') || request()->routeIs('reports.*') || request()->routeIs('share-links.*') || request()->routeIs('admin.oauth-clients.*'))
                 $activeSection = 'admin';
             elseif (request()->routeIs('docs.manual'))
                 $activeSection = 'docs';
-            elseif (request()->routeIs('docs.install') || request()->routeIs('api-docs') || request()->is('api-docs/swagger'))
+            elseif (request()->routeIs('docs.install') || request()->routeIs('docs.oauth-guide') || request()->routeIs('api-docs') || request()->is('api-docs/swagger'))
                 $activeSection = 'dev';
         @endphp
         <nav id="sidebar-nav" class="flex-1 px-3 py-4 overflow-y-auto overflow-x-hidden">
@@ -283,6 +283,20 @@
                     @if ($notifActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
                 @endif
+                @php $oauthClientActive = request()->routeIs('admin.oauth-clients.*') @endphp
+                <a href="{{ route('admin.oauth-clients.index') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
+                          {{ $oauthClientActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $oauthClientActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">OAuth Clients</span>
+                    @if ($oauthClientActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
             </div>
             @endif
 
@@ -322,9 +336,10 @@
             </button>
             <div id="nav-body-dev" class="nav-acc-body space-y-0.5">
                 @php
-                    $installActive = request()->routeIs('docs.install');
-                    $apiDocsActive = request()->routeIs('api-docs');
-                    $swaggerActive = request()->is('api-docs/swagger');
+                    $installActive    = request()->routeIs('docs.install');
+                    $oauthGuideActive = request()->routeIs('docs.oauth-guide');
+                    $apiDocsActive    = request()->routeIs('api-docs');
+                    $swaggerActive    = request()->is('api-docs/swagger');
                 @endphp
                 <a href="{{ route('docs.install') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
@@ -337,6 +352,19 @@
                     </div>
                     <span class="truncate">Install Guide</span>
                     @if ($installActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
+                </a>
+                <a href="{{ route('docs.oauth-guide') }}" onclick="closeSidebar()"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900
+                          {{ $oauthGuideActive ? 'nav-active text-white border border-indigo-500/30' : 'text-slate-400 hover:bg-white/5 hover:text-white' }}">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors
+                                {{ $oauthGuideActive ? 'bg-indigo-600/80 text-white shadow-sm shadow-indigo-500/40' : 'text-slate-500 group-hover:text-slate-300' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                        </svg>
+                    </div>
+                    <span class="truncate">OAuth / SSO Guide</span>
+                    @if ($oauthGuideActive)<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0"></div>@endif
                 </a>
                 <a href="{{ route('api-docs') }}" onclick="closeSidebar()"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-900

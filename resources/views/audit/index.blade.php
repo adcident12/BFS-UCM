@@ -90,9 +90,10 @@
         'notifications'  => ['label' => 'Notifications', 'color' => 'pink',   'bg' => 'bg-pink-50',    'ring' => 'ring-pink-100',   'text' => 'text-pink-700',   'icon_color' => 'text-pink-500'],
         'queue'          => ['label' => 'Queue',          'color' => 'amber',  'bg' => 'bg-amber-50',   'ring' => 'ring-amber-100',  'text' => 'text-amber-700',  'icon_color' => 'text-amber-500'],
         'share_links'    => ['label' => 'Share Links',    'color' => 'cyan',   'bg' => 'bg-cyan-50',    'ring' => 'ring-cyan-100',   'text' => 'text-cyan-700',   'icon_color' => 'text-cyan-500'],
+        'oauth'          => ['label' => 'OAuth / SSO',   'color' => 'rose',   'bg' => 'bg-rose-50',    'ring' => 'ring-rose-100',   'text' => 'text-rose-700',   'icon_color' => 'text-rose-500'],
     ];
 @endphp
-<div class="grid grid-cols-5 sm:grid-cols-10 gap-3 mb-6">
+<div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-11 gap-3 mb-6">
     @foreach ($statDefs as $key => $s)
         @php $cnt = $categoryCounts[$key] ?? 0; @endphp
         <div class="bg-white rounded-2xl ring-1 {{ $s['ring'] }} px-4 py-3.5 flex flex-col items-center gap-1 shadow-sm">
@@ -119,6 +120,7 @@
             'notifications'  => ['label' => 'Notifications', 'icon' => 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'],
             'queue'          => ['label' => 'Queue',          'icon' => 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'],
             'share_links'    => ['label' => 'Share Links',    'icon' => 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1'],
+            'oauth'          => ['label' => 'OAuth / SSO',    'icon' => 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z'],
         ];
         $currentCategory = request('category', '');
     @endphp
@@ -257,29 +259,31 @@
                     @foreach ($logs as $log)
                         @php
                             [$catBg, $catText, $catBorder] = match($log->event_category) {
-                                'auth'        => ['bg-purple-50', 'text-purple-700', 'border-purple-200'],
-                                'users'       => ['bg-blue-50',   'text-blue-700',   'border-blue-200'],
-                                'permissions' => ['bg-indigo-50', 'text-indigo-700', 'border-indigo-200'],
-                                'systems'     => ['bg-orange-50', 'text-orange-700', 'border-orange-200'],
-                                'connectors'  => ['bg-teal-50',   'text-teal-700',   'border-teal-200'],
-                                'api'         => ['bg-slate-50',  'text-slate-700',  'border-slate-200'],
+                                'auth'           => ['bg-purple-50', 'text-purple-700', 'border-purple-200'],
+                                'users'          => ['bg-blue-50',   'text-blue-700',   'border-blue-200'],
+                                'permissions'    => ['bg-indigo-50', 'text-indigo-700', 'border-indigo-200'],
+                                'systems'        => ['bg-orange-50', 'text-orange-700', 'border-orange-200'],
+                                'connectors'     => ['bg-teal-50',   'text-teal-700',   'border-teal-200'],
+                                'api'            => ['bg-slate-50',  'text-slate-700',  'border-slate-200'],
                                 'access_control' => ['bg-violet-50', 'text-violet-700', 'border-violet-200'],
                                 'notifications'  => ['bg-pink-50',   'text-pink-700',   'border-pink-200'],
                                 'queue'          => ['bg-amber-50',  'text-amber-700',  'border-amber-200'],
-                                default       => ['bg-gray-50',   'text-gray-700',   'border-gray-200'],
+                                'oauth'          => ['bg-rose-50',   'text-rose-700',   'border-rose-200'],
+                                default          => ['bg-gray-50',   'text-gray-700',   'border-gray-200'],
                             };
 
                             $catLabel = match($log->event_category) {
-                                'auth'        => 'Auth',
-                                'users'       => 'ผู้ใช้',
-                                'permissions' => 'สิทธิ์',
-                                'systems'     => 'ระบบ',
-                                'connectors'  => 'Connectors',
-                                'api'         => 'API',
+                                'auth'           => 'Auth',
+                                'users'          => 'ผู้ใช้',
+                                'permissions'    => 'สิทธิ์',
+                                'systems'        => 'ระบบ',
+                                'connectors'     => 'Connectors',
+                                'api'            => 'API',
                                 'access_control' => 'สิทธิ์ UCM',
                                 'notifications'  => 'Notifications',
                                 'queue'          => 'Queue',
-                                default       => $log->event_category,
+                                'oauth'          => 'OAuth / SSO',
+                                default          => $log->event_category,
                             };
 
                             $eventLabel = match($log->event_type) {
@@ -318,6 +322,16 @@
                                 'queue_all_retried'             => 'Retry All Failed Jobs',
                                 'queue_job_deleted'             => 'ลบ Failed Job',
                                 'queue_flushed'                 => 'Flush Failed Jobs',
+                                'oauth_client_created'          => 'สร้าง OAuth Client',
+                                'oauth_client_updated'          => 'แก้ไข OAuth Client',
+                                'oauth_client_deleted'          => 'ลบ OAuth Client',
+                                'oauth_secret_rotated'          => 'Rotate Secret',
+                                'oauth_authorized'              => 'อนุญาต OAuth',
+                                'oauth_denied'                  => 'ปฏิเสธ OAuth',
+                                'oauth_token_issued'            => 'ออก OAuth Token',
+                                'oauth_token_refreshed'         => 'Refresh OAuth Token',
+                                'oauth_token_revoked'           => 'Revoke OAuth Token',
+                                'oidc_userinfo_accessed'        => 'เข้าถึง UserInfo',
                                 default                         => $log->event_type,
                             };
 
@@ -325,6 +339,7 @@
                                 'login_failed', 'user_removed', 'system_deleted',
                                 'connector_deleted', 'permission_def_deleted', 'account_status_changed',
                                 'notification_channel_deleted', 'queue_job_deleted', 'queue_flushed',
+                                'oauth_client_deleted', 'oauth_secret_rotated', 'oauth_denied', 'oauth_token_revoked',
                             ]);
 
                             $avatarLetter = strtoupper(substr($log->actor_username ?? 'S', 0, 1));

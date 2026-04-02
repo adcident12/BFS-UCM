@@ -167,11 +167,19 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 continue;
             }
 
-            $joinType = strtoupper($def['join_type'] ?? 'LEFT');
-            $localCol = $def['join_local_col'] ?? '';
+            $joinType  = in_array(strtoupper($def['join_type'] ?? 'LEFT'), ['LEFT', 'RIGHT', 'INNER', 'CROSS'], true)
+                ? strtoupper($def['join_type'])
+                : 'LEFT';
+            $localCol  = $def['join_local_col'] ?? '';
             $remoteCol = $def['join_remote_col'] ?? '';
+
+            if (! $localCol || ! $remoteCol) {
+                continue;
+            }
+
             $aliasStr = $alias ? " {$alias}" : '';
-            $parts[] = "{$joinType} JOIN {$quoted}{$aliasStr} ON {$localCol} = {$remoteCol}";
+            $parts[]  = $joinType.' JOIN '.$quoted.$aliasStr
+                .' ON '.$this->quoteIdentifier($localCol).' = '.$this->quoteIdentifier($remoteCol);
         }
 
         return ['sql' => implode(' ', $parts), 'primary_alias' => $primaryAlias];
@@ -276,11 +284,20 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
      * เขียน column side ของ mixed mode
      * ถ้า $rawValue = null → set column เป็น NULL
      */
-    private function syncMixedColumnSide(UcmUser $user, ?string $rawValue): bool
+    /**
+     * @param  bool  $throwOnError  ถ้า true → ให้ PDOException propagate ขึ้นไป (ใช้เมื่ออยู่ใน transaction)
+     */
+    private function syncMixedColumnSide(UcmUser $user, ?string $rawValue, bool $throwOnError = false): bool
     {
         $cfg = $this->config;
 
         if (! filled($cfg->perm_col_value_col)) {
+            return true;
+        }
+
+        if ($rawValue === null) {
+            Log::info("[DynamicAdapter:{$this->system->slug}] syncMixedColumnSide — ไม่มี col permission → ข้าม UPDATE");
+
             return true;
         }
 
@@ -297,6 +314,9 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
 
             return true;
         } catch (PDOException $e) {
+            if ($throwOnError) {
+                throw $e;
+            }
             Log::error("[DynamicAdapter:{$this->system->slug}] syncMixedColumnSide: ".$e->getMessage());
 
             return false;
@@ -684,10 +704,10 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 $junctionPerms = array_column($stmt->fetchAll(), $cfg->perm_value_col);
             }
 
-            // Mixed mode: รวม junction perms + column side
+            // Mixed mode: รวม junction perms + column side (deduplicate ป้องกัน col:* ซ้ำ)
             if ($this->isMixed()) {
                 $colPerm = $this->getMixedColumnPermission($user);
-                if ($colPerm !== null) {
+                if ($colPerm !== null && ! in_array($colPerm, $junctionPerms, true)) {
                     $junctionPerms[] = $colPerm;
                 }
             }
@@ -928,11 +948,12 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                         $ins->execute($vals);
                     }
                 }
-                $pdo->commit();
-
+                // Mixed mode: sync column side ก่อน commit → rollback ได้หาก column update ล้มเหลว
                 if ($this->isMixed()) {
-                    $this->syncMixedColumnSide($user, $rawColValue ?? null);
+                    $this->syncMixedColumnSide($user, $rawColValue ?? null, true);
                 }
+
+                $pdo->commit();
 
                 return true;
             }
@@ -949,11 +970,14 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 $pdo->prepare("UPDATE {$table} SET {$activeCol} = ? WHERE {$fkCol} = ?")
                     ->execute([$inactiveVal, $identifier]);
 
+                // Fetch existing values once (ป้องกัน N+1 ต่อ permission)
+                $existingStmt = $pdo->prepare("SELECT {$valCol} FROM {$table} WHERE {$fkCol} = ?");
+                $existingStmt->execute([$identifier]);
+                $existingValues = $existingStmt->fetchAll(PDO::FETCH_COLUMN);
+
                 // Reactivate or insert each requested permission
                 foreach ($permissions as $perm) {
-                    $chk = $pdo->prepare("SELECT 1 FROM {$table} WHERE {$fkCol} = ? AND {$valCol} = ? LIMIT 1");
-                    $chk->execute([$identifier, $perm]);
-                    if ($chk->fetchColumn()) {
+                    if (in_array($perm, $existingValues, true)) {
                         $pdo->prepare("UPDATE {$table} SET {$activeCol} = ? WHERE {$fkCol} = ? AND {$valCol} = ?")
                             ->execute([$activeVal, $identifier, $perm]);
                     } else {
@@ -967,12 +991,12 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 }
             }
 
-            $pdo->commit();
-
-            // Mixed mode: sync column side หลัง junction commit
+            // Mixed mode: sync column side ก่อน commit → rollback ได้หาก column update ล้มเหลว
             if ($this->isMixed()) {
-                $this->syncMixedColumnSide($user, $rawColValue ?? null);
+                $this->syncMixedColumnSide($user, $rawColValue ?? null, true);
             }
+
+            $pdo->commit();
 
             return true;
         } catch (PDOException $e) {
@@ -1900,6 +1924,35 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
                 $created[] = $key;
 
                 Log::info("[DynamicAdapter:{$this->system->slug}] discoverPermissions: สร้าง '{$key}'");
+            }
+
+            // Mixed mode: สร้าง col:* permissions จาก perm_col_options ด้วย
+            if ($this->isMixed() && ! empty($cfg->perm_col_options)) {
+                foreach ((array) $cfg->perm_col_options as $opt) {
+                    $key = 'col:'.($opt['key'] ?? '');
+                    if ($key === 'col:') {
+                        continue;
+                    }
+
+                    if (in_array($key, $existingKeys, true)) {
+                        continue;
+                    }
+
+                    SystemPermission::updateOrCreate(
+                        ['system_id' => $this->system->id, 'key' => $key],
+                        [
+                            'label'        => $opt['label'] ?? $key,
+                            'group'        => $opt['group'] ?? 'Column',
+                            'remote_value' => null,
+                            'is_exclusive' => true,   // col:* เลือกได้ทีละ 1 (radio button)
+                        ]
+                    );
+
+                    $existingKeys[] = $key;
+                    $created[] = $key;
+
+                    Log::info("[DynamicAdapter:{$this->system->slug}] discoverPermissions: สร้าง '{$key}' (col side)");
+                }
             }
 
             // Cleanup: เมื่อใช้ perm_def_table ให้ลบ UCM permissions ที่ไม่อยู่ใน

@@ -155,6 +155,13 @@ return [
         'default_level' => 2,
         'lockable'      => true,
     ],
+    'oauth_clients' => [
+        'name'          => 'OAuth Clients (SSO)',
+        'description'   => 'จัดการ OAuth 2.0 / OIDC Clients สำหรับ SSO',
+        'group'         => 'ผู้ดูแลระบบ',
+        'default_level' => 2,
+        'lockable'      => true,
+    ],
     'system_create_edit' => [
         'name'          => 'เพิ่ม/แก้ไขระบบที่เชื่อมต่อ',
         'description'   => 'สร้างและแก้ไขระบบ รวมถึง toggle 2-way sync',

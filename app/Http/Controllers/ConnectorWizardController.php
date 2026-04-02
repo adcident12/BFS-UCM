@@ -286,11 +286,19 @@ class ConnectorWizardController extends Controller
                 continue;
             }
 
-            $joinType = strtoupper($def['join_type'] ?? 'LEFT');
-            $localCol = $def['join_local_col'] ?? '';
+            $joinType  = in_array(strtoupper($def['join_type'] ?? 'LEFT'), ['LEFT', 'RIGHT', 'INNER', 'CROSS'], true)
+                ? strtoupper($def['join_type'])
+                : 'LEFT';
+            $localCol  = $def['join_local_col'] ?? '';
             $remoteCol = $def['join_remote_col'] ?? '';
+
+            if (! $localCol || ! $remoteCol) {
+                continue;
+            }
+
             $aliasStr = $alias ? ' '.$alias : '';
-            $parts[] = "{$joinType} JOIN ".$this->qi($tableName, $driver)."{$aliasStr} ON {$localCol} = {$remoteCol}";
+            $parts[]  = $joinType.' JOIN '.$this->qi($tableName, $driver).$aliasStr
+                .' ON '.$this->qi($localCol, $driver).' = '.$this->qi($remoteCol, $driver);
         }
 
         return implode(' ', $parts) ?: $this->qi($primaryTable, $driver);

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\OAuthClientController;
 use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\Auth\LoginController;
@@ -7,6 +8,8 @@ use App\Http\Controllers\ConnectorWizardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MatrixShareLinkController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Api\OAuthController;
+use App\Http\Controllers\Api\OidcController;
 use App\Http\Controllers\PermissionCenterController;
 use App\Http\Controllers\PublicMatrixController;
 use App\Http\Controllers\QueueMonitorController;
@@ -15,6 +18,16 @@ use App\Http\Controllers\SystemController;
 use App\Http\Controllers\UcmAccessController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+
+// ── OIDC Discovery (public, no auth) ─────────────────────────────────────────
+Route::get('/.well-known/openid-configuration', [OidcController::class, 'discovery'])->name('oidc.discovery');
+Route::get('/oauth/jwks', [OidcController::class, 'jwks'])->name('oidc.jwks');
+
+// ── OAuth 2.0 Authorization Endpoint ─────────────────────────────────────────
+// GET  — show consent screen (requires UCM web session)
+// POST — process approve/deny from consent form
+Route::get('/oauth/authorize', [OAuthController::class, 'authorize'])->name('oauth.authorize');
+Route::post('/oauth/authorize', [OAuthController::class, 'approveAuthorization'])->name('oauth.authorize.approve');
 
 // Public share link — no auth required
 Route::get('/share/matrix/{token}', [PublicMatrixController::class, 'show'])->name('share.matrix');
@@ -31,6 +44,7 @@ Route::middleware('auth')->group(function () {
     // Documentation
     Route::view('/manual', 'docs.manual')->name('docs.manual');
     Route::view('/install-guide', 'docs.install')->name('docs.install');
+    Route::view('/oauth-guide', 'docs.oauth-guide')->name('docs.oauth-guide');
 
     // Downloads
     Route::get('/downloads/ucm-client', function () {
@@ -140,4 +154,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/systems/{system}/group-records/{group}/{recordId}', [SystemController::class, 'updateGroupRecord'])->where('group', '[^/]+')->name('systems.group-records.update');
     Route::delete('/systems/{system}/group-records/{group}/{recordId}', [SystemController::class, 'destroyGroupRecord'])->where('group', '[^/]+')->name('systems.group-records.destroy');
     Route::post('/systems/{system}/group-records/{group}/discover', [SystemController::class, 'discoverGroupRecords'])->where('group', '[^/]+')->name('systems.group-records.discover');
+
+    // OAuth Client Management (admin)
+    Route::resource('admin/oauth-clients', OAuthClientController::class)->names('admin.oauth-clients');
+    Route::post('/admin/oauth-clients/{oauthClient}/rotate-secret', [OAuthClientController::class, 'rotateSecret'])->name('admin.oauth-clients.rotate-secret');
 });

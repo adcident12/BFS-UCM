@@ -35,7 +35,9 @@ class UserController extends Controller
 
         $query = UcmUser::query()->where('is_active', true);
 
-        if ($search = $request->input('search')) {
+        $search = substr((string) $request->input('search', ''), 0, 100) ?: null;
+
+        if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('username', 'like', "%{$search}%")
@@ -92,7 +94,7 @@ class UserController extends Controller
         $days = (int) $request->input('days', 30);
         abort_unless(in_array($days, [30, 60, 90], true), 422);
 
-        $search = $request->input('search');
+        $search = substr((string) $request->input('search', ''), 0, 100) ?: null;
         $cutoff = now()->subDays($days);
 
         $query = UcmUser::where('is_active', true)
@@ -210,7 +212,7 @@ class UserController extends Controller
             ->pluck('key')
             ->toArray();
 
-        $newPerms = array_values(array_intersect($allSubmitted, $validKeys));
+        $newPerms = array_values(array_unique(array_intersect($allSubmitted, $validKeys)));
 
         $adminId = Auth::id();
         $now = now();
@@ -334,7 +336,7 @@ class UserController extends Controller
 
         // กรองเฉพาะ keys ที่มีอยู่จริงในระบบ (ป้องกัน injection)
         $validKeys = SystemPermission::where('system_id', $system->id)->pluck('key')->toArray();
-        $newPerms = array_values(array_intersect($remotePerms, $validKeys));
+        $newPerms = array_values(array_unique(array_intersect($remotePerms, $validKeys)));
 
         $adminId = Auth::id();
         $now = now();
