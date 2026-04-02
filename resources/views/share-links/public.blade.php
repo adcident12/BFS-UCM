@@ -185,7 +185,7 @@
         </div>
 
         {{-- Matrix Table --}}
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="matrix-wrap" id="matrix-wrap">
                 <table class="matrix-table" id="matrix-table">
                     <thead>

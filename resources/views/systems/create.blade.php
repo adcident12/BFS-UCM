@@ -10,7 +10,7 @@
 @endsection
 
 @section('content')
-<div class="max-w-2xl">
+<div class="max-w-2xl mx-auto">
 
     {{-- Hero Banner --}}
     <div class="mb-6 relative overflow-hidden rounded-2xl"

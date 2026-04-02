@@ -6,19 +6,10 @@
     <title>อนุญาตการเข้าถึง — UCM</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+    @vite(['resources/css/app.css'])
     <style>
-        body { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+        body { font-family: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif; }
         .bg-grid {
             background-color: #0f172a;
             background-image:
@@ -144,15 +135,16 @@
 
                 <div class="flex gap-3">
                     <button type="submit" name="action" value="deny"
-                            class="flex-1 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-300
-                                   bg-slate-700 hover:bg-slate-600 border border-slate-600
-                                   transition-colors duration-150">
+                            class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-300
+                                   bg-slate-700/80 hover:bg-slate-600 border border-slate-600/80
+                                   transition-all hover:-translate-y-0.5 active:translate-y-0">
                         ปฏิเสธ
                     </button>
                     <button type="submit" name="action" value="approve"
                             class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold text-white
                                    bg-indigo-600 hover:bg-indigo-500
-                                   transition-colors duration-150">
+                                   shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40
+                                   transition-all hover:-translate-y-0.5 active:translate-y-0">
                         อนุญาต
                     </button>
                 </div>

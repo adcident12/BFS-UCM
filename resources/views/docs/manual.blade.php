@@ -27,6 +27,7 @@ $sections = [
     ['id' => 'permission-timeline',   'label' => 'Permission Timeline'],
     ['id' => 'inactive-users',        'label' => 'ผู้ใช้ไม่ได้ใช้งาน'],
     ['id' => 'health-check',          'label' => 'ทดสอบการเชื่อมต่อ'],
+    ['id' => 'error-pages',           'label' => 'หน้า Error ของระบบ'],
 ];
 @endphp
 
@@ -129,11 +130,24 @@ $sections = [
                         </div>
                     @endforeach
                 </div>
-                <div class="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-                    <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
-                    <span>หากเข้าสู่ระบบไม่ได้ กรุณาติดต่อฝ่าย IT เพื่อตรวจสอบสิทธิ์บัญชี AD ของคุณ</span>
+                <div class="space-y-2">
+                    <p class="font-semibold text-slate-800 text-xs">ข้อความแจ้งเตือนที่อาจพบ:</p>
+                    @foreach ([
+                        ['msg' => 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง', 'color' => 'red', 'desc' => 'Username หรือรหัสผ่าน AD ไม่ถูกต้อง — ตรวจสอบ Caps Lock และลองใหม่'],
+                        ['msg' => 'คุณไม่มีสิทธิ์เข้าใช้งานระบบนี้', 'color' => 'amber', 'desc' => 'บัญชีของคุณอยู่ในแผนกที่ไม่ได้รับอนุญาต — ติดต่อ IT Support'],
+                        ['msg' => 'ไม่สามารถเชื่อมต่อกับ Active Directory ได้ในขณะนี้', 'color' => 'red', 'desc' => 'AD server ไม่ตอบสนองชั่วคราว — รอสักครู่แล้วลองใหม่ หรือติดต่อ IT Support'],
+                        ['msg' => 'ส่งคำขอถี่เกินไป กรุณารอสักครู่', 'color' => 'orange', 'desc' => 'Login ผิดหลายครั้งติดกัน — ระบบล็อคชั่วคราว 1 นาที'],
+                    ] as $err)
+                        <div class="flex items-start gap-3 p-3 bg-{{ $err['color'] }}-50 border border-{{ $err['color'] }}-100 rounded-xl text-xs">
+                            <svg class="w-3.5 h-3.5 text-{{ $err['color'] }}-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            <div>
+                                <div class="font-semibold text-{{ $err['color'] }}-800">"{{ $err['msg'] }}"</div>
+                                <div class="text-{{ $err['color'] }}-700 mt-0.5">{{ $err['desc'] }}</div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -4711,6 +4725,39 @@ FLUSH PRIVILEGES;</pre>
                 <div class="flex items-start gap-3 p-3.5 bg-blue-50 border border-blue-100 rounded-xl text-xs text-blue-800">
                     <svg class="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
                     <span>ปุ่มทดสอบปรากฏเฉพาะ Admin ระดับ 1 ขึ้นไป — ระบบที่ไม่มี Adapter (ยังไม่ได้ตั้งค่า Connector) จะแจ้งว่า "ระบบนี้ไม่มี Adapter"</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── หน้า Error ── --}}
+        <div id="error-pages" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-red-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">หน้า Error ของระบบ</h2>
+            </div>
+            <div class="px-6 py-5 space-y-4 text-sm text-slate-700 leading-relaxed">
+                <p>เมื่อเกิดข้อผิดพลาด UCM จะแสดงหน้า Error แบบ Branded พร้อมข้อความที่เข้าใจได้และตัวเลือกสำหรับดำเนินการต่อ</p>
+                <div class="space-y-2">
+                    @foreach ([
+                        ['code' => '403', 'color' => 'amber', 'title' => 'ไม่มีสิทธิ์เข้าถึง', 'desc' => 'คุณพยายามเข้าถึงหน้าที่ต้องการสิทธิ์ Admin สูงกว่าระดับที่มี — ติดต่อ Admin เพื่อขอสิทธิ์เพิ่มเติม'],
+                        ['code' => '404', 'color' => 'indigo', 'title' => 'ไม่พบหน้าที่คุณขอ', 'desc' => 'URL ไม่ถูกต้องหรือข้อมูลที่ต้องการถูกลบออกแล้ว — กดปุ่มกลับเพื่อไปหน้าก่อนหน้า'],
+                        ['code' => '419', 'color' => 'violet', 'title' => 'Session หมดอายุ', 'desc' => 'เปิดหน้าไว้นานเกินไปโดยไม่ได้ใช้งาน — กลับไปยังหน้าก่อนและลองอีกครั้ง หรือ Login ใหม่'],
+                        ['code' => '429', 'color' => 'orange', 'title' => 'ส่งคำขอถี่เกินไป', 'desc' => 'Login ผิดหลายครั้งติดกัน — ระบบล็อคชั่วคราว 1 นาที จากนั้นลองใหม่ได้ตามปกติ'],
+                        ['code' => '500', 'color' => 'red', 'title' => 'เกิดข้อผิดพลาดภายในระบบ', 'desc' => 'ระบบพบข้อผิดพลาดที่ไม่คาดคิด — ลองโหลดหน้าใหม่ ถ้ายังพบปัญหาให้ติดต่อ IT Support'],
+                        ['code' => '503', 'color' => 'sky', 'title' => 'ระบบอยู่ระหว่างบำรุงรักษา', 'desc' => 'IT กำลังอัปเดตระบบ — โปรดรอสักครู่แล้วลองใหม่อีกครั้ง'],
+                    ] as $err)
+                        <div class="flex items-start gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs">
+                            <span class="font-mono font-bold text-{{ $err['color'] }}-600 bg-{{ $err['color'] }}-50 border border-{{ $err['color'] }}-200 px-2 py-0.5 rounded-lg flex-shrink-0 text-sm">{{ $err['code'] }}</span>
+                            <div>
+                                <div class="font-semibold text-slate-900">{{ $err['title'] }}</div>
+                                <div class="text-slate-600 mt-0.5">{{ $err['desc'] }}</div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </div>
         </div>

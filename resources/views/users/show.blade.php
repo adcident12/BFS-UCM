@@ -158,7 +158,7 @@
                         </form>
                         <button type="button"
                                 onclick="askConfirm('form-disable-{{ $system->id }}', 'ปิดการใช้งาน account?', '{{ addslashes($user->name) }} ใน {{ addslashes($system->name) }}')"
-                                class="text-xs font-semibold text-red-600 hover:text-red-800 border border-red-200 hover:bg-red-50 rounded-lg px-2.5 py-1 transition-colors cursor-pointer">
+                                class="text-xs font-semibold text-red-600 hover:text-red-800 border border-red-200 hover:bg-red-50 rounded-xl px-2.5 py-1 transition-all cursor-pointer">
                             ปิดการใช้งาน
                         </button>
                         @endif
@@ -172,7 +172,7 @@
                         </form>
                         <button type="button"
                                 onclick="askConfirm('form-enable-{{ $system->id }}', 'เปิดใช้งาน account?', '{{ addslashes($user->name) }} ใน {{ addslashes($system->name) }}')"
-                                class="text-xs font-semibold text-emerald-600 hover:text-emerald-800 border border-emerald-200 hover:bg-emerald-50 rounded-lg px-2.5 py-1 transition-colors cursor-pointer">
+                                class="text-xs font-semibold text-emerald-600 hover:text-emerald-800 border border-emerald-200 hover:bg-emerald-50 rounded-xl px-2.5 py-1 transition-all cursor-pointer">
                             เปิดใช้งาน
                         </button>
                         @endif

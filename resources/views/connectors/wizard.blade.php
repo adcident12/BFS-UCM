@@ -99,7 +99,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
          STEP 1 — System Info
     ══════════════════════════════════════════════════ --}}
     <div class="wiz-step" data-step="1">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="{{ $icn }}">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +202,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
          STEP 2 — Database Connection
     ══════════════════════════════════════════════════ --}}
     <div class="wiz-step hidden" data-step="2">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="{{ $icn }}">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -365,7 +365,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
          STEP 3 — User Table
     ══════════════════════════════════════════════════ --}}
     <div class="wiz-step hidden" data-step="3">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="{{ $icn }}">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -584,7 +584,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
          STEP 4 — Permissions
     ══════════════════════════════════════════════════ --}}
     <div class="wiz-step hidden" data-step="4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="{{ $icn }}">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1450,7 +1450,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
          STEP 5 — 2-Way Sync
     ══════════════════════════════════════════════════ --}}
     <div class="wiz-step hidden" data-step="5">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-200/60">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1641,7 +1641,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
          STEP 6 — Master Data Tables
     ══════════════════════════════════════════════════ --}}
     <div class="wiz-step hidden" data-step="6">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-cyan-500 to-teal-600 shadow-lg shadow-cyan-200/60">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1689,7 +1689,7 @@ $arr  = '<div class="pointer-events-none absolute inset-y-0 right-2.5 flex items
          STEP 7 — Confirm
     ══════════════════════════════════════════════════ --}}
     <div class="wiz-step hidden" data-step="7">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="flex items-start gap-4 px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                 <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-200/60">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

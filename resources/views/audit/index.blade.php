@@ -104,7 +104,7 @@
 </div>
 
 {{-- ── Filter Panel ─────────────────────────────────────────────────────── --}}
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-5">
+<div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-5 mb-5">
 
     {{-- Category Tabs --}}
     @php
@@ -173,7 +173,7 @@
             <div class="flex flex-col sm:flex-row gap-2">
 
                 {{-- Preset Buttons --}}
-                <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1" id="preset-group">
+                <div class="flex items-center gap-1 bg-slate-50 ring-1 ring-slate-200 rounded-xl p-1" id="preset-group">
                     @foreach ([
                         ['CD', 'วันนี้'],
                         ['PD', 'เมื่อวาน'],
@@ -231,7 +231,7 @@
 </div>
 
 {{-- ── Table ────────────────────────────────────────────────────────────── --}}
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+<div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
     @if ($logs->isEmpty())
         <div class="flex flex-col items-center justify-center py-24 text-slate-400">
             <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
@@ -415,7 +415,7 @@
 
         {{-- Pagination --}}
         @if ($logs->hasPages())
-            <div class="px-5 py-4 border-t border-slate-100 bg-slate-50/50">
+            <div class="px-5 py-4 border-t border-slate-100 bg-slate-50">
                 {{ $logs->links() }}
             </div>
         @endif

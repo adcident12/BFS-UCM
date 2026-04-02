@@ -144,7 +144,7 @@
 
             {{-- Actions --}}
             @if($canManageConnectors)
-            <div class="flex items-center px-4 py-2.5 border-t border-slate-100 bg-slate-50/60 gap-0.5">
+            <div class="flex items-center px-5 py-3 border-t border-slate-100 bg-slate-50 gap-1">
                 @if($system)
                 <a href="{{ route('systems.show', $system) }}"
                    class="flex-1 text-center text-xs font-semibold text-indigo-600 hover:text-indigo-800 py-1.5 rounded-lg hover:bg-indigo-50 transition">

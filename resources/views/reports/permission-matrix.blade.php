@@ -168,7 +168,7 @@ tr:hover .perm-cell {
 </div>
 
 {{-- Filter --}}
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-5">
+<div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 p-5 mb-5">
     <form method="GET" action="{{ route('reports.permission-matrix') }}" class="flex flex-col sm:flex-row gap-3">
         <div class="relative flex-1">
             <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -190,7 +190,7 @@ tr:hover .perm-cell {
             @endforeach
         </select>
         <button type="submit"
-                class="px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors">
+                class="px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-sm shadow-indigo-200 transition-all hover:-translate-y-0.5 hover:shadow-md hover:shadow-indigo-200">
             ค้นหา
         </button>
         @if (request()->hasAny(['search', 'system_id']))
@@ -230,7 +230,7 @@ tr:hover .perm-cell {
 @endif
 
 {{-- Matrix Table --}}
-<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+<div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
     <div class="matrix-wrap" id="matrix-wrap">
         <table class="matrix-table" id="matrix-table">
             <thead>

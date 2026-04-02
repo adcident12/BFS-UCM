@@ -202,11 +202,13 @@
                 @foreach ($permissionsByGroup as $group => $perms)
                 <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
                     {{-- Group header --}}
-                    <div class="flex items-center gap-2 px-5 py-3 bg-slate-50/60 border-b border-slate-100">
-                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
-                        </svg>
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                    <div class="flex items-center gap-3 px-5 py-3.5 bg-slate-50/80 border-b border-slate-100">
+                        <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs font-bold text-slate-700 uppercase tracking-wide">
                             {{ $group === '__none__' ? 'ไม่มีกลุ่ม' : $group }}
                         </span>
                         <span class="ml-auto text-xs text-slate-400 font-medium">{{ $perms->count() }} รายการ</span>
@@ -492,7 +494,7 @@
                     </tbody>
                 </table>
                 <div id="user-empty" class="hidden px-6 py-6 text-center text-sm text-slate-400">ไม่พบผู้ใช้ที่ค้นหา</div>
-                <div class="px-5 py-3 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+                <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
                     <p class="text-xs text-slate-400">แสดง {{ $userAssignments->count() }} ผู้ใช้ที่มีสิทธิ์ในระบบนี้</p>
                     <a href="{{ route('reports.permission-matrix') }}?system_id={{ $selectedSystem->id }}"
                        class="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">

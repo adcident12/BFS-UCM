@@ -167,7 +167,7 @@
                 {{ $failedLogins->count() }} รายการ
             </span>
             <a href="{{ route('audit.index') }}?category=auth&event_type=login_failed"
-               class="text-xs font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg transition-colors">
+               class="text-xs font-semibold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-xl transition-colors">
                 ดูทั้งหมด
             </a>
         </div>
@@ -184,7 +184,7 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="text-sm font-bold text-slate-800">{{ $fail->metadata['username'] ?? $fail->actor_username ?? 'unknown' }}</span>
                         @if (!empty($fail->metadata['reason']))
-                            <span class="text-[10px] font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-md ring-1 ring-rose-100">
+                            <span class="text-[10px] font-semibold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded-full ring-1 ring-rose-100">
                                 {{ $fail->metadata['reason'] === 'department_not_allowed' ? 'แผนกไม่มีสิทธิ์' : 'รหัสผ่านผิด' }}
                             </span>
                         @endif
@@ -266,7 +266,7 @@
             @endforelse
         </div>
         @if ($systems->count() > 0)
-            <div class="px-5 py-3 border-t border-slate-50 bg-slate-50/50">
+            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50">
                 <a href="{{ route('systems.index') }}" class="text-xs text-slate-500 hover:text-indigo-700 font-semibold transition-colors flex items-center gap-1">
                     ดูทั้งหมด {{ $systems->count() }} ระบบ
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -394,7 +394,7 @@
                     <p class="text-xs text-slate-400 font-medium">7 วันที่ผ่านมา</p>
                 </div>
             </div>
-            <a href="{{ route('audit.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors">ดูทั้งหมด</a>
+            <a href="{{ route('audit.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-xl transition-colors">ดูทั้งหมด</a>
         </div>
         <div class="px-6 py-5">
             <canvas id="chart-audit" height="140"></canvas>

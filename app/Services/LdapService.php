@@ -7,23 +7,33 @@ use Illuminate\Support\Facades\Log;
 class LdapService
 {
     protected string $host;
+
     protected int $port;
+
     protected string $baseDn;
+
     protected string $bindDn;
+
     protected string $bindPassword;
+
     protected string $userFilter;
+
     protected string $usernameAttribute;
+
     protected $connection = null;
+
     protected bool $bound = false;
+
+    protected bool $serverUnreachable = false;
 
     public function __construct()
     {
-        $this->host              = config('ldap.host');
-        $this->port              = config('ldap.port', 389);
-        $this->baseDn            = config('ldap.base_dn');
-        $this->bindDn            = config('ldap.bind_dn');
-        $this->bindPassword      = config('ldap.bind_password');
-        $this->userFilter        = config('ldap.user_filter', '(sAMAccountName={username})');
+        $this->host = config('ldap.host');
+        $this->port = config('ldap.port', 389);
+        $this->baseDn = config('ldap.base_dn');
+        $this->bindDn = config('ldap.bind_dn');
+        $this->bindPassword = config('ldap.bind_password');
+        $this->userFilter = config('ldap.user_filter', '(sAMAccountName={username})');
         $this->usernameAttribute = config('ldap.username_attribute', 'sAMAccountName');
     }
 
@@ -37,6 +47,9 @@ class LdapService
         $this->connection = ldap_connect("ldap://{$this->host}", $this->port);
 
         if (! $this->connection) {
+            $this->serverUnreachable = true;
+            Log::error('LDAP: ldap_connect() returned false', ['host' => $this->host, 'port' => $this->port]);
+
             return false;
         }
 
@@ -53,9 +66,11 @@ class LdapService
             $ok = @ldap_bind($this->connection, $dn, $password);
             // reset bound flag เมื่อ bind ด้วย credentials อื่น (เช่น user auth)
             $this->bound = false;
+
             return $ok;
         } catch (\Exception $e) {
-            Log::warning('LDAP bind failed: ' . $e->getMessage());
+            Log::warning('LDAP bind failed: '.$e->getMessage());
+
             return false;
         }
     }
@@ -68,19 +83,24 @@ class LdapService
         }
         $ok = $this->bind($this->bindDn, $this->bindPassword);
         $this->bound = $ok;
+
         return $ok;
     }
 
     public function authenticate(string $username, string $password): array|false
     {
         if (! $this->connect()) {
-            Log::error('LDAP: Cannot connect to server');
+            Log::error('LDAP: Cannot connect to server', ['host' => $this->host, 'port' => $this->port]);
+            $this->serverUnreachable = true;
+
             return false;
         }
 
         // Bind ด้วย service account ก่อน เพื่อค้นหา user DN
         if (! $this->bind($this->bindDn, $this->bindPassword)) {
-            Log::error('LDAP: Service account bind failed');
+            Log::error('LDAP: Service account bind failed — ตรวจสอบ bind_dn และ bind_password ใน config/ldap.php');
+            $this->serverUnreachable = true;
+
             return false;
         }
 
@@ -93,6 +113,7 @@ class LdapService
 
         if (! $search) {
             Log::warning("LDAP: User '{$username}' not found");
+
             return false;
         }
 
@@ -148,7 +169,7 @@ class LdapService
         }
 
         $escaped = ldap_escape($query, '', LDAP_ESCAPE_FILTER);
-        $filter  = "(&(objectCategory=person)(objectClass=user)(|(sAMAccountName=*{$escaped}*)(displayName=*{$escaped}*)(mail=*{$escaped}*)))";
+        $filter = "(&(objectCategory=person)(objectClass=user)(|(sAMAccountName=*{$escaped}*)(displayName=*{$escaped}*)(mail=*{$escaped}*)))";
 
         $search = @ldap_search($this->connection, $this->baseDn, $filter, [
             'dn', 'cn', 'sAMAccountName', 'mail', 'displayName',
@@ -160,7 +181,7 @@ class LdapService
         }
 
         $entries = ldap_get_entries($this->connection, $search);
-        $users   = [];
+        $users = [];
 
         for ($i = 0; $i < $entries['count']; $i++) {
             $users[] = $this->parseEntry($entries[$i]);
@@ -182,15 +203,15 @@ class LdapService
         }
 
         return [
-            'dn'              => $entry['dn'] ?? '',
-            'username'        => $this->getValue($entry, 'samaccountname'),
+            'dn' => $entry['dn'] ?? '',
+            'username' => $this->getValue($entry, 'samaccountname'),
             'employee_number' => $this->parseEmployeeNumber($entry),
-            'name'            => $this->getValue($entry, 'displayname') ?: $this->getValue($entry, 'cn'),
-            'email'           => $this->getValue($entry, 'mail'),
-            'department'      => $this->getValue($entry, 'department'),
-            'title'           => $this->getValue($entry, 'title'),
-            'guid'            => $this->parseGuid($entry),
-            'groups'          => $groups,
+            'name' => $this->getValue($entry, 'displayname') ?: $this->getValue($entry, 'cn'),
+            'email' => $this->getValue($entry, 'mail'),
+            'department' => $this->getValue($entry, 'department'),
+            'title' => $this->getValue($entry, 'title'),
+            'guid' => $this->parseGuid($entry),
+            'groups' => $groups,
         ];
     }
 
@@ -208,9 +229,9 @@ class LdapService
         return sprintf(
             '%s-%s-%s-%s-%s',
             // AD เก็บ bytes 0-3 แบบ little-endian
-            substr($hex, 6, 2) . substr($hex, 4, 2) . substr($hex, 2, 2) . substr($hex, 0, 2),
-            substr($hex, 10, 2) . substr($hex, 8, 2),
-            substr($hex, 14, 2) . substr($hex, 12, 2),
+            substr($hex, 6, 2).substr($hex, 4, 2).substr($hex, 2, 2).substr($hex, 0, 2),
+            substr($hex, 10, 2).substr($hex, 8, 2),
+            substr($hex, 14, 2).substr($hex, 12, 2),
             substr($hex, 16, 4),
             substr($hex, 20, 12)
         );
@@ -222,6 +243,7 @@ class LdapService
         if (empty($description)) {
             return '';
         }
+
         // รหัสพนักงานอยู่ที่คำแรกของ description เช่น "EMP001 John Doe"
         return explode(' ', trim($description))[0];
     }
@@ -245,14 +267,16 @@ class LdapService
 
         // chunk เพื่อป้องกัน LDAP filter ยาวเกิน (50 ต่อ query)
         foreach (array_chunk($usernames, 50) as $chunk) {
-            $parts  = array_map(
-                fn ($u) => '(sAMAccountName=' . ldap_escape($u, '', LDAP_ESCAPE_FILTER) . ')',
+            $parts = array_map(
+                fn ($u) => '(sAMAccountName='.ldap_escape($u, '', LDAP_ESCAPE_FILTER).')',
                 $chunk
             );
-            $filter = '(&(objectCategory=person)(objectClass=user)(|' . implode('', $parts) . '))';
+            $filter = '(&(objectCategory=person)(objectClass=user)(|'.implode('', $parts).'))';
 
             $search = @ldap_search($this->connection, $this->baseDn, $filter, ['sAMAccountName'], 0, count($chunk) + 5);
-            if (! $search) continue;
+            if (! $search) {
+                continue;
+            }
 
             $entries = ldap_get_entries($this->connection, $search);
             for ($i = 0; $i < $entries['count']; $i++) {
@@ -261,6 +285,11 @@ class LdapService
         }
 
         return $found;
+    }
+
+    public function isServerUnreachable(): bool
+    {
+        return $this->serverUnreachable;
     }
 
     public function __destruct()

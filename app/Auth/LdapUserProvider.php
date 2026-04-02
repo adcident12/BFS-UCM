@@ -31,6 +31,11 @@ class LdapUserProvider implements UserProvider
         $user->forceFill(['remember_token' => $token])->save();
     }
 
+    public function isServerUnreachable(): bool
+    {
+        return $this->ldap->isServerUnreachable();
+    }
+
     public function retrieveByCredentials(array $credentials): ?Authenticatable
     {
         if (empty($credentials['username'])) {
@@ -47,7 +52,7 @@ class LdapUserProvider implements UserProvider
 
         // คืน user จาก DB ถ้ามีอยู่แล้ว หรือ instance ว่างๆ ถ้ายังไม่มี
         return UcmUser::where('username', $ldapUser['username'])->first()
-            ?? (new UcmUser())->forceFill(['username' => $ldapUser['username']]);
+            ?? (new UcmUser)->forceFill(['username' => $ldapUser['username']]);
     }
 
     public function validateCredentials(Authenticatable $user, array $credentials): bool
@@ -60,13 +65,13 @@ class LdapUserProvider implements UserProvider
                 ['username' => $this->pendingLdapUser['username']],
                 [
                     'employee_number' => $this->pendingLdapUser['employee_number'] ?: null,
-                    'name'            => $this->pendingLdapUser['name'],
-                    'email'           => $this->pendingLdapUser['email'],
-                    'department'      => $this->pendingLdapUser['department'],
-                    'title'           => $this->pendingLdapUser['title'],
-                    'ldap_dn'         => $this->pendingLdapUser['dn'],
-                    'ldap_guid'       => $this->pendingLdapUser['guid'],
-                    'is_active'       => true,
+                    'name' => $this->pendingLdapUser['name'],
+                    'email' => $this->pendingLdapUser['email'],
+                    'department' => $this->pendingLdapUser['department'],
+                    'title' => $this->pendingLdapUser['title'],
+                    'ldap_dn' => $this->pendingLdapUser['dn'],
+                    'ldap_guid' => $this->pendingLdapUser['guid'],
+                    'is_active' => true,
                 ]
             );
 
@@ -76,6 +81,7 @@ class LdapUserProvider implements UserProvider
         }
 
         $this->pendingLdapUser = null;
+
         return $ok;
     }
 

@@ -32,9 +32,9 @@ Route::post('/oauth/authorize', [OAuthController::class, 'approveAuthorization']
 // Public share link — no auth required
 Route::get('/share/matrix/{token}', [PublicMatrixController::class, 'show'])->name('share.matrix');
 
-// Auth
+// Auth — rate limit 10 attempts / minute per IP+username
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:10,1');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Protected routes

@@ -134,7 +134,7 @@ $availableEvents = [
             $isWebhook = $channel->type === 'webhook';
         @endphp
 
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
 
             {{-- Type accent bar --}}
             <div class="h-1 w-full {{ $isWebhook ? 'bg-indigo-400' : 'bg-sky-400' }}"></div>
@@ -232,7 +232,7 @@ $availableEvents = [
             </div>
         </div>
     @empty
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm">
+        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100">
             <div class="px-6 py-16 text-center">
                 <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-100">
                     <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +243,7 @@ $availableEvents = [
                 <p class="text-sm font-semibold text-slate-500">ยังไม่มี Notification Channel</p>
                 <p class="text-xs text-slate-400 mt-1 mb-5">เพิ่ม Channel เพื่อรับการแจ้งเตือนผ่าน Webhook หรือ Email</p>
                 <button onclick="openModal('modal-add')"
-                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-white text-xs font-semibold transition-colors cursor-pointer shadow-sm">
+                        class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 rounded-xl text-white text-xs font-semibold shadow-sm shadow-emerald-200 transition-all hover:-translate-y-0.5 hover:shadow-md hover:shadow-emerald-200 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>

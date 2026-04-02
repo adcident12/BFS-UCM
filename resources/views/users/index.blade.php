@@ -215,7 +215,7 @@
         </div>
 
         {{-- Footer --}}
-        <div id="adc-footer" style="display:none" class="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50/50">
+        <div id="adc-footer" style="display:none" class="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50">
             <button id="btn-recheck"
                     class="text-sm text-slate-500 hover:text-slate-700 font-medium transition-colors cursor-pointer">
                 ตรวจสอบใหม่
@@ -367,7 +367,7 @@
         @endif
 
         {{-- Footer --}}
-        <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50/50">
+        <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50">
             <span id="footer-hint" class="text-sm text-slate-500 font-medium">เลือกผู้ใช้ที่ต้องการนำเข้า</span>
             <span id="footer-count" style="display:none" class="text-sm text-indigo-600 font-semibold">เลือกแล้ว <span id="footer-count-num">0</span> คน</span>
             <form id="import-form" method="POST" action="{{ route('users.import-bulk') }}">
@@ -387,7 +387,7 @@
 <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
 
     {{-- Card header: default state --}}
-    <div id="table-header-default" class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+    <div id="table-header-default" class="flex items-center justify-between px-4 md:px-6 py-4 border-b border-slate-100 bg-slate-50">
         <div class="flex items-center gap-2.5">
             <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
                 <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -530,7 +530,7 @@
         </table>
     </div>
     @if ($users->hasPages())
-        <div class="px-4 md:px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+        <div class="px-4 md:px-6 py-4 border-t border-slate-100 bg-slate-50">
             {{ $users->links() }}
         </div>
     @endif

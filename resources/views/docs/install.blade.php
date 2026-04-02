@@ -14,6 +14,7 @@ $sections = [
     ['id' => 'connector',     'label' => 'Connector Wizard'],
     ['id' => 'client',        'label' => 'UCM Client (Legacy)'],
     ['id' => 'api',           'label' => 'API Authentication'],
+    ['id' => 'oauth',         'label' => 'OAuth 2.0 / OIDC'],
     ['id' => 'troubleshoot',  'label' => 'Troubleshooting'],
 ];
 @endphp
@@ -825,6 +826,55 @@ $sections = [
             </div>
         </div>
 
+        {{-- ── OAuth 2.0 / OIDC ── --}}
+        <div id="oauth" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                <div class="w-8 h-8 bg-violet-100 rounded-xl flex items-center justify-center">
+                    <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                    </svg>
+                </div>
+                <h2 class="font-bold text-slate-800">OAuth 2.0 / OIDC Provider</h2>
+            </div>
+            <div class="px-6 py-5 space-y-4 text-sm text-slate-700 leading-relaxed">
+                <p>UCM ทำหน้าที่เป็น <strong class="text-slate-900">Authorization Server</strong> — ระบบภายนอกสามารถใช้ <strong>Authorization Code Flow + PKCE</strong> เพื่อให้ผู้ใช้ยืนยันตัวตนผ่าน UCM (ซึ่งใช้ AD ภายใน)</p>
+
+                <div class="space-y-2">
+                    <p class="font-semibold text-slate-800 text-xs">Endpoints หลัก:</p>
+                    @foreach ([
+                        ['method' => 'GET', 'path' => '/.well-known/openid-configuration', 'desc' => 'OIDC Discovery Document (issuer, endpoints, supported scopes)'],
+                        ['method' => 'GET', 'path' => '/oauth/jwks', 'desc' => 'JSON Web Key Set — ใช้ verify JWT Access Token'],
+                        ['method' => 'GET', 'path' => '/oauth/authorize', 'desc' => 'Authorization Endpoint — redirect ผู้ใช้มาที่นี่เพื่อแสดง Consent Screen'],
+                        ['method' => 'POST', 'path' => '/api/oauth/token', 'desc' => 'Token Endpoint — แลก authorization_code รับ access_token + id_token'],
+                        ['method' => 'GET', 'path' => '/api/oauth/userinfo', 'desc' => 'UserInfo Endpoint — ดึงข้อมูล user จาก access_token'],
+                    ] as $ep)
+                        <div class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-xs font-mono">
+                            <span class="font-bold {{ $ep['method'] === 'GET' ? 'text-sky-600' : 'text-emerald-600' }} w-10 flex-shrink-0">{{ $ep['method'] }}</span>
+                            <span class="text-slate-800 font-semibold">{{ $ep['path'] }}</span>
+                            <span class="text-slate-500 font-sans ml-auto hidden sm:block">{{ $ep['desc'] }}</span>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="space-y-2">
+                    <p class="font-semibold text-slate-800 text-xs">การตั้งค่า OAuth Client:</p>
+                    <ol class="space-y-1.5 text-xs text-slate-700">
+                        <li class="flex gap-2"><span class="font-bold text-violet-600 w-4 flex-shrink-0">1.</span>ไปที่ <strong>ผู้ดูแลระบบ → OAuth Clients</strong> (ต้องการ Admin L2)</li>
+                        <li class="flex gap-2"><span class="font-bold text-violet-600 w-4 flex-shrink-0">2.</span>กด <strong>สร้าง Client ใหม่</strong> — กรอก ชื่อ Client, Redirect URI(s), Allowed Scopes</li>
+                        <li class="flex gap-2"><span class="font-bold text-violet-600 w-4 flex-shrink-0">3.</span>บันทึก <code class="font-mono bg-slate-100 px-1 rounded">client_id</code> และ <code class="font-mono bg-slate-100 px-1 rounded">client_secret</code></li>
+                        <li class="flex gap-2"><span class="font-bold text-violet-600 w-4 flex-shrink-0">4.</span>ใช้ <a href="{{ route('docs.oauth-guide') }}" class="text-indigo-600 hover:underline font-semibold">OAuth Integration Guide</a> เป็น reference สำหรับ code ฝั่ง Client</li>
+                    </ol>
+                </div>
+
+                <div class="flex items-start gap-3 p-3.5 bg-violet-50 border border-violet-200 rounded-xl text-xs text-violet-800">
+                    <svg class="w-4 h-4 text-violet-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>รองรับ PKCE (Proof Key for Code Exchange) — แนะนำให้ใช้เสมอโดยเฉพาะ SPA / Mobile app ดู OAuth Guide ที่ <code class="font-mono bg-violet-100 px-1 rounded">/oauth-guide</code> สำหรับตัวอย่าง code เต็ม</span>
+                </div>
+            </div>
+        </div>
+
         {{-- ── Troubleshooting ── --}}
         <div id="troubleshoot" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/50">
@@ -854,6 +904,18 @@ $sections = [
                         'color' => 'amber',
                         'cause' => 'UCM_ALLOWED_DEPARTMENT ไม่ตรงกับ department attribute ใน AD (case-sensitive)',
                         'fix'   => 'แก้ .env: UCM_ALLOWED_DEPARTMENT="ชื่อแผนกตามจริงใน AD" หรือเว้นว่างเพื่ออนุญาตทุกแผนก',
+                    ],
+                    [
+                        'title' => 'Login แสดง "ไม่สามารถเชื่อมต่อกับ Active Directory ได้"',
+                        'color' => 'red',
+                        'cause' => 'LdapService ตรวจพบว่า LDAP/AD server ไม่ตอบสนอง (connect timeout หรือ service account bind ล้มเหลว)',
+                        'fix'   => 'ตรวจสอบ LDAP_HOST, LDAP_PORT, LDAP_BIND_DN ใน .env และ network/firewall จาก server ไปยัง AD — ดู laravel.log หา "[UCM] LDAP"',
+                    ],
+                    [
+                        'title' => 'Login แสดง "ส่งคำขอถี่เกินไป" (HTTP 429)',
+                        'color' => 'orange',
+                        'cause' => 'throttle:10,1 middleware trigger — มีคำขอ Login เกิน 10 ครั้ง/นาทีจาก IP เดียวกัน',
+                        'fix'   => 'รอ 1 นาทีแล้วลองใหม่ หรือตรวจสอบว่ามี script/bot ที่ retry login อยู่',
                     ],
                     [
                         'title' => 'Frontend ไม่อัปเดตหลังแก้ไข Blade / Tailwind class',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Auth\LdapUserProvider;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\UcmUser;
@@ -10,6 +11,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class LoginController extends Controller
@@ -32,7 +34,18 @@ class LoginController extends Controller
 
         $credentials = $request->only('username', 'password');
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        try {
+            $attempted = Auth::attempt($credentials, $request->boolean('remember'));
+        } catch (\Throwable $e) {
+            Log::error('Login: Auth::attempt threw exception', ['error' => $e->getMessage()]);
+            $attempted = false;
+        }
+
+        // ตรวจสอบว่า LDAP server ล่มหรือไม่ (ต้องตรวจก่อนแสดง error ให้ user)
+        $ldapProvider = Auth::getProvider();
+        $ldapDown = ($ldapProvider instanceof LdapUserProvider) && $ldapProvider->isServerUnreachable();
+
+        if ($attempted) {
             $user = Auth::user();
             $allowedDept = config('auth.allowed_department');
 
@@ -65,7 +78,7 @@ class LoginController extends Controller
 
             $request->session()->regenerate();
 
-            /** @var \App\Models\UcmUser $user */
+            /** @var UcmUser $user */
             $user->update(['last_login_at' => now()]);
 
             AuditLogger::log(
@@ -79,6 +92,17 @@ class LoginController extends Controller
             );
 
             return redirect()->route('dashboard');
+        }
+
+        // LDAP server ไม่ตอบสนอง — แสดง error ที่ถูกต้องแทนที่จะบอกว่า password ผิด
+        if ($ldapDown) {
+            Log::critical('Login: LDAP server unreachable — users cannot authenticate', [
+                'username' => $request->username,
+            ]);
+
+            return back()->withErrors([
+                'username' => 'ไม่สามารถเชื่อมต่อกับ Active Directory ได้ในขณะนี้ กรุณาติดต่อ IT Support',
+            ])->onlyInput('username');
         }
 
         $ucmUser = UcmUser::where('username', $request->username)->first();

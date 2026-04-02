@@ -296,7 +296,7 @@
     @if ($canManageSystems)
     <div>
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden sticky top-20">
-            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+            <div class="px-5 py-4 border-b border-slate-100 bg-slate-50/80">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 bg-indigo-100 rounded-lg flex items-center justify-center">
                         <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -504,7 +504,7 @@
 
             {{-- ── Add form: Admin ระดับ 1 ขึ้นไป ── --}}
             @if ($canEditPermissions)
-            <div class="px-4 pt-3 pb-4 border-t border-slate-100 bg-slate-50/50">
+            <div class="px-4 pt-3 pb-4 border-t border-slate-100 bg-slate-50">
                 <form method="POST" action="{{ route('systems.group-records.store', $system) }}"
                     class="space-y-2.5" onsubmit="return groupAddSubmit(this)">
                     @csrf
