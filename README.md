@@ -83,88 +83,100 @@ app/
 │   ├── SystemAdapterInterface.php       # Contract ที่ทุก Adapter ต้อง implement
 │   ├── BaseAdapter.php                  # Abstract base พร้อม PDO helper + quoteIdentifier()
 │   ├── AdapterFactory.php               # Factory: slug/class → Adapter instance
-│   ├── DynamicAdapter.php               # No-Code adapter สำหรับ Connector Wizard (รองรับ 2-Way Sync + PermissionDeleteMode)
+│   ├── DynamicAdapter.php               # No-Code adapter (Connector Wizard) — 6 permission modes + 2-Way Sync
 │   ├── EarthAdapter.php                 # Adapter สำหรับระบบ Earth (FLIGHT OPS)
 │   ├── EFilingAdapter.php               # Adapter สำหรับระบบ e-Filing
 │   └── RepairSystemAdapter.php          # Adapter สำหรับระบบซ่อมบำรุง
 │
+├── Auth/
+│   └── LdapUserProvider.php             # Custom Laravel Auth Guard ผ่าน LDAP + isServerUnreachable()
+│
+├── Console/
+│   └── Commands/
+│       └── GenerateOAuthKeys.php        # php artisan ucm:generate-oauth-keys (สร้าง RSA key pair สำหรับ JWT)
+│
 ├── Enums/
 │   └── PermissionDeleteMode.php         # Backed enum: Hard | Soft | DetachOnly (2-Way delete behavior)
-│
-├── Auth/
-│   └── LdapUserProvider.php             # Custom Laravel Auth Guard ผ่าน LDAP
 │
 ├── Http/
 │   ├── Controllers/
 │   │   ├── Controller.php               # Base controller (Laravel default)
-│   │   ├── Auth/LoginController.php     # LDAP login / logout
-│   │   ├── DashboardController.php      # Dashboard + stat cards + chart data
-│   │   ├── UserController.php           # CRUD ผู้ใช้ + AD import + permissions + export CSV
-│   │   ├── SystemController.php         # CRUD ระบบ + permission management + 2-way toggle
-│   │   ├── AuditLogController.php       # Audit Log — filter, paginate, display
-│   │   ├── ConnectorWizardController.php # Connector Wizard + AJAX endpoints (6 steps, 7 AJAX routes)
-│   │   ├── QueueMonitorController.php   # Queue monitor + retry/flush failed jobs
-│   │   ├── UcmAccessController.php      # UCM Feature Access Control (level update + individual grants)
-│   │   ├── PermissionCenterController.php # Permission Center — จัดการ Permission Definition ทุกระบบ
-│   │   ├── NotificationController.php   # Notification Channel CRUD
-│   │   ├── ReportController.php         # Permission Matrix report + CSV Export
-│   │   ├── MatrixShareLinkController.php # Share Link CRUD (index, store, toggle) + AuditLog + Notification
-│   │   ├── PublicMatrixController.php   # Public share link view (ไม่ต้อง auth) + view counter
-│   │   ├── ApiDocsController.php        # API Documentation page (custom UI)
-│   │   └── Api/
-│   │       ├── ApiAnnotations.php       # Swagger/OpenAPI annotation stubs (L5-Swagger)
-│   │       ├── AuthController.php       # API token issue / revoke / user-login
-│   │       ├── OAuthController.php      # OAuth 2.0 Authorization Server (authorize / token / consent)
-│   │       ├── OidcController.php       # OIDC Discovery + JWKS endpoint
-│   │       ├── PermissionController.php # Permission query API (single / all / batch check)
-│   │       └── UserExportController.php # CSV export API
 │   │   ├── Admin/
-│   │   │   └── OAuthClientController.php # OAuth Client Management (CRUD + rotate secret)
+│   │   │   └── OAuthClientController.php # OAuth Client CRUD + rotate secret (Admin L2)
+│   │   ├── Api/
+│   │   │   ├── ApiAnnotations.php       # Swagger/OpenAPI annotation stubs (L5-Swagger)
+│   │   │   ├── AuthController.php       # API token issue / revoke / user-login (Sanctum)
+│   │   │   ├── OAuthController.php      # OAuth 2.0: authorize, approve, token endpoint
+│   │   │   ├── OidcController.php       # OIDC: discovery + JWKS endpoint
+│   │   │   ├── PermissionController.php # Permission query API (single / all / batch check)
+│   │   │   ├── UserExportController.php # CSV export API
+│   │   │   └── V1/
+│   │   │       └── MeController.php     # OIDC /me endpoint — ข้อมูล user ปัจจุบัน
+│   │   ├── Auth/
+│   │   │   └── LoginController.php      # LDAP login / logout + LDAP-down detection
+│   │   ├── ApiDocsController.php        # API Documentation page (custom UI)
+│   │   ├── AuditLogController.php       # Audit Log — filter, paginate, display
+│   │   ├── ConnectorWizardController.php # Connector Wizard + 7 AJAX endpoints
+│   │   ├── DashboardController.php      # Dashboard + stat cards + chart data
+│   │   ├── MatrixShareLinkController.php # Share Link CRUD (index, store, toggle)
+│   │   ├── NotificationController.php   # Notification Channel CRUD
+│   │   ├── PermissionCenterController.php # Permission Center — จัดการ Permission Definition ทุกระบบ
+│   │   ├── PublicMatrixController.php   # Public share link view (ไม่ต้อง auth) + view counter
+│   │   ├── QueueMonitorController.php   # Queue monitor + retry/flush failed jobs
+│   │   ├── ReportController.php         # Permission Matrix report + CSV Export
+│   │   ├── SystemController.php         # CRUD ระบบ + permission management + 2-way toggle
+│   │   ├── UcmAccessController.php      # UCM Feature Access Control (level update + individual grants)
+│   │   └── UserController.php           # CRUD ผู้ใช้ + AD import + permissions + export CSV
 │   ├── Middleware/
-│   │   ├── MinifyHtml.php               # Minify HTML output (strip whitespace)
-│   │   └── CheckOAuthScope.php          # ตรวจสอบ OAuth scope ก่อนเข้า protected endpoint
+│   │   ├── CheckOAuthScope.php          # ตรวจสอบ OAuth scope ก่อนเข้า protected endpoint
+│   │   └── MinifyHtml.php               # Minify HTML output (strip whitespace)
 │   └── Requests/
-│       ├── StoreNotificationChannelRequest.php  # Validation + authorization (canAccess('notifications'))
-│       └── StoreMatrixShareLinkRequest.php      # Validation สำหรับ Share Link (label, expires_days, filters)
+│       ├── StoreMatrixShareLinkRequest.php      # Validation สำหรับ Share Link
+│       └── StoreNotificationChannelRequest.php  # Validation + authorization (canAccess('notifications'))
 │
 ├── Jobs/
-│   └── SyncPermissionsJob.php           # Queue Job — sync สิทธิ์ไประบบปลายทาง (tries=3, timeout=30s)
+│   └── SyncPermissionsJob.php           # Queue Job — sync สิทธิ์ (tries=3, timeout=30s) + failed() notification
 │
 ├── Models/
-│   ├── User.php                         # Laravel default User model (unused — UCM ใช้ UcmUser)
-│   ├── UcmUser.php                      # ผู้ใช้งาน (LDAP-based, is_admin 0/1/2)
-│   ├── System.php                       # ระบบที่เชื่อมต่อ + db credentials + adapter config
-│   ├── ConnectorConfig.php              # Connector Wizard configuration (รวม 8 fields ของ 2-Way Sync)
-│   ├── SystemPermission.php             # Permission definition ของแต่ละระบบ
-│   ├── UserSystemPermission.php         # User ↔ Permission mapping (pivot)
-│   ├── SyncLog.php                      # Audit trail ทุกการ sync (status, error_message)
 │   ├── AuditLog.php                     # Audit event log (10 หมวด, immutable)
-│   ├── MatrixShareLink.php              # Share Link สำหรับ Permission Matrix (token, filters, expiry, view_count)
-│   ├── NotificationChannel.php         # Notification channel (Email/Webhook, config JSON)
-│   ├── UcmFeatureOverride.php          # DB overrides สำหรับ Feature Min Level (Cache 5 min)
-│   └── UcmUserFeatureGrant.php         # Individual Feature Grant ต่อผู้ใช้รายบุคคล
+│   ├── ConnectorConfig.php              # Connector Wizard config (6 permission modes, 2-Way Sync fields)
+│   ├── MatrixShareLink.php              # Share Link (token, filters, expiry, view_count)
+│   ├── NotificationChannel.php          # Notification channel (Email/Webhook, config JSON)
+│   ├── OAuthAccessToken.php             # OAuth 2.0 access token
+│   ├── OAuthAuthorizationCode.php       # OAuth 2.0 authorization code (PKCE)
+│   ├── OAuthClient.php                  # OAuth 2.0 client (client_id, secret, redirect_uris, scopes)
+│   ├── OAuthRefreshToken.php            # OAuth 2.0 refresh token
+│   ├── SyncLog.php                      # Audit trail ทุกการ sync (status, error_message)
+│   ├── System.php                       # ระบบที่เชื่อมต่อ + db credentials (encrypted) + adapter config
+│   ├── SystemPermission.php             # Permission definition ของแต่ละระบบ
+│   ├── UcmFeatureOverride.php           # DB overrides สำหรับ Feature Min Level (Cache 5 min)
+│   ├── UcmUser.php                      # ผู้ใช้งาน (LDAP-based, is_admin 0/1/2)
+│   ├── UcmUserFeatureGrant.php          # Individual Feature Grant ต่อผู้ใช้รายบุคคล
+│   ├── User.php                         # Laravel default User model (unused)
+│   └── UserSystemPermission.php         # User ↔ Permission mapping (pivot)
 │
 ├── Providers/
-│   └── AppServiceProvider.php          # Service provider หลัก (LDAP auth binding)
+│   └── AppServiceProvider.php           # Service provider หลัก (LDAP auth binding)
 │
 └── Services/
     ├── AuditLogger.php                  # Static helper — บันทึก AuditLog ทุกจุดในระบบ
-    ├── LdapService.php                  # LDAP search / bind / attribute mapping
-    ├── NotificationService.php         # Dispatch notifications ไปยัง active channels
+    ├── LdapService.php                  # LDAP search / bind / attribute mapping + serverUnreachable flag
+    ├── NotificationService.php          # Dispatch notifications ไปยัง active channels
+    ├── OAuthService.php                 # OAuth 2.0 core logic (issue/verify tokens, PKCE, JWT signing)
     └── Connector/                       # Connector Wizard — Analysis Services
-        ├── SchemaIntrospector.php       # Introspect remote DB (tables/columns/FK/row count/sample)
         ├── AISchemaAnalyzer.php         # Claude API (tool_use) → แนะนำ user_table + permission config
         ├── RuleBasedSuggester.php       # Heuristics + score-based fallback (ไม่ต้องการ API Key)
+        ├── SchemaIntrospector.php       # Introspect remote DB (tables/columns/FK/row count/sample)
         └── ZipAnalyzer.php             # สแกน ZIP source code, ตรวจจับ framework (20+ frameworks)
 
 database/migrations/
     │
-    │  ── Laravel default ─────────────────────────────────────────────────────
-    ├── 0001_01_01_000000_create_users_table.php             # Laravel users table (default)
+    │  ── Laravel default ────────────────────���────────────────────────────────
+    ├── 0001_01_01_000000_create_users_table.php
     ├── 0001_01_01_000001_create_cache_table.php             # Cache driver: database
     ├── 0001_01_01_000002_create_jobs_table.php              # Queue jobs + failed_jobs tables
     │
-    │  ── UCM Core ────────────────────────────────────────────────────────────
+    │  ── UCM Core ───────────────────────────────────────��────────────────────
     ├── 2026_03_19_..._create_ucm_users_table.php
     ├── 2026_03_19_..._create_systems_table.php
     ├── 2026_03_19_..._create_system_permissions_table.php
@@ -172,10 +184,9 @@ database/migrations/
     ├── 2026_03_19_..._create_sync_logs_table.php
     ├── 2026_03_19_..._create_personal_access_tokens_table.php  # Sanctum
     │
-    │  ── Alter migrations ────────────────────────────────────────────────────
+    │  ── Alter / patch migrations ───────────────────────────────────────────
     ├── 2026_03_19_071741_add_is_exclusive_to_system_permissions_table.php
     ├── 2026_03_19_084328_add_employee_number_to_ucm_users_table.php
-    ├── 2026_03_19_084336_add_employee_number_to_ucm_users_table.php    # (duplicate timestamp — ไฟล์ที่ 2 คือ patch)
     ├── 2026_03_19_094705_add_remote_value_to_system_permissions_table.php
     ├── 2026_03_20_100000_add_two_way_permissions_to_systems_table.php
     ├── 2026_03_20_200000_change_is_admin_to_tinyint_in_ucm_users_table.php
@@ -185,49 +196,53 @@ database/migrations/
     ├── 2026_03_21_130340_create_audit_logs_table.php                   ← Audit Log
     ├── 2026_03_22_013558_create_notification_channels_table.php        ← Notification Channels
     ├── 2026_03_22_053529_add_last_login_at_to_ucm_users.php            ← Inactive User Detection
-    ├── 2026_03_22_070119_add_index_last_login_at_to_ucm_users.php      ← Index: last_login_at
     ├── 2026_03_22_085026_add_two_way_fields_to_connector_configs_table.php ← 2-Way Sync (8 คอลัมน์)
     ├── 2026_03_23_000001_add_composite_cols_to_connector_configs.php   ← Composite Junction Mode
-    ├── 2026_03_25_091433_create_ucm_feature_overrides_table.php        ← UCM Feature Access Control (Min Level overrides)
+    ├── 2026_03_23_130713_add_user_pk_col_to_connector_configs.php      ← user_pk_col สำหรับ createUser()
+    ├── 2026_03_24_012835_add_user_status_inactive_val_to_connector_configs.php ← inactive value config
+    ├── 2026_03_25_091433_create_ucm_feature_overrides_table.php        ← UCM Feature Access Control (Min Level)
     ├── 2026_03_25_091434_create_ucm_user_feature_grants_table.php      ← UCM Feature Individual Grants
-    ├── 2026_03_26_140858_encrypt_credentials_in_systems.php            ← Re-encrypt db_password + api_token ใน systems table
-    └── 2026_03_26_153610_create_matrix_share_links_table.php           ← Share Link สำหรับ Permission Matrix (token, filters, expiry, view_count)
+    ├── 2026_03_26_102545_add_master_tables_to_connector_configs_table.php ← Master data table config
+    ├── 2026_03_26_123313_encrypt_db_password_in_connector_configs.php  ← Encrypt ConnectorConfig.db_password
+    ├── 2026_03_26_140858_encrypt_credentials_in_systems.php            ← Encrypt System.db_password + api_token
+    ├── 2026_03_26_153610_create_matrix_share_links_table.php           ← Share Link (token, filters, expiry)
+    ├── 2026_03_27_124057_add_user_tables_and_mixed_perm_to_connector_configs.php ← mixed permission mode
+    ├── 2026_03_27_155122_add_advanced_modes_to_connector_configs.php   ← boolean_matrix + group_inheritance modes
+    ├── 2026_03_27_200000_add_new_perm_modes_to_connector_configs.php   ← json_column + delimited + bitmask + hierarchy (planned)
+    ├── 2026_03_27_222743_add_dept_map_to_connector_configs.php         ← department mapping config
+    ├── 2026_04_02_115914_create_oauth_clients_table.php                ← OAuth 2.0 Clients
+    ├── 2026_04_02_115915_create_oauth_authorization_codes_table.php    ← OAuth 2.0 Authorization Codes (PKCE)
+    ├── 2026_04_02_115917_create_oauth_access_tokens_table.php          ← OAuth 2.0 Access Tokens (JWT)
+    └── 2026_04_02_115918_create_oauth_refresh_tokens_table.php         ← OAuth 2.0 Refresh Tokens
 
 resources/views/
     ├── layouts/
     │   ├── app.blade.php                   # Main layout + dark sidebar + accordion nav + global confirm modal
-    │   └── docs.blade.php                  # Docs layout — fixed top bar + left page nav sidebar + right scroll-spy TOC
+    │   └── docs.blade.php                  # Docs layout — fixed top bar + left page nav + right scroll-spy TOC (cream bg)
     ├── welcome.blade.php                   # Laravel default (redirect ไปยัง login)
-    ├── auth/login.blade.php                # หน้า Login (AD credentials)
-    ├── dashboard.blade.php                 # Stats cards + Activity Charts (Chart.js)
-    ├── users/
-    │   ├── index.blade.php                 # รายการผู้ใช้ + search + AD import modal
-    │   ├── show.blade.php                  # จัดการสิทธิ์ผู้ใช้ (per-system toggles)
-    │   ├── permission-timeline.blade.php   # ประวัติการเปลี่ยนสิทธิ์ + Permission Matrix
-    │   ├── inactive.blade.php              # ผู้ใช้ที่ไม่ได้ Login (30/60/90 วัน)
-    │   └── admin-levels.blade.php          # จัดการระดับ Admin ทั้งหมด
-    ├── systems/
-    │   ├── index.blade.php
-    │   ├── show.blade.php                  # Permission definitions + Discover + 2-way toggle
-    │   ├── create.blade.php
-    │   └── edit.blade.php
+    ├── admin/
+    │   └── oauth-clients/
+    │       ├── index.blade.php             # รายการ OAuth Clients
+    │       ├── create.blade.php            # สร้าง OAuth Client ใหม่ (hero banner, custom checkboxes)
+    │       ├── show.blade.php              # รายละเอียด Client + rotate secret
+    │       └── edit.blade.php             # แก้ไข OAuth Client
+    ├── api-docs/
+    │   └── index.blade.php                 # Custom API Documentation UI
+    ├── audit/
+    │   └── index.blade.php                 # Audit Log (flatpickr date range filter)
+    ├── auth/
+    │   └── login.blade.php                 # หน้า Login (AD credentials)
+    ├── components/
+    │   ├── api-code-block.blade.php        # Reusable code block สำหรับ API docs
+    │   ├── api-endpoint.blade.php          # Reusable endpoint card
+    │   └── api-group.blade.php             # Reusable endpoint group
     ├── connectors/
     │   ├── index.blade.php                 # รายการ Connector configs
     │   └── wizard.blade.php                # Multi-step Wizard UI (6 steps, vanilla JS)
-    ├── permissions/index.blade.php         # Permission Center (sidebar system selector + CRUD)
-    ├── ucm-access/index.blade.php          # UCM Feature Access Control (Feature Level + Individual Grants)
-    ├── audit/index.blade.php               # Audit Log (flatpickr date range filter)
-    ├── queue/monitor.blade.php             # Queue Monitor + Retry/Flush actions
-    ├── notifications/
-    │   ├── index.blade.php                 # Notification Channels list + modals
-    │   └── _form.blade.php                 # Reusable form partial (create/edit)
-    ├── reports/
-    │   └── permission-matrix.blade.php     # Permission Matrix (sticky headers, color bands)
-    ├── share-links/
-    │   ├── index.blade.php                 # จัดการ Share Links (สร้าง/revoke/reactivate, lifetime progress bar)
-    │   ├── public.blade.php                # หน้า public read-only (ไม่ต้อง login) — แสดง matrix เต็มรูปแบบ
-    │   └── expired.blade.php               # หน้าแจ้ง link หมดอายุ / ถูกยกเลิก / ไม่พบ
-    ├── api-docs/index.blade.php            # Custom API Documentation UI
+    ├── docs/
+    │   ├── install.blade.php               # Install Guide สำหรับนักพัฒนา (13 sections + scroll-spy TOC)
+    │   ├── manual.blade.php                # คู่มือผู้ใช้งาน (26 sections + scroll-spy TOC)
+    │   └── oauth-guide.blade.php           # OAuth 2.0 Integration Guide (Authorization Code + PKCE, code examples)
     ├── errors/
     │   ├── layout.blade.php                # Standalone dark error layout (ไม่พึ่ง Vite / app layout)
     │   ├── 403.blade.php                   # Forbidden — แสดง exception message ถ้ามี
@@ -236,16 +251,35 @@ resources/views/
     │   ├── 429.blade.php                   # Too Many Requests (login rate limit)
     │   ├── 500.blade.php                   # Internal Server Error
     │   └── 503.blade.php                   # Service Unavailable (maintenance)
-    ├── components/
-    │   ├── api-code-block.blade.php        # Reusable code block สำหรับ API docs
-    │   ├── api-endpoint.blade.php          # Reusable endpoint card สำหรับ API docs
-    │   └── api-group.blade.php             # Reusable endpoint group สำหรับ API docs
-    ├── layouts/
-    │   ├── app.blade.php                   # Main layout + dark sidebar + accordion nav
-    │   └── docs.blade.php                  # Docs layout — top bar + left page nav + right TOC sidebar (cream bg #FAFAF9)
-    └── docs/
-        ├── manual.blade.php                # คู่มือผู้ใช้งาน (25 sections, right sidebar scroll-spy TOC)
-        └── install.blade.php               # Install Guide สำหรับนักพัฒนา (12 sections, right sidebar scroll-spy TOC)
+    ├── notifications/
+    │   ├── _form.blade.php                 # Reusable form partial (create/edit)
+    │   └── index.blade.php                 # Notification Channels list + modals
+    ├── oauth/
+    │   └── authorize.blade.php             # OAuth 2.0 Consent Screen (แสดง scopes + approve/deny)
+    ├── permissions/
+    │   └── index.blade.php                 # Permission Center (sidebar system selector + CRUD)
+    ├── queue/
+    │   └── monitor.blade.php               # Queue Monitor + Retry/Flush actions
+    ├── reports/
+    │   └── permission-matrix.blade.php     # Permission Matrix (sticky headers, color bands)
+    ├── share-links/
+    │   ├── expired.blade.php               # หน้าแจ้ง link หมดอายุ / ถูกยกเลิก / ไม่พบ
+    │   ├── index.blade.php                 # จัดการ Share Links (สร้าง/revoke/reactivate, lifetime progress bar)
+    │   └── public.blade.php                # หน้า public read-only (ไม่ต้อง login) + view counter
+    ├── systems/
+    │   ├── create.blade.php
+    │   ├── edit.blade.php
+    │   ├── index.blade.php
+    │   └── show.blade.php                  # Permission definitions + Discover + 2-way toggle
+    ├── ucm-access/
+    │   └── index.blade.php                 # UCM Feature Access Control (Feature Level + Individual Grants)
+    ├── users/
+    │   ├── admin-levels.blade.php          # จัดการระดับ Admin ทั้งหมด
+    │   ├── inactive.blade.php              # ผู้ใช้ที่ไม่ได้ Login (30/60/90 วัน)
+    │   ├── index.blade.php                 # รายการผู้ใช้ + search + AD import modal
+    │   ├── permission-timeline.blade.php   # ประวัติการเปลี่ยนสิทธิ์ + Permission Matrix
+    │   └── show.blade.php                  # จัดการสิทธิ์ผู้ใช้ (per-system toggles)
+    └── dashboard.blade.php                 # Stats cards + Activity Charts (Chart.js) + Failed Login widget
 ```
 
 ---
