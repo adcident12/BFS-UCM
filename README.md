@@ -83,7 +83,7 @@ app/
 │   ├── SystemAdapterInterface.php       # Contract ที่ทุก Adapter ต้อง implement
 │   ├── BaseAdapter.php                  # Abstract base พร้อม PDO helper + quoteIdentifier()
 │   ├── AdapterFactory.php               # Factory: slug/class → Adapter instance
-│   ├── DynamicAdapter.php               # No-Code adapter (Connector Wizard) — 6 permission modes + 2-Way Sync
+│   ├── DynamicAdapter.php               # No-Code adapter (Connector Wizard) — 10 permission modes + 2-Way Sync
 │   ├── EarthAdapter.php                 # Adapter สำหรับระบบ Earth (FLIGHT OPS)
 │   ├── EFilingAdapter.php               # Adapter สำหรับระบบ e-Filing
 │   └── RepairSystemAdapter.php          # Adapter สำหรับระบบซ่อมบำรุง
@@ -139,7 +139,7 @@ app/
 │
 ├── Models/
 │   ├── AuditLog.php                     # Audit event log (10 หมวด, immutable)
-│   ├── ConnectorConfig.php              # Connector Wizard config (6 permission modes, 2-Way Sync fields)
+│   ├── ConnectorConfig.php              # Connector Wizard config (10 permission modes, 2-Way Sync fields)
 │   ├── MatrixShareLink.php              # Share Link (token, filters, expiry, view_count)
 │   ├── NotificationChannel.php          # Notification channel (Email/Webhook, config JSON)
 │   ├── OAuthAccessToken.php             # OAuth 2.0 access token
@@ -241,7 +241,7 @@ resources/views/
     │   └── wizard.blade.php                # Multi-step Wizard UI (6 steps, vanilla JS)
     ├── docs/
     │   ├── install.blade.php               # Install Guide สำหรับนักพัฒนา (13 sections + scroll-spy TOC)
-    │   ├── manual.blade.php                # คู่มือผู้ใช้งาน (26 sections + scroll-spy TOC)
+    │   ├── manual.blade.php                # คู่มือผู้ใช้งาน (25 sections + scroll-spy TOC)
     │   └── oauth-guide.blade.php           # OAuth 2.0 Integration Guide (Authorization Code + PKCE, code examples)
     ├── errors/
     │   ├── layout.blade.php                # Standalone dark error layout (ไม่พึ่ง Vite / app layout)
@@ -493,9 +493,9 @@ LDAP_USERNAME_ATTRIBUTE=sAMAccountName
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.your-domain.com
 MAIL_PORT=587
+MAIL_SCHEME=tls                              # tls (port 587) หรือ ssl (port 465) — เว้นว่างสำหรับ plain SMTP (port 25)
 MAIL_USERNAME=ucm@your-domain.com
 MAIL_PASSWORD=your_mail_password
-MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=ucm@your-domain.com
 MAIL_FROM_NAME="UCM Notification"
 
@@ -631,8 +631,8 @@ Authentication: `Authorization: Bearer <token>` (Laravel Sanctum)
 
 | Method | Endpoint | Description | สิทธิ์ |
 |--------|----------|-------------|--------|
-| `POST` | `/auth/token` | ออก Admin API Token (LDAP credentials) — ไม่มีวันหมดอายุ | — |
-| `POST` | `/auth/user-login` | User Login + รับ Token + Permissions — หมดอายุใน 24 ชม. ² | — |
+| `POST` | `/auth/token` | ออก Admin API Token (LDAP credentials) — หมดอายุ 90 วัน (default) ² | — |
+| `POST` | `/auth/user-login` | User Login + รับ Token + Permissions — หมดอายุใน 24 ชม. (default) ³ | — |
 | `DELETE` | `/auth/token` | Revoke Token ปัจจุบัน | Bearer |
 | `GET` | `/users/{username}/permissions` | สิทธิ์ของ User ในระบบที่ระบุ | Bearer ¹ |
 | `GET` | `/users/{username}/permissions/all` | สิทธิ์ทุก System ของ User | Bearer ¹ |
@@ -641,16 +641,18 @@ Authentication: `Authorization: Bearer <token>` (Laravel Sanctum)
 
 > ¹ **Token Scope** — Admin token (จาก `/auth/token`) query ได้ทุก user; User token (จาก `/auth/user-login`) query ได้เฉพาะ username ของตัวเองเท่านั้น (403 ถ้า query user อื่น)
 >
-> ² **User Token Expiry** — response มี field `expires_at` (ISO 8601) บอกเวลาหมดอายุ ระบบควรตรวจสอบและ refresh token ก่อนหมดอายุ ปรับได้ด้วย `UCM_USER_TOKEN_TTL_HOURS` ใน `.env`
+> ² **Admin Token Expiry** — response มี field `expires_at` (ISO 8601) ปรับ TTL ด้วย `UCM_ADMIN_TOKEN_TTL_DAYS` ใน `.env` (default 90 วัน) — ตั้งเป็น `0` หรือเว้นว่าง = ไม่หมดอายุ
+>
+> ³ **User Token Expiry** — response มี field `expires_at` (ISO 8601) ปรับ TTL ด้วย `UCM_USER_TOKEN_TTL_HOURS` ใน `.env` (default 24 ชม.) — User token ไม่สามารถปิด expiry ได้
 
 ### ตัวอย่างการใช้ API
 
 ```bash
-# 1. รับ Token
+# 1. รับ Admin Token
 curl -X POST https://ucm.example.com/api/auth/token \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"password","token_name":"repair-system"}'
-# Response: { "token": "1|abc...", "type": "Bearer" }
+# Response: { "token": "1|abc...", "type": "Bearer", "expires_at": "2026-07-01T00:00:00+07:00" }
 
 # 2. ตรวจสอบสิทธิ์ทั้งหมดของ user
 curl https://ucm.example.com/api/users/john.doe/permissions \
@@ -963,7 +965,7 @@ protected static array $map = [
 | 1 | ข้อมูลระบบ | ชื่อ, Slug, สี, ไอคอน หรือเลือกระบบที่มีอยู่แล้ว |
 | 2 | การเชื่อมต่อ DB | Driver (MySQL/PostgreSQL/SQL Server), Host, Port, Database, Credentials + Test + **วิเคราะห์ Schema อัตโนมัติ** |
 | 3 | ตาราง Users | เลือกตาราง, map คอลัมน์ Identifier/ชื่อ/อีเมล/แผนก/สถานะ |
-| 4 | Permission Mode | Junction / Column / Manual / Mixed / Boolean Matrix / Group Inheritance (6 modes) |
+| 4 | Permission Mode | 10 modes: Junction / Column / Manual / Mixed / Boolean Matrix / Group Inheritance / JSON Column / Delimited Column / Bitmask / Multi-Level Hierarchy |
 | 5 | **2-Way Sync** (ทางเลือก) | เปิด 2-Way Sync, เลือกตาราง Permission Definition, map คอลัมน์, เลือก Delete Mode (Hard/Soft/DetachOnly) |
 | 6 | ยืนยัน | Review สรุปทั้งหมด → สร้าง System + ConnectorConfig |
 
@@ -978,16 +980,20 @@ protected static array $map = [
 
 ### Permission Modes
 
-`DynamicAdapter` รองรับ 6 permission modes:
+`DynamicAdapter` รองรับ 10 permission modes:
 
 ```
-junction         users ─── user_roles(user_id, role_code) ──► DELETE+INSERT on sync
-                           (Composite: user_roles(user_id, pg_id, site_id) → key = "pg_id:site_id")
-column           users.role_col ──► UPDATE ค่าเดียวต่อ user
-manual           กำหนด permission list ใน UCM เอง — ระบบปลายทาง query UCM API โดยตรง
-mixed            ผสม junction + column — บาง permission เก็บใน junction table, บางตัวใน column
-boolean_matrix   ตาราง matrix (user_id × permission_col = 0/1) — UPDATE แต่ละ column ทีละ bit
-group_inheritance users → user_groups → group_permissions — sync ผ่าน group membership
+junction            users ─── perm_table(user_fk, perm_value) ──► DELETE+INSERT on sync
+                               (Composite: key = "val1:val2" สำหรับ FK > 2)
+column              users.perm_col ──► UPDATE ค่าเดียวต่อ user
+manual              permission list กำหนดใน UCM — ระบบปลายทาง query UCM API โดยตรง
+mixed               junction side + column side บน user table เดียวกัน
+boolean_matrix      user table มีคอลัมน์ boolean (0/1) ต่อ permission — UPDATE ทีละ bit
+group_inheritance   users → user_groups → group_permissions — sync ผ่าน group membership
+json_column         users.perm_col เก็บ JSON array ของ permission keys — UPDATE ทั้ง array
+delimited_column    users.perm_col เก็บ string คั่นด้วย delimiter (เช่น "view,edit") — UPDATE ทั้ง string
+bitmask             users.perm_col เก็บ integer bit flags — OR/AND bits ตาม perm_bitmask_map
+multi_level_hierarchy ระดับสิทธิ์แบบ hierarchy — sync ผ่าน level ของ role ใน group table
 ```
 
 ### Composite Junction Mode
@@ -1016,11 +1022,16 @@ SyncPermissionsJob (Queue Worker)    SystemController → adapter.provisionPermi
 DynamicAdapter.syncPermissions()     DynamicAdapter.provisionPermission()
     │  อ่าน ConnectorConfig จาก DB       │  INSERT into perm_def_table
     │                                   └─ returns lastInsertId or key
-    ├─ Junction mode: BEGIN TX → DELETE WHERE fk=? → INSERT ทุก permission → COMMIT
-    ├─ Column mode:   UPDATE users SET perm_col=? WHERE id_col=?   DynamicAdapter.deletePermission()
-    └─ Manual mode:   return true (ไม่ sync ไปยัง DB ปลายทาง)      ├─ Hard:   DELETE FROM perm_def_table WHERE pk=?
-                                                                    ├─ Soft:   UPDATE perm_def_table SET col=val WHERE pk=?
-                                                                    └─ Detach: return true (ไม่แตะ DB ปลายทาง)
+    ├─ junction:          BEGIN TX → DELETE WHERE fk=? → INSERT ทุก permission → COMMIT
+    ├─ column:            UPDATE users SET perm_col=? WHERE id_col=?
+    ├─ manual:            return true (ไม่ sync ไปยัง DB)       DynamicAdapter.deletePermission()
+    ├─ mixed:             junction side + column side              ├─ Hard:   DELETE FROM perm_def_table WHERE pk=?
+    ├─ boolean_matrix:    UPDATE users SET col1=?,col2=? (bits)    ├─ Soft:   UPDATE perm_def_table SET col=val WHERE pk=?
+    ├─ group_inheritance: sync group membership                    └─ Detach: return true (ไม่แตะ DB ปลายทาง)
+    ├─ json_column:       UPDATE users SET perm_col=JSON(perms)
+    ├─ delimited_column:  UPDATE users SET perm_col="a,b,c"
+    ├─ bitmask:           UPDATE users SET perm_col=int_flags
+    └─ multi_level_hierarchy: sync via role level in group table
 ```
 
 > **Security:** identifier ชื่อตาราง/คอลัมน์ทุกตัวผ่าน `qi()` helper ที่มี whitelist regex `[\w.]+` + backtick/double-quote quoting ตาม driver ก่อน execute — รองรับ schema-qualified names (`schema.table`) อย่างถูกต้อง

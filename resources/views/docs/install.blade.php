@@ -360,6 +360,7 @@ $sections = [
                         ['key' => 'MAIL_MAILER', 'val' => 'smtp'],
                         ['key' => 'MAIL_HOST', 'val' => 'smtp.your-domain.com'],
                         ['key' => 'MAIL_PORT', 'val' => '587', 'note' => '25 / 465 / 587'],
+                        ['key' => 'MAIL_SCHEME', 'val' => 'tls', 'note' => 'tls (587) / ssl (465) / เว้นว่าง (25, plain SMTP)'],
                         ['key' => 'MAIL_USERNAME', 'val' => 'ucm@your-domain.com'],
                         ['key' => 'MAIL_PASSWORD', 'val' => 'your_mail_password'],
                         ['key' => 'MAIL_FROM_ADDRESS', 'val' => 'ucm@your-domain.com'],
