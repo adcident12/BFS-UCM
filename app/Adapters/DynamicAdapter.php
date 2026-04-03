@@ -605,13 +605,15 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         }
     }
 
-    public function getCurrentPermissions(UcmUser $user): array
+    public function getCurrentPermissions(UcmUser $user): ?array
     {
         $cfg = $this->config;
         $identifier = $this->resolveUserFkValue($user);
 
         if ($cfg->permission_mode === 'manual') {
-            return [];
+            // Manual mode ไม่มี remote permission storage → คืน null
+            // เพื่อให้ UCM ไม่แสดง "Out of Sync" badge (ไม่มีอะไรให้เปรียบเทียบ)
+            return null;
         }
 
         // Boolean Matrix: query the user table for columns where value = 1
@@ -840,6 +842,30 @@ class DynamicAdapter extends BaseAdapter implements SystemAdapterInterface
         $cfg = $this->config;
 
         if ($cfg->permission_mode === 'manual') {
+            // ถ้า config ระบุ user_table → ตรวจสอบว่า user มีอยู่ในระบบปลายทางหรือไม่
+            // ถ้าไม่มีให้สร้างอัตโนมัติ (permissions ใน manual mode ไม่ได้เขียนลง remote DB)
+            if ($cfg->user_table && $cfg->user_identifier_col) {
+                try {
+                    $identStr = $this->resolveUserIdentifier($user);
+                    $userTable = $this->quoteIdentifier($cfg->user_table);
+                    $idCol = $this->quoteIdentifier($cfg->user_identifier_col);
+                    $pdo = $this->getConnection();
+                    $chk = $pdo->prepare("SELECT 1 FROM {$userTable} WHERE {$idCol} = ? LIMIT 1");
+                    $chk->execute([$identStr]);
+                    if (! $chk->fetchColumn()) {
+                        Log::info("[DynamicAdapter:{$this->system->slug}] Manual mode — user {$identStr} ยังไม่มีในระบบปลายทาง → กำลังสร้าง...");
+                        if (! $this->createUser($user, [])) {
+                            return false;
+                        }
+                        Log::info("[DynamicAdapter:{$this->system->slug}] Manual mode — สร้าง user {$identStr} สำเร็จ");
+                    }
+                } catch (PDOException $e) {
+                    Log::error("[DynamicAdapter:{$this->system->slug}] Manual mode — ตรวจ/สร้าง user ล้มเหลว: ".$e->getMessage());
+
+                    return false;
+                }
+            }
+
             return true;
         }
 

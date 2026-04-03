@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Adapters\AdapterFactory;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\System;
@@ -11,6 +12,7 @@ use App\Services\LdapService;
 use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -181,6 +183,24 @@ class AuthController extends Controller
 
             if ($system) {
                 $permissions = $user->getPermissionsForSystem($system->id);
+
+                // ถ้าระบบมี adapter → ตรวจสอบว่า user มีบัญชีในระบบภายนอกหรือไม่
+                // ถ้ายังไม่มี → สร้างอัตโนมัติ (ไม่ block login หากสร้างไม่ได้)
+                if (AdapterFactory::hasAdapter($system)) {
+                    try {
+                        $adapter = AdapterFactory::make($system);
+                        if ($adapter->getAccountStatus($user) === null) {
+                            $created = $adapter->createUser($user, $permissions);
+                            if ($created) {
+                                Log::info("[API user-login] auto-created user {$user->username} in {$system->slug}");
+                            } else {
+                                Log::warning("[API user-login] createUser returned false for {$user->username} → {$system->slug}");
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        Log::warning("[API user-login] auto-create user failed for {$user->username} → {$system->slug}: {$e->getMessage()}");
+                    }
+                }
             }
         }
 

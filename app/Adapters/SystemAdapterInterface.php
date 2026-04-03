@@ -34,9 +34,11 @@ interface SystemAdapterInterface
      * ใช้สำหรับ import สถานะเดิมเข้า UCM
      *
      * @param  UcmUser $user
-     * @return array   permission keys ที่ user มีอยู่แล้ว
+     * @return array|null  permission keys ที่ user มีอยู่แล้ว
+     *                     null = ระบบนี้ไม่มี remote permission storage (เช่น manual mode)
+     *                           → UCM จะไม่แสดง "Out of Sync" badge
      */
-    public function getCurrentPermissions(UcmUser $user): array;
+    public function getCurrentPermissions(UcmUser $user): ?array;
 
     /**
      * สร้าง account ของ user ในระบบเดิม (ถ้ายังไม่มี)
