@@ -6,6 +6,7 @@ use App\Http\Requests\StoreMatrixShareLinkRequest;
 use App\Models\AuditLog;
 use App\Models\MatrixShareLink;
 use App\Models\System;
+use App\Models\UcmUser;
 use App\Services\AuditLogger;
 use App\Services\NotificationService;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +29,14 @@ class MatrixShareLinkController extends Controller
 
         $systems = System::where('is_active', true)->orderBy('name')->get();
 
-        return view('share-links.index', compact('shareLinks', 'systems'));
+        $departments = UcmUser::where('is_active', true)
+            ->whereNotNull('department')
+            ->where('department', '!=', '')
+            ->distinct()
+            ->orderBy('department')
+            ->pluck('department');
+
+        return view('share-links.index', compact('shareLinks', 'systems', 'departments'));
     }
 
     public function store(StoreMatrixShareLinkRequest $request): RedirectResponse

@@ -184,6 +184,23 @@
             </div>
         </div>
 
+        {{-- Toolbar: summary + Export CSV --}}
+        <div class="flex items-center justify-between gap-3 mb-3">
+            <p class="text-xs text-slate-500">
+                แสดง <strong class="text-slate-700">{{ number_format($users->count()) }} คน</strong>
+                · <strong class="text-slate-700">{{ $totalPermCols }}</strong> สิทธิ์
+                @if ($shareLink->hasFilters())<span class="ml-1 text-violet-600 font-medium">(กรองแล้ว)</span>@endif
+            </p>
+            <a href="{{ route('share.matrix.export', $shareLink->token) }}"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white shadow-sm transition-all hover:-translate-y-px hover:shadow-md active:translate-y-0"
+               style="background: linear-gradient(135deg, #059669 0%, #0284c7 100%); box-shadow: 0 1px 6px rgba(5,150,105,0.35)">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Export CSV
+            </a>
+        </div>
+
         {{-- Matrix Table --}}
         <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
             <div class="matrix-wrap" id="matrix-wrap">

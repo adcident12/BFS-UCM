@@ -333,12 +333,18 @@
             {{-- Filter Departments --}}
             <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">แผนก
-                    <span class="text-slate-400 font-normal">(ไม่กรอก = ทุกแผนก)</span>
+                    <span class="text-slate-400 font-normal">(ไม่เลือก = ทุกแผนก)</span>
                 </label>
-                <div id="dept-tags" class="flex flex-wrap gap-1.5 mb-2 empty:hidden"></div>
-                <input type="text" id="dept-input" placeholder="พิมพ์ชื่อแผนกแล้วกด Enter…"
-                       class="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 placeholder-slate-300">
-                <div id="dept-hidden-inputs"></div>
+                <div class="border border-slate-200 rounded-xl p-3 space-y-1.5 max-h-36 overflow-y-auto bg-slate-50/50">
+                    @foreach ($departments as $dept)
+                        <label class="flex items-center gap-2.5 cursor-pointer group py-0.5">
+                            <input type="checkbox" name="filter_departments[]" value="{{ $dept }}"
+                                   {{ in_array($dept, old('filter_departments', [])) ? 'checked' : '' }}
+                                   class="w-4 h-4 rounded border-slate-300 text-sky-600 focus:ring-sky-300">
+                            <span class="text-xs text-slate-700 font-medium group-hover:text-slate-900 transition-colors">{{ $dept }}</span>
+                        </label>
+                    @endforeach
+                </div>
             </div>
 
             {{-- Filter Usernames --}}
@@ -390,39 +396,6 @@ function confirmToggle(formId, isActive, label) {
     askConfirm(formId, title, detail);
 }
 
-(function () {
-    var input      = document.getElementById('dept-input');
-    var tagWrap    = document.getElementById('dept-tags');
-    var hiddenWrap = document.getElementById('dept-hidden-inputs');
-    if (! input) { return; }
-    var tags = [];
-
-    function renderTags() {
-        tagWrap.innerHTML   = '';
-        hiddenWrap.innerHTML = '';
-        tags.forEach(function (t, i) {
-            var span = document.createElement('span');
-            span.className = 'inline-flex items-center gap-1 px-2 py-1 bg-violet-50 border border-violet-200 text-violet-700 text-xs font-medium rounded-lg';
-            span.innerHTML = t + '<button type="button" onclick="removeDept(' + i + ')" class="ml-0.5 text-violet-400 hover:text-violet-700 cursor-pointer leading-none">×</button>';
-            tagWrap.appendChild(span);
-            var h = document.createElement('input');
-            h.type  = 'hidden';
-            h.name  = 'filter_departments[]';
-            h.value = t;
-            hiddenWrap.appendChild(h);
-        });
-    }
-
-    window.removeDept = function (i) { tags.splice(i, 1); renderTags(); };
-
-    input.addEventListener('keydown', function (e) {
-        if (e.key !== 'Enter') { return; }
-        e.preventDefault();
-        var val = input.value.trim();
-        if (val && ! tags.includes(val)) { tags.push(val); renderTags(); }
-        input.value = '';
-    });
-})();
 
 @if ($errors->any())
     document.addEventListener('DOMContentLoaded', function () {

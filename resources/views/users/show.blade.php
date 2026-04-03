@@ -106,6 +106,66 @@
     </div>
 </div>
 
+{{-- System Jump Bar --}}
+@if ($systems->count() > 1)
+<div id="system-jump-bar"
+     class="sticky top-0 z-30 mb-5 rounded-2xl transition-shadow"
+     style="background: rgba(255,255,255,0.95); backdrop-filter: blur(14px); box-shadow: 0 1px 12px rgba(15,23,42,0.08); border: 1px solid rgba(226,232,240,0.8)">
+    <div class="flex items-center gap-1 px-3 py-2">
+
+        {{-- Label --}}
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex-shrink-0 pr-2 border-r border-slate-100 mr-1">ระบบ</span>
+
+        {{-- Left scroll arrow --}}
+        <button type="button" id="jump-prev"
+                onclick="jumpScroll(-1)"
+                class="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex-shrink-0 transition-colors cursor-pointer"
+                style="display:none">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+
+        {{-- Scrollable pill track --}}
+        <div id="jump-track" class="flex items-center gap-1.5 overflow-x-auto flex-1 scroll-smooth"
+             style="scrollbar-width:none; -ms-overflow-style:none;">
+            <style>#jump-track::-webkit-scrollbar{display:none}</style>
+            @foreach ($systems as $system)
+                @php $count = count($permsPerSystem[$system->id]['perms'] ?? []); @endphp
+                <button type="button"
+                        onclick="document.getElementById('sys-{{ $system->id }}').scrollIntoView({behavior:'smooth',block:'start'})"
+                        class="jump-btn inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold border flex-shrink-0 transition-all cursor-pointer hover:shadow-sm"
+                        data-system="{{ $system->id }}"
+                        title="{{ $system->name }}"
+                        style="border-color:{{ $system->color }}35; color:{{ $system->color }}; background:{{ $system->color }}0f;">
+                    <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:{{ $system->color }}"></span>
+                    <span class="jump-label max-w-[120px] truncate">{{ $system->name }}</span>
+                    @if ($count > 0)
+                        <span class="flex-shrink-0 px-1.5 py-0.5 rounded-md text-[10px] font-bold leading-none"
+                              style="background:{{ $system->color }}22; color:{{ $system->color }}">{{ $count }}</span>
+                    @endif
+                </button>
+            @endforeach
+        </div>
+
+        {{-- Right scroll arrow --}}
+        <button type="button" id="jump-next"
+                onclick="jumpScroll(1)"
+                class="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex-shrink-0 transition-colors cursor-pointer"
+                style="display:none">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+
+        {{-- System count badge (แสดงเมื่อมีมาก) --}}
+        <span class="flex-shrink-0 ml-1 pl-2 border-l border-slate-100 text-[10px] font-semibold text-slate-400 whitespace-nowrap">
+            {{ $systems->count() }} ระบบ
+        </span>
+    </div>
+</div>
+@endif
+
 {{-- Permission Matrix --}}
 <div class="space-y-5">
     @forelse ($systems as $system)
@@ -124,7 +184,7 @@
             $totalCount      = $system->permissions->count();
         @endphp
 
-        <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden">
+        <div id="sys-{{ $system->id }}" class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-100 overflow-hidden scroll-mt-16">
 
             {{-- System header --}}
             <div class="flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4 border-b border-slate-100"
@@ -525,6 +585,62 @@
     if (document.querySelector('[data-sync-pending]')) {
         setTimeout(function() { window.location.reload(); }, 3000);
     }
+
+    // Jump bar
+    (function () {
+        var bar   = document.getElementById('system-jump-bar');
+        var track = document.getElementById('jump-track');
+        var prev  = document.getElementById('jump-prev');
+        var next  = document.getElementById('jump-next');
+        if (!bar || !track) { return; }
+
+        var cards = document.querySelectorAll('[id^="sys-"]');
+
+        // ── Scroll arrows visibility ─────────────────────────────
+        function updateArrows() {
+            if (!prev || !next) { return; }
+            var overflowing = track.scrollWidth > track.clientWidth + 4;
+            prev.style.display = overflowing ? 'flex' : 'none';
+            next.style.display = overflowing ? 'flex' : 'none';
+            prev.style.opacity = track.scrollLeft > 4           ? '1' : '0.3';
+            next.style.opacity = track.scrollLeft < track.scrollWidth - track.clientWidth - 4 ? '1' : '0.3';
+        }
+
+        window.jumpScroll = function (dir) {
+            track.scrollBy({ left: dir * 200, behavior: 'smooth' });
+        };
+
+        track.addEventListener('scroll', updateArrows, { passive: true });
+        window.addEventListener('resize', updateArrows);
+        setTimeout(updateArrows, 100);
+
+        // ── Highlight active system on page scroll ───────────────
+        function getActiveId() {
+            var scrollY = window.scrollY + 130;
+            var active  = null;
+            cards.forEach(function (card) {
+                if (card.offsetTop <= scrollY) { active = card.id.replace('sys-', ''); }
+            });
+            return active;
+        }
+
+        function updateActive() {
+            var activeId = getActiveId();
+            track.querySelectorAll('.jump-btn').forEach(function (btn) {
+                var on = btn.dataset.system === activeId;
+                btn.style.fontWeight = on ? '700'   : '';
+                btn.style.boxShadow  = on ? '0 0 0 2px ' + btn.style.color + '55' : '';
+                btn.style.background = on ? btn.style.color + '18' : btn.style.color + '0f';
+                // scroll active pill into view within track
+                if (on) {
+                    btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                }
+            });
+        }
+
+        window.addEventListener('scroll', updateActive, { passive: true });
+        updateActive();
+    })();
 </script>
 @endpush
 @endsection

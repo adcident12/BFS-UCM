@@ -1175,8 +1175,9 @@ $sections = [
                         ['href' => '#wiz-2way',              'label' => '2-Way Sync & Delete Mode'],
                         ['href' => '#wiz-example-gov-hr',       'label' => '📋 ตัวอย่าง: ระบบ HR ภาครัฐ'],
                         ['href' => '#wiz-example-repair-sc',    'label' => '📋 ตัวอย่าง: ระบบแจ้งซ่อม'],
-                        ['href' => '#wiz-example-legal-dms',    'label' => '📋 ตัวอย่าง: ระบบเอกสารกฎหมาย'],
-                        ['href' => '#wiz-after',                'label' => 'หลังสร้างแล้ว'],
+                        ['href' => '#wiz-example-legal-dms',        'label' => '📋 ตัวอย่าง: ระบบเอกสารกฎหมาย'],
+                        ['href' => '#wiz-example-announcement',     'label' => '📋 ตัวอย่าง: ระบบประชาสัมพันธ์'],
+                        ['href' => '#wiz-after',                    'label' => 'หลังสร้างแล้ว'],
                     ] as $t)
                     <a href="{{ $t['href'] }}" class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors font-medium">{{ $t['label'] }}</a>
                     @endforeach
@@ -3925,6 +3926,335 @@ FLUSH PRIVILEGES;</pre>
                         </div>
                     </div>
 
+                </div>
+
+                {{-- ═══════════════════════════════════════════════════════════
+                     ตัวอย่าง: ระบบประชาสัมพันธ์ภายใน (Manual Mode)
+                ═══════════════════════════════════════════════════════════ --}}
+                <div id="wiz-example-announcement" class="border-t border-slate-100 pt-5">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-lg flex-shrink-0">📢</div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base">ตัวอย่างการตั้งค่าแบบครบถ้วน — Manual Permission Mode</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">ระบบประชาสัมพันธ์ภายใน • <code class="font-mono bg-slate-100 px-1 rounded">announcement_db</code> • MySQL • ไม่มี Permission Table ในระบบภายนอก</p>
+                        </div>
+                    </div>
+
+                    {{-- บริบทระบบ --}}
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-5">
+                        <p class="text-sm font-bold text-emerald-800 mb-1">บริบทระบบ — เมื่อไหร่ควรใช้ Manual Mode?</p>
+                        <p class="text-xs text-emerald-700 leading-relaxed mb-3">ระบบประชาสัมพันธ์ภายในองค์กร (<strong>Announcement System</strong>) มีตาราง <code class="font-mono bg-emerald-100 px-1 rounded">users</code> สำหรับเก็บข้อมูลผู้ใช้ แต่ <strong>ไม่มีตาราง Permission ของตัวเอง</strong> — ระบบนี้ตรวจสิทธิ์โดยเรียก <strong>UCM API</strong> แทน ดังนั้น Permission list จึงถูกกำหนดและจัดเก็บใน UCM ทั้งหมด ไม่ต้อง sync ลง DB ปลายทาง</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                            @foreach ([
+                                ['icon' => '✅', 'text' => 'มีตาราง users ปลายทาง — UCM จะสร้าง account ให้อัตโนมัติเมื่อ assign สิทธิ์ครั้งแรก'],
+                                ['icon' => '✅', 'text' => 'Permission list กำหนดใน UCM เอง ไม่ต้องมีตาราง permissions ในระบบปลายทาง'],
+                                ['icon' => '✅', 'text' => 'ระบบปลายทางเรียก UCM API เพื่อตรวจสิทธิ์แบบ real-time'],
+                            ] as $p)
+                            <div class="flex items-start gap-1.5 bg-white/60 rounded-lg px-2.5 py-2">
+                                <span class="flex-shrink-0">{{ $p['icon'] }}</span>
+                                <span class="text-emerald-800">{{ $p['text'] }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- Schema --}}
+                    <div class="mb-5">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">โครงสร้าง Database (<code class="font-mono normal-case">announcement_db</code>)</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+                            <div class="bg-slate-900 rounded-xl p-4 text-[11px] font-mono text-slate-300 leading-relaxed">
+                                <p class="text-emerald-400 font-bold mb-2">-- ตาราง users (ข้อมูลผู้ใช้เท่านั้น)</p>
+                                <p class="text-slate-400">CREATE TABLE <span class="text-yellow-300">users</span> (</p>
+                                <p class="pl-4">id           INT UNSIGNED PK AUTO_INCREMENT,</p>
+                                <p class="pl-4 text-emerald-300">username     VARCHAR(100) UNIQUE, <span class="text-slate-500">-- = UCM username</span></p>
+                                <p class="pl-4">display_name VARCHAR(150),</p>
+                                <p class="pl-4">email        VARCHAR(150),</p>
+                                <p class="pl-4">department   VARCHAR(100),</p>
+                                <p class="pl-4">title        VARCHAR(100),</p>
+                                <p class="pl-4 text-sky-300">is_active    TINYINT(1) DEFAULT 1, <span class="text-slate-500">-- สถานะ</span></p>
+                                <p class="pl-4">created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP</p>
+                                <p class="text-slate-400">);</p>
+                                <p class="text-slate-400 mt-2">-- ไม่มีตาราง permissions!</p>
+                                <p class="text-slate-400">-- Permission เก็บใน UCM ทั้งหมด</p>
+                            </div>
+
+                            <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-800 space-y-2 leading-relaxed">
+                                <p class="font-bold text-emerald-900">วิธีที่ระบบปลายทางตรวจสิทธิ์</p>
+                                <p>แทนที่จะ query ตาราง permissions ของตัวเอง ระบบปลายทางจะเรียก <strong>UCM API</strong> เพื่อดึง permissions ของ user ณ ขณะนั้น</p>
+                                <div class="bg-slate-900 rounded-lg p-3 font-mono text-[10px] text-slate-300 leading-relaxed">
+                                    <p class="text-violet-300">POST /api/auth/user-login</p>
+                                    <p class="text-slate-400">&#123;</p>
+                                    <p class="pl-3 text-emerald-300">"username": "john.doe",</p>
+                                    <p class="pl-3 text-emerald-300">"password": "...",</p>
+                                    <p class="pl-3 text-sky-300">"system":   "announcement"</p>
+                                    <p class="text-slate-400">&#125;</p>
+                                    <p class="text-slate-300 mt-1">→ ตอบกลับ: token + permissions[]</p>
+                                </div>
+                                <p class="text-[10px] text-emerald-700">UCM จะสร้าง account ใน <code class="font-mono bg-white px-1 rounded">announcement_db.users</code> ให้อัตโนมัติถ้ายังไม่มี</p>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {{-- Step-by-Step --}}
+                    <div class="space-y-4">
+
+                        {{-- Step 1 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-indigo-600">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">1</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 1 — ข้อมูลระบบ</p>
+                                    <p class="text-indigo-200 text-[11px]">กรอกชื่อและรายละเอียดระบบประชาสัมพันธ์</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @foreach ([
+                                        ['field' => 'ชื่อระบบ',    'val' => 'ระบบประชาสัมพันธ์ภายใน', 'req' => true],
+                                        ['field' => 'Slug',         'val' => 'announcement',             'req' => true, 'hint' => 'ใช้เป็น key ในการเรียก API'],
+                                        ['field' => 'คำอธิบาย',    'val' => 'ระบบแจ้งข่าวสารและประชาสัมพันธ์ภายในองค์กร', 'req' => false],
+                                        ['field' => 'สีประจำระบบ', 'val' => 'Emerald (#10b981)',        'req' => false],
+                                        ['field' => 'Emoji Icon',   'val' => '📢',                       'req' => false],
+                                    ] as $f)
+                                    <div class="flex items-start gap-2 p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-semibold text-slate-600 text-[10px] mb-0.5">{{ $f['field'] }}@if($f['req'])<span class="text-rose-500">*</span>@endif</p>
+                                            <p class="font-mono text-slate-900 font-bold truncate">{{ $f['val'] }}</p>
+                                            @if(isset($f['hint']))<p class="text-slate-400 text-[10px] mt-0.5">{{ $f['hint'] }}</p>@endif
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 2</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 2 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-slate-700">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">2</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 2 — การเชื่อมต่อฐานข้อมูล</p>
+                                    <p class="text-slate-200 text-[11px]">กรอก connection string ไปยัง announcement_db</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    @foreach ([
+                                        ['field' => 'Database Driver', 'val' => '🐬 MySQL / MariaDB'],
+                                        ['field' => 'Host',            'val' => 'ucm-db'],
+                                        ['field' => 'Port',            'val' => '3306'],
+                                        ['field' => 'Database Name',   'val' => 'announcement_db'],
+                                        ['field' => 'Username',        'val' => 'announce_user'],
+                                        ['field' => 'Password',        'val' => 'announce_pass'],
+                                    ] as $f)
+                                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <p class="font-semibold text-slate-500 text-[10px] mb-0.5">{{ $f['field'] }}</p>
+                                        <p class="font-mono text-slate-900 font-bold">{{ $f['val'] }}</p>
+                                    </div>
+                                    @endforeach
+                                </div>
+
+                                <div class="rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="px-3 py-2 bg-slate-100 border-b border-slate-200">
+                                        <p class="text-[10px] font-bold text-slate-600">สิทธิ์ขั้นต่ำที่ DB User ต้องการ (SQL ตัวอย่าง)</p>
+                                    </div>
+                                    <pre class="px-4 py-3 text-[10px] font-mono bg-slate-800 text-emerald-300 overflow-x-auto leading-relaxed">CREATE USER 'announce_user'@'%' IDENTIFIED BY 'announce_pass';
+-- ต้องการ INSERT เพราะ UCM สร้าง user record อัตโนมัติ
+GRANT SELECT, INSERT, UPDATE ON announcement_db.users TO 'announce_user'@'%';
+FLUSH PRIVILEGES;</pre>
+                                </div>
+
+                                <div class="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800">
+                                    <svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>กด <strong>"ทดสอบการเชื่อมต่อ"</strong> ก่อนทำขั้นตอนถัดไปเสมอ</span>
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 3</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 3 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-slate-700">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">3</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 3 — ตาราง User และ Identifier</p>
+                                    <p class="text-slate-200 text-[11px]">บอก UCM ว่าตาราง user ของระบบปลายทางอยู่ที่ไหน</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    @foreach ([
+                                        ['field' => 'User Table',       'val' => 'users',       'hint' => 'ตารางที่เก็บข้อมูลผู้ใช้'],
+                                        ['field' => 'Identifier Column','val' => 'username',    'hint' => 'ต้อง match กับ UCM username'],
+                                        ['field' => 'Name Column',      'val' => 'display_name','hint' => 'ชื่อที่แสดงผล'],
+                                        ['field' => 'Email Column',     'val' => 'email',       'hint' => 'optional'],
+                                        ['field' => 'Dept Column',      'val' => 'department',  'hint' => 'optional — sync ชื่อแผนก'],
+                                        ['field' => 'Status Column',    'val' => 'is_active',   'hint' => 'optional'],
+                                        ['field' => 'Active Value',     'val' => '1',           'hint' => 'ค่าที่หมายถึง "เปิดใช้"'],
+                                    ] as $f)
+                                    <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                                        <p class="font-semibold text-slate-600 text-[10px] mb-0.5">{{ $f['field'] }}</p>
+                                        <p class="font-mono text-slate-900 font-bold">{{ $f['val'] }}</p>
+                                        @if(isset($f['hint']))<p class="text-slate-500 text-[10px] mt-0.5">{{ $f['hint'] }}</p>@endif
+                                    </div>
+                                    @endforeach
+                                </div>
+                                <div class="flex items-start gap-2 p-3 bg-sky-50 border border-sky-200 rounded-xl text-[11px] text-sky-800">
+                                    <svg class="w-3.5 h-3.5 text-sky-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                                    <span>ข้อมูล User Table นี้ทำให้ UCM รู้ว่าจะสร้าง record ในตารางไหนเมื่อ assign สิทธิ์ให้ผู้ใช้ที่ยังไม่มีบัญชีในระบบปลายทาง</span>
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 4</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 4 --}}
+                        <div class="rounded-2xl border border-emerald-300 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-emerald-600">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">4</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 4 — Permission Mode <span class="ml-2 text-xs font-normal bg-white/20 px-2 py-0.5 rounded-full">⭐ ขั้นตอนสำคัญ</span></p>
+                                    <p class="text-emerald-100 text-[11px]">เลือก "กำหนดด้วยตนเอง (Manual)" — ไม่มีตาราง Permission ในระบบปลายทาง</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="flex items-start gap-3 p-4 bg-emerald-50 border-2 border-emerald-400 rounded-xl">
+                                    <div class="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-emerald-900">เลือก: กำหนดด้วยตนเอง (Manual)</p>
+                                        <p class="text-emerald-700 mt-1 leading-relaxed">Permission list จะถูกกำหนดและจัดเก็บใน UCM ทั้งหมด — ไม่มีการ sync ลงฐานข้อมูลปลายทาง ระบบปลายทางอ่าน permissions ผ่าน UCM API แทน</p>
+                                    </div>
+                                </div>
+
+                                {{-- กำหนด Permission Keys --}}
+                                <div>
+                                    <p class="font-semibold text-slate-700 mb-2">กำหนด Permission Keys ที่ต้องการ (เพิ่มได้ทีหลังผ่านหน้า "ระบบที่เชื่อมต่อ")</p>
+                                    <div class="rounded-xl border border-slate-200 overflow-hidden">
+                                        <div class="grid grid-cols-3 bg-slate-50 font-bold text-slate-500 text-[10px] px-3 py-2 border-b border-slate-200">
+                                            <div>Permission Key</div><div>Label (ชื่อภาษาไทย)</div><div>Group</div>
+                                        </div>
+                                        @foreach ([
+                                            ['key' => 'post.create',   'label' => 'สร้างประกาศ',          'group' => 'ประกาศ'],
+                                            ['key' => 'post.edit',     'label' => 'แก้ไขประกาศ',          'group' => 'ประกาศ'],
+                                            ['key' => 'post.delete',   'label' => 'ลบประกาศ',             'group' => 'ประกาศ'],
+                                            ['key' => 'post.publish',  'label' => 'เผยแพร่ประกาศ',        'group' => 'ประกาศ'],
+                                            ['key' => 'post.view_all', 'label' => 'ดูประกาศทุกหมวด',      'group' => 'ประกาศ'],
+                                            ['key' => 'admin.manage',  'label' => 'จัดการระบบ (Admin)',   'group' => 'Admin'],
+                                        ] as $p)
+                                        <div class="grid grid-cols-3 px-3 py-1.5 border-b border-slate-100 text-[10px] last:border-0">
+                                            <code class="font-mono font-bold text-emerald-700">{{ $p['key'] }}</code>
+                                            <span class="text-slate-700">{{ $p['label'] }}</span>
+                                            <span class="text-slate-600">{{ $p['group'] }}</span>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-800">
+                                    <svg class="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>ใน Manual mode ปุ่ม <strong>"Discover Permissions"</strong> จะไม่ทำงาน เพราะไม่มีตาราง permissions ในระบบปลายทาง — ต้องกำหนด Permission Keys เองผ่านหน้า <strong>"ระบบที่เชื่อมต่อ → จัดการ Permissions"</strong> หลัง Wizard เสร็จ</span>
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 5</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 5 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-slate-700">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">5</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 5 — 2-Way Sync & Permission Delete Mode</p>
+                                    <p class="text-slate-200 text-[11px]">Manual mode ไม่รองรับ 2-Way Sync — ข้ามไปได้เลย</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <div class="flex items-start gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                    <span>Manual mode ไม่มีตาราง permission definition ในระบบปลายทาง ดังนั้น <strong>2-Way Sync</strong> จะถูกปิดอัตโนมัติ — ไม่ต้องตั้งค่าอะไรใน Step นี้</span>
+                                </div>
+                                <p class="text-slate-500">กด <strong class="text-slate-700">ถัดไป →</strong> เพื่อไป Step 6</p>
+                            </div>
+                        </div>
+
+                        {{-- Step 6 --}}
+                        <div class="rounded-2xl border border-slate-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-slate-700">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">6</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 6 — Master Data Tables (Optional)</p>
+                                    <p class="text-slate-200 text-[11px]">ระบบประชาสัมพันธ์ไม่มี Reference Table — ข้ามได้เลย</p>
+                                </div>
+                            </div>
+                            <div class="p-5 text-xs">
+                                <div class="flex items-start gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-600">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Step 6 เป็น Optional สำหรับระบบที่มีตาราง Reference Data ที่ต้องการให้ UCM จัดการ CRUD ระบบประชาสัมพันธ์ไม่มี → กด <strong class="text-slate-700">ถัดไป →</strong> ผ่านได้เลย</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Step 7 --}}
+                        <div class="rounded-2xl border border-emerald-200 overflow-hidden">
+                            <div class="flex items-center gap-3 px-5 py-3 bg-emerald-700">
+                                <div class="w-7 h-7 bg-white/20 text-white text-sm font-bold rounded-full flex items-center justify-center flex-shrink-0">7</div>
+                                <div>
+                                    <p class="font-bold text-white text-sm">Step 7 — ยืนยันและบันทึก</p>
+                                    <p class="text-emerald-200 text-[11px]">ตรวจสอบสรุปการตั้งค่าแล้วกด "บันทึก Connector"</p>
+                                </div>
+                            </div>
+                            <div class="p-5 space-y-3 text-xs">
+                                <p class="text-slate-600">ตรวจสอบ Summary ที่แสดงใน Step 7 ให้ครบถ้วน:</p>
+                                <div class="rounded-xl border border-slate-200 overflow-hidden">
+                                    <div class="grid grid-cols-2 bg-slate-50 font-bold text-slate-500 text-[10px] px-3 py-2 border-b border-slate-200">
+                                        <div>รายการ</div><div>ค่าที่ตั้ง</div>
+                                    </div>
+                                    @foreach ([
+                                        ['label' => 'ระบบ',           'val' => 'ระบบประชาสัมพันธ์ภายใน (announcement)'],
+                                        ['label' => 'ฐานข้อมูล',     'val' => 'announcement_db @ ucm-db:3306'],
+                                        ['label' => 'User Table',     'val' => 'users (identifier: username)'],
+                                        ['label' => 'Permission Mode','val' => 'Manual — กำหนดใน UCM เอง'],
+                                        ['label' => '2-Way Sync',     'val' => 'ปิด (ไม่รองรับใน Manual mode)'],
+                                        ['label' => 'Master Tables',  'val' => 'ไม่มี'],
+                                    ] as $r)
+                                    <div class="grid grid-cols-2 px-3 py-1.5 border-b border-slate-100 text-[10px] last:border-0">
+                                        <span class="text-slate-500 font-semibold">{{ $r['label'] }}</span>
+                                        <span class="text-slate-800 font-mono">{{ $r['val'] }}</span>
+                                    </div>
+                                    @endforeach
+                                </div>
+                                <div class="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-800">
+                                    <svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>กด <strong>"บันทึก Connector"</strong> — ระบบจะสร้าง connector และพาไปหน้าจัดการระบบ announcement ทันที</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- หลังบันทึก --}}
+                        <div class="rounded-2xl border border-teal-200 bg-teal-50 p-5 space-y-3 text-xs">
+                            <p class="font-bold text-teal-900 text-sm">✅ หลัง Wizard เสร็จ — ขั้นตอนถัดไป</p>
+                            <div class="space-y-2">
+                                @foreach ([
+                                    ['step' => '1', 'color' => 'teal', 'title' => 'เพิ่ม Permission Keys', 'detail' => 'ไปที่ "ระบบที่เชื่อมต่อ" → เลือก announcement → "จัดการ Permissions" → กด "+ เพิ่ม Permission" เพิ่ม keys ที่กำหนดไว้ใน Step 4'],
+                                    ['step' => '2', 'color' => 'teal', 'title' => 'Assign สิทธิ์ผู้ใช้', 'detail' => 'ไปที่ "จัดการผู้ใช้" เลือกผู้ใช้ กด "บันทึกสิทธิ์ระบบนี้" — UCM จะสร้าง record ใน announcement_db.users ให้อัตโนมัติถ้ายังไม่มี'],
+                                    ['step' => '3', 'color' => 'teal', 'title' => 'ทดสอบ API', 'detail' => 'ระบบปลายทางเรียก POST /api/auth/user-login พร้อม system=announcement — จะได้รับ token + permissions[] กลับมาใช้งาน'],
+                                    ['step' => '4', 'color' => 'teal', 'title' => 'ทดสอบการเชื่อมต่อ', 'detail' => 'กด "ทดสอบการเชื่อมต่อ" ในหน้าจัดการระบบ announcement เพื่อยืนยันว่า UCM เชื่อมต่อ DB ปลายทางได้'],
+                                ] as $item)
+                                <div class="flex items-start gap-3">
+                                    <span class="w-5 h-5 bg-{{ $item['color'] }}-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">{{ $item['step'] }}</span>
+                                    <div>
+                                        <p class="font-semibold text-teal-900 text-[11px]">{{ $item['title'] }}</p>
+                                        <p class="text-teal-700 mt-0.5">{{ $item['detail'] }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
 
                 <div id="wiz-after" class="border-t border-slate-100 pt-5">

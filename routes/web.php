@@ -31,6 +31,7 @@ Route::post('/oauth/authorize', [OAuthController::class, 'approveAuthorization']
 
 // Public share link — no auth required
 Route::get('/share/matrix/{token}', [PublicMatrixController::class, 'show'])->name('share.matrix');
+Route::get('/share/matrix/{token}/export', [PublicMatrixController::class, 'export'])->name('share.matrix.export');
 
 // Auth — rate limit 10 attempts / minute per IP+username
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
